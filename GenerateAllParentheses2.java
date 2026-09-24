@@ -116,7 +116,7 @@ public class GenerateAllParentheses2 {
         // which is invalid.
         if (close < open) {
 
-            // Add ')' to the current string.
+                // Add ')' to the current string.
             //
             // close + 1 because we have used
             // one more closing bracket.
