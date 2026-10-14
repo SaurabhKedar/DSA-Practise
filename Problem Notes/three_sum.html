@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>3 Sum Closest — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"] { background-color: #1e293b; }
+        body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="bg-indigo-200"] { background-color: #3730a3; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-amber-200"] { border-color: #92400e; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">3 Sum Closest — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                The recommended approach is Sorting + Two Pointers. It reduces the time complexity from
+                \(O(N^3)\) to \(O(N^2)\), making it much more efficient for large arrays.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Recommended pattern:</strong> Sort the array, fix one element, and use two pointers to find the closest three-element sum.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-3">You are given:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>An integer array <code class="text-indigo-700">A</code>.</li>
+                    <li>An integer target <code class="text-indigo-700">B</code>.</li>
+                </ul>
+                <p class="text-slate-700 mb-5">
+                    Select three elements at different indices whose sum is as close as possible to
+                    <code>B</code>. Return the sum, not the three elements themselves. The sum does not
+                    have to equal the target exactly.
+                </p>
+
+                <div class="grid gap-4 md:grid-cols-2 mb-5">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-2">Example 1</h3>
+                        <p class="text-sm text-slate-600 mb-2">Input</p>
+                        <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm"><code>A = [-1, 2, 1, -4]
+B = 1</code></pre>
+                        <p class="text-sm text-slate-600 mt-3 mb-2">Possible combinations</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
+                            <li><code>-1 + 2 + 1 = 2</code>; difference = 1</li>
+                            <li><code>-1 + 2 + (-4) = -3</code>; difference = 4</li>
+                            <li><code>-1 + 1 + (-4) = -4</code>; difference = 5</li>
+                            <li><code>2 + 1 + (-4) = -1</code>; difference = 2</li>
+                        </ul>
+                        <p class="mt-3 text-slate-700"><strong>Output:</strong> <code>2</code>. The sum <code>2</code> is closest to target <code>1</code>.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-2">Example 2</h3>
+                        <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm"><code>A = [1, 2, 3]
+B = 6</code></pre>
+                        <p class="text-slate-700 mt-3">There is only one possible combination: \(1+2+3=6\).</p>
+                        <p class="mt-2 text-slate-700"><strong>Output:</strong> <code>6</code></p>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 text-amber-900">
+                    <h3 class="font-semibold mb-2">Important conditions</h3>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Choose exactly three elements at distinct indices.</li>
+                        <li>Negative numbers and duplicate values are allowed.</li>
+                        <li>Return the sum with the smallest absolute difference from <code>B</code>.</li>
+                        <li>The problem guarantees a unique closest sum.</li>
+                        <li>Although the stated constraints allow \(N=1\), a valid three-element selection requires \(N\geq3\); we assume the test cases satisfy this requirement.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute Force Approach</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-4">Generate every possible combination of three elements, calculate its sum, and remember the sum closest to the target.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Algorithm</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Use three nested loops to select indices <code>i</code>, <code>j</code>, and <code>k</code>.</li>
+                    <li>Ensure <code>i &lt; j &lt; k</code>, so each combination is considered once.</li>
+                    <li>Calculate <code>sum = A[i] + A[j] + A[k]</code>.</li>
+                    <li>If this sum is closer to <code>B</code> than the best sum found so far, update the answer.</li>
+                    <li>Return the closest sum after checking all combinations.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Java code — Brute force</h3>
+                <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5 shadow-inner">
+<pre><code>public class Solution {
+    public int threeSumClosest(int[] A, int B) {
+        int n = A.length;
+
+        // Initialize with the first valid combination.
+        int closestSum = A[0] + A[1] + A[2];
+
+        // Choose the first element.
+        for (int i = 0; i &lt; n - 2; i++) {
+
+            // Choose the second element.
+            for (int j = i + 1; j &lt; n - 1; j++) {
+
+                // Choose the third element.
+                for (int k = j + 1; k &lt; n; k++) {
+
+                    int sum = A[i] + A[j] + A[k];
+
+                    // Compare absolute distances from target B.
+                    if (Math.abs(sum - B)
+                            &lt; Math.abs(closestSum - B)) {
+                        closestSum = sum;
+                    }
+                }
+            }
+        }
+
+        return closestSum;
+    }
+}</code></pre>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Brute force dry run</h3>
+                <p class="text-slate-700 mb-3">For <code>A = [-1, 2, 1, -4]</code> and <code>B = 1</code>:</p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200">
+                                <th scope="col" class="p-3">Selected elements</th>
+                                <th scope="col" class="p-3">Sum</th>
+                                <th scope="col" class="p-3">Distance from target</th>
+                                <th scope="col" class="p-3">Closest sum</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-100"><td class="p-3 font-mono">-1, 2, 1</td><td class="p-3">2</td><td class="p-3">1</td><td class="p-3">2</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-mono">-1, 2, -4</td><td class="p-3">-3</td><td class="p-3">4</td><td class="p-3">2</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-mono">-1, 1, -4</td><td class="p-3">-4</td><td class="p-3">5</td><td class="p-3">2</td></tr>
+                            <tr><td class="p-3 font-mono">2, 1, -4</td><td class="p-3">-1</td><td class="p-3">2</td><td class="p-3">2</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-4">The closest sum remains <code>2</code>, so the function returns <code>2</code>.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity analysis</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li><strong>Time:</strong> \(O(N^3)\). Three nested loops examine every combination of three elements.</li>
+                    <li><strong>Auxiliary space:</strong> \(O(1)\). Only a few variables are used.</li>
+                </ul>
+                <p class="text-slate-700 mt-3">For \(N=10^4\), the number of combinations can reach approximately 166.6 billion. This approach is too slow for the maximum input size.</p>
+            </section>
+
+            <section id="optimized-approach">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — Sorting + Two Pointers</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Why do we need optimization?</h3>
+                <p class="text-slate-700 mb-4">Brute force checks all possible triples. Sorting the array and using the two-pointer technique avoids checking every possible combination.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-3">First, sort the array in ascending order. For each element, fix it as the first element and use two pointers to find the other two elements:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code>i</code>: index of the fixed first element.</li>
+                    <li><code>left</code>: index immediately after <code>i</code>.</li>
+                    <li><code>right</code>: index at the end of the array.</li>
+                </ul>
+                <p class="text-slate-700 mb-2">Calculate the sum of the three selected elements:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>If <code>sum == B</code>, we have found the exact target. Return it immediately.</li>
+                    <li>If <code>sum &lt; B</code>, we need a larger sum, so move <code>left</code> to the right.</li>
+                    <li>If <code>sum &gt; B</code>, we need a smaller sum, so move <code>right</code> to the left.</li>
+                    <li>After calculating each sum, update <code>closestSum</code> whenever the new sum is closer to <code>B</code>.</li>
+                </ul>
+                <p class="text-slate-700 mb-5">Because the array is sorted, moving <code>left</code> forward increases or preserves the sum, while moving <code>right</code> backward decreases or preserves it.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Algorithm step by step</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Sort array <code>A</code>.</li>
+                    <li>Initialize <code>closestSum</code> using the first three elements.</li>
+                    <li>Iterate <code>i</code> from <code>0</code> to <code>N - 3</code>.</li>
+                    <li>Initialize <code>left = i + 1</code> and <code>right = N - 1</code>.</li>
+                    <li>While <code>left &lt; right</code>, calculate the sum of the three values.</li>
+                    <li>Update <code>closestSum</code> if the new sum is closer to <code>B</code>.</li>
+                    <li>Return immediately if <code>sum == B</code>.</li>
+                    <li>Move <code>left</code> forward if <code>sum &lt; B</code>; otherwise, move <code>right</code> backward.</li>
+                    <li>Return <code>closestSum</code>.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Complete Java solution</h3>
+                <p class="text-slate-700 mb-3">This is the recommended interview-ready solution for the given method signature.</p>
+                <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-4 shadow-inner">
+<pre><code>import java.util.Arrays;
+
+public class Solution {
+    public int threeSumClosest(int[] A, int B) {
+        int n = A.length;
+
+        // Step 1: Sort the array.
+        Arrays.sort(A);
+
+        // Step 2: Start with any valid triple.
+        int closestSum = A[0] + A[1] + A[2];
+
+        // Step 3: Fix the first element.
+        for (int i = 0; i &lt; n - 2; i++) {
+
+            // Step 4: Initialize the two pointers.
+            int left = i + 1;
+            int right = n - 1;
+
+            // Step 5: Search for the best pair.
+            while (left &lt; right) {
+                int sum = A[i] + A[left] + A[right];
+
+                // Update the answer if this sum is closer.
+                if (Math.abs(sum - B)
+                        &lt; Math.abs(closestSum - B)) {
+                    closestSum = sum;
+                }
+
+                // An exact match is the best possible answer.
+                if (sum == B) {
+                    return sum;
+                }
+
+                // Move pointers to improve the sum.
+                if (sum &lt; B) {
+                    left++;    // Need a larger sum.
+                } else {
+                    right--;   // Need a smaller sum.
+                }
+            }
+        }
+
+        return closestSum;
+    }
+}</code></pre>
+                </div>
+                <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 text-amber-900 text-sm">
+                    <strong>Note:</strong> The code sorts <code>A</code> in place, so the original array order changes. This is acceptable for the usual coding-platform version of this problem.
+                </div>
+            </section>
+
+            <section id="optimized-dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="text-slate-700 mb-3">Consider:</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5"><code>A = [-1, 2, 1, -4]
+B = 1</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Step 1: Sort the array</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-3"><code>A = [-4, -1, 1, 2]
+B = 1</code></pre>
+                <p class="text-slate-700 mb-2">Initialize:</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-2"><code>closestSum = -4 + (-1) + 1 = -4</code></pre>
+                <p class="text-slate-700 mb-5">The initial distance from the target is \(|-4-1|=5\).</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Step 2: Fix the first element</h3>
+                <p class="text-slate-700 mb-3">Initially, <code>i = 0</code>:</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-4"><code>A[i] = -4
+left = 1
+right = 3</code></pre>
+                <p class="text-slate-700 mb-3">Now calculate the sum and adjust the pointers.</p>
+                <div class="overflow-x-auto mb-5">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead><tr class="bg-slate-100 border-b border-slate-200">
+                            <th scope="col" class="p-3">Iteration</th><th scope="col" class="p-3">i</th><th scope="col" class="p-3">left</th><th scope="col" class="p-3">right</th><th scope="col" class="p-3">Sum</th><th scope="col" class="p-3">Distance from 1</th><th scope="col" class="p-3">Action</th>
+                        </tr></thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-100"><td class="p-3">1</td><td class="p-3">0</td><td class="p-3">1</td><td class="p-3">3</td><td class="p-3">-3</td><td class="p-3">4</td><td class="p-3">Move <code>left</code></td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3">2</td><td class="p-3">0</td><td class="p-3">2</td><td class="p-3">3</td><td class="p-3">-1</td><td class="p-3">2</td><td class="p-3">Move <code>left</code></td></tr>
+                            <tr><td class="p-3">3</td><td class="p-3">1</td><td class="p-3">2</td><td class="p-3">3</td><td class="p-3">2</td><td class="p-3">1</td><td class="p-3">Update answer</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Understand each iteration</h3>
+                <div class="space-y-4 text-slate-700">
+                    <div>
+                        <p class="font-semibold text-slate-900">Iteration 1</p>
+                        <p>\(-4+(-1)+2=-3\). The distance is \(|-3-1|=4\), better than the previous distance of <code>5</code>.</p>
+                        <p>Update <code>closestSum = -3</code>. Since <code>-3 &lt; 1</code>, move <code>left</code> forward.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Iteration 2</p>
+                        <p>\(-4+1+2=-1\). The distance is \(|-1-1|=2\).</p>
+                        <p>Update <code>closestSum = -1</code>. Since <code>-1 &lt; 1</code>, move <code>left</code> forward again. Now <code>left == right</code>, so this search ends.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Next fixed element: <code>i = 1</code></p>
+                        <p>Now <code>A[i] = -1</code>, <code>left = 2</code>, and <code>right = 3</code>.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Iteration 3</p>
+                        <p>\(-1+1+2=2\). The distance is \(|2-1|=1\).</p>
+                        <p>Update <code>closestSum = 2</code>. Because <code>2 &gt; 1</code>, move <code>right</code> backward. The pointers meet, so the search ends.</p>
+                    </div>
+                </div>
+                <p class="text-slate-700 mt-4 mb-2">The remaining fixed elements cannot produce a closer sum than <code>2</code> for this input.</p>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Final output:</strong> <code>2</code><br>
+                    The sum \(-1 + 1 + 2 = 2\) has an absolute difference of 1 from the target.
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mt-5 mb-2">Why are the pointer movements necessary?</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li><code>sum &lt; B</code>: the sum is too small. Since the array is sorted, increasing <code>left</code> is the natural way to try for a larger sum.</li>
+                    <li><code>sum &gt; B</code>: the sum is too large. Decreasing <code>right</code> tries for a smaller sum.</li>
+                    <li><code>sum == B</code>: no sum can be closer than an exact match, so returning immediately is safe.</li>
+                </ul>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity Analysis</h2>
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead><tr class="bg-slate-100 border-b border-slate-200">
+                            <th scope="col" class="p-3">Approach</th><th scope="col" class="p-3">Time complexity</th><th scope="col" class="p-3">Auxiliary space</th><th scope="col" class="p-3">Explanation</th>
+                        </tr></thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">Brute force</td><td class="p-3">\(O(N^3)\)</td><td class="p-3">\(O(1)\)</td><td class="p-3">Three nested loops</td></tr>
+                            <tr><td class="p-3 font-semibold">Sorting + two pointers</td><td class="p-3">\(O(N^2)\)</td><td class="p-3">\(O(\log N)\) typically</td><td class="p-3">Sorting plus a quadratic search</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-2">For the optimized solution:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Sorting takes \(O(N\log N)\).</li>
+                    <li>The outer loop runs \(O(N)\) times.</li>
+                    <li>For each fixed element, the two pointers together move at most \(O(N)\) times.</li>
+                    <li>Therefore, the search takes \(O(N^2)\), which dominates sorting.</li>
+                </ul>
+                <p class="text-slate-700 mt-3">The auxiliary space of \(O(\log N)\) is typical for Java's primitive-array sorting implementation due to sorting-related stack usage; it is separate from the constant number of variables used by the search itself.</p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead><tr class="bg-slate-100 border-b border-slate-200">
+                            <th scope="col" class="p-3">Case</th><th scope="col" class="p-3">Example</th><th scope="col" class="p-3">Expected behavior</th>
+                        </tr></thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">Exact target exists</td><td class="p-3 font-mono">[1, 2, 3], B = 6</td><td class="p-3">Return <code>6</code> immediately</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">All positive numbers</td><td class="p-3 font-mono">[2, 4, 6, 8], B = 5</td><td class="p-3">Return the closest available sum</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">All negative numbers</td><td class="p-3 font-mono">[-8, -5, -3, -1], B = -10</td><td class="p-3">Find the sum with minimum absolute difference</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">Duplicate elements</td><td class="p-3 font-mono">[1, 1, 1, 5], B = 4</td><td class="p-3">Repeated values can be selected at distinct indices</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-semibold">Negative target</td><td class="p-3 font-mono">[-5, -2, 1, 4], B = -6</td><td class="p-3">Compare distances correctly</td></tr>
+                            <tr><td class="p-3 font-semibold">Large values</td><td class="p-3 font-mono">[100000000, 99999999, -100000000]</td><td class="p-3">Sums remain within Java's <code>int</code> range under the given constraints</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 text-amber-900">
+                    <p class="font-semibold mb-2">Potential pitfall</p>
+                    <p class="mb-2">Do not compare sums directly with <code>closestSum</code> to decide which is better. Compare their absolute distances from <code>B</code>.</p>
+                    <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm"><code>Math.abs(sum - B) &lt; Math.abs(closestSum - B)</code></pre>
+                    <p class="mt-3">Also, initialize <code>closestSum</code> using a valid triple instead of <code>0</code>, because <code>0</code> might not be a valid or close sum.</p>
+                </div>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar LeetCode Problems</h2>
+                <p class="text-slate-700 mb-4">These problems reinforce the same pattern.</p>
+                <ol class="space-y-4">
+                    <li class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900">1. 3Sum <span class="text-sm font-normal text-slate-600">— Problem 15 · Medium</span></h3>
+                        <p class="text-slate-700 mt-1">Find all unique triplets whose sum equals zero. Uses sorting and two pointers.</p>
+                        <a class="inline-block mt-2 text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/3sum/">LeetCode 15 — 3Sum</a>
+                    </li>
+                    <li class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900">2. Two Sum II – Input Array Is Sorted <span class="text-sm font-normal text-slate-600">— Problem 167 · Medium</span></h3>
+                        <p class="text-slate-700 mt-1">Builds your understanding of moving two pointers based on whether a sum is too small or too large.</p>
+                        <a class="inline-block mt-2 text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/">LeetCode 167 — Two Sum II</a>
+                    </li>
+                    <li class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900">3. 4Sum <span class="text-sm font-normal text-slate-600">— Problem 18 · Medium</span></h3>
+                        <p class="text-slate-700 mt-1">Extends the idea of fixing elements and using two pointers to find combinations.</p>
+                        <a class="inline-block mt-2 text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/4sum/">LeetCode 18 — 4Sum</a>
+                    </li>
+                    <li class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900">4. 3Sum Closest <span class="text-sm font-normal text-slate-600">— Problem 16 · Medium</span></h3>
+                        <p class="text-slate-700 mt-1">This is the same problem, ideal for reinforcing the solution and testing your understanding.</p>
+                        <a class="inline-block mt-2 text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/3sum-closest/">LeetCode 16 — 3Sum Closest</a>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Key concept to remember</h3>
+                <p class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900 font-semibold mb-5">Sorting + Two Pointers + Minimum Absolute Difference</p>
+                <p class="text-slate-700 mb-5">This pattern is useful when you need to find a pair or triplet with a sum equal or close to a target.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Forgetting to sort the array before using the two-pointer technique.</li>
+                    <li>Moving the wrong pointer.</li>
+                    <li>Comparing the sums instead of their distances from the target.</li>
+                    <li>Initializing the answer to <code>0</code>.</li>
+                    <li>Using three nested loops in the final solution despite the large input constraint.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Likely interviewer follow-up questions</h3>
+                <div class="space-y-4 text-slate-700">
+                    <div><p class="font-semibold text-slate-900">Q1. Why do we sort the array?</p><p>Sorting gives us an ordered structure, so we can decide which pointer to move based on whether the current sum is too small or too large.</p></div>
+                    <div><p class="font-semibold text-slate-900">Q2. Why is the optimized solution \(O(N^2)\)?</p><p>We fix one element in an outer loop, then scan the remaining elements using two pointers. The pointer scan is linear for each fixed element.</p></div>
+                    <div><p class="font-semibold text-slate-900">Q3. Can we use a HashSet instead?</p><p>A HashSet-based search can also solve related sum problems, but sorting plus two pointers is a straightforward and efficient approach for this problem.</p></div>
+                    <div><p class="font-semibold text-slate-900">Q4. What happens if two sums are equally close to the target?</p><p>The statement guarantees only one solution, so the closest sum is assumed to be unique. Without that guarantee, a tie-breaking rule would be needed if a specific answer were required.</p></div>
+                </div>
+            </section>
+
+            <section id="recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-700 mb-3">Implement Sorting + Two Pointers in your interview.</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><strong>Time complexity:</strong> \(O(N^2)\)</li>
+                    <li><strong>Auxiliary space:</strong> Typically \(O(\log N)\) for Java array sorting.</li>
+                    <li><strong>Pattern:</strong> Sorting + Two Pointers.</li>
+                </ul>
+                <p class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">Remember this simple intuition: fix one element, use two pointers for the other two, and keep the sum with the smallest distance from the target.</p>
+            </section>
+        </main>
+        <footer class="text-center text-sm text-slate-500 mt-6">3 Sum Closest · Java algorithm notes</footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+Create a complete, standalone HTML file from the content below.
+
+Requirements:
+- Use a clean, responsive dark theme consistent with my algorithm-note pages: a deep slate background, a centered dark slate content card, rounded corners, subtle borders and shadows, indigo accents, clear section headings, readable code blocks and tables, and accessible text contrast.
+- Use Tailwind CSS for styling. If the page contains mathematical notation, configure MathJax before loading its script.
+- Keep the content accurate. Preserve the meaning and examples I provide; don’t invent citations, facts, or sections.
+- Do not include citation placeholders such as `[cite: 1]` or any other fake citations. If I provide sources, cite only those sources in a clear, usable format. Otherwise, omit citations.
+- For mathematical notation, do not use dollar-sign delimiters anywhere in the HTML. Use `\(...\)` for inline math and `\[...\]` for display math. Configure MathJax to recognize these delimiters before loading the MathJax script. Keep math delimiters out of code examples.
+- Check the finished HTML for stray dollar signs, `[cite: ...]` placeholders, unclosed tags, and formulas that are not wrapped in the correct delimiters.
+- Return the complete HTML file, not an excerpt.
+
+Filename: [FILENAME.html]
+
+Content:
+[PASTE CONTENT HERE]
+
+
+
+
+
+for creating notes - 
+1. Paste the problem in chatgpt project - https://chatgpt.com/g/g-p-6ab40c819db48191ae83796837b6d9ac/project
+2. Copy the response content and paste in the vs code session with above prompt it will generate the html notes

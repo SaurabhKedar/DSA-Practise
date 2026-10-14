@@ -1,0 +1,8 @@
+# 1. Stage your changes (prepare them to be committed)
+git add .
+
+# 2. Commit your changes locally with a descriptive message
+git commit -m "Your commit message here"
+
+# 3. Push your commits to the remote repository
+git push origin main
