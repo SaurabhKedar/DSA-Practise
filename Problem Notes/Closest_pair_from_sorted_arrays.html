@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Closest Pair from Sorted Arrays — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-amber-200"] { border-color: #92400e; }
+        .algorithm-table th, .algorithm-table td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Closest Pair from Sorted Arrays — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                Since both arrays are sorted, the Two Pointers technique can find a close pair in
+                \(O(N+M)\) time instead of checking every possible pair. The binary-search solution below
+                directly and transparently enforces the required tie-breaking rules.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Core pattern:</strong> For each value in one sorted array, binary-search the other array for the target complement and inspect the nearest candidates.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-3">You are given:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code class="text-indigo-700">A</code>: a sorted array of distinct integers.</li>
+                    <li><code class="text-indigo-700">B</code>: another sorted array of distinct integers.</li>
+                    <li><code class="text-indigo-700">C</code>: the target sum.</li>
+                </ul>
+                <p class="text-slate-700 mb-4">
+                    Choose one element from each array so their sum is as close as possible to
+                    <code>C</code>. The difference for a pair of indices <code>i</code> and <code>j</code> is:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5 text-center text-slate-100">
+                    \[\text{difference}=\left|A[i]+B[j]-C\right|\]
+                </div>
+                <p class="text-slate-700 mb-3">If multiple pairs have the same minimum difference:</p>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Choose the pair with the smallest index <code>i</code> in <code>A</code>.</li>
+                    <li>If <code>i</code> is the same, choose the smallest index <code>j</code> in <code>B</code>.</li>
+                </ol>
+                <p class="text-slate-700 mb-5">Return the values of the selected pair, not their indices.</p>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <h3 class="font-semibold text-slate-900 mb-3">Example</h3>
+                    <p class="text-sm text-slate-600 mb-2">Input</p>
+                    <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm mb-4"><code>A = [1, 2, 3, 4, 5]
+B = [2, 4, 6, 8]
+C = 9</code></pre>
+                    <div class="overflow-x-auto">
+                        <table class="algorithm-table w-full min-w-[32rem] text-left text-sm border-collapse mb-4">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-900">
+                                    <th scope="col" class="py-2 pr-4">Pair</th>
+                                    <th scope="col" class="py-2 pr-4">Sum</th>
+                                    <th scope="col" class="py-2">Difference from 9</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>[1, 8]</code></td><td class="py-2 pr-4">9</td><td class="py-2">0</td></tr>
+                                <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>[3, 6]</code></td><td class="py-2 pr-4">9</td><td class="py-2">0</td></tr>
+                                <tr><td class="py-2 pr-4"><code>[5, 4]</code></td><td class="py-2 pr-4">9</td><td class="py-2">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-slate-700">
+                        All three pairs have the same minimum difference. The pair <code>[1, 8]</code> wins because
+                        <code>A[0]</code> has the smallest index.
+                    </p>
+                    <p class="mt-3 text-slate-700"><strong>Output:</strong> <code>[1, 8]</code></p>
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute Force Approach</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-4">Try every possible pair by selecting each element from <code>A</code> and pairing it with every element from <code>B</code>.</p>
+                <p class="text-slate-700 mb-2">For each pair:</p>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Calculate its sum.</li>
+                    <li>Calculate the absolute difference from <code>C</code>.</li>
+                    <li>If the difference is smaller than the best difference so far, update the answer.</li>
+                    <li>Iterating through <code>A</code> and then <code>B</code> in increasing index order means keeping the first pair on equal differences preserves the tie-breaking rules.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Java code — brute force</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5"><code>public class Solution {
+    public int[] solve(int[] A, int[] B, int C) {
+        int n = A.length;
+        int m = B.length;
+
+        int minDiff = Integer.MAX_VALUE;
+        int[] answer = new int[2];
+
+        // Try every possible pair, preserving index order.
+        for (int i = 0; i &lt; n; i++) {
+            for (int j = 0; j &lt; m; j++) {
+                int sum = A[i] + B[j];
+                int diff = Math.abs(sum - C);
+
+                // Strictly smaller: preserve the first pair on ties.
+                if (diff &lt; minDiff) {
+                    minDiff = diff;
+                    answer[0] = A[i];
+                    answer[1] = B[j];
+                }
+            }
+        }
+
+        return answer;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity analysis</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Time: \(O(N \times M)\), because every element of <code>A</code> is paired with every element of <code>B</code>.</li>
+                    <li>Auxiliary space: \(O(1)\), using a fixed number of variables and a two-element answer array.</li>
+                </ul>
+                <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 text-amber-900">
+                    <strong>Limitation:</strong> If both arrays contain \(10^5\) elements, this approach can require \(10^{10}\) pair checks, which is too slow.
+                </div>
+            </section>
+
+            <section id="two-pointers">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — Two Pointers</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-3">Because both arrays are sorted, start one pointer at each end:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code>i = 0</code>: start at the smallest element of <code>A</code>.</li>
+                    <li><code>j = B.length - 1</code>: start at the largest element of <code>B</code>.</li>
+                </ul>
+                <p class="text-slate-700 mb-3">Use the current sum to decide which pointer to move:</p>
+                <ul class="list-disc list-inside space-y-2 text-slate-700 mb-4">
+                    <li><strong>If <code>sum == C</code>:</strong> the difference is zero, so save the pair and stop; no pair can improve upon zero.</li>
+                    <li><strong>If <code>sum &gt; C</code>:</strong> the sum is too large, so decrease <code>j</code> to select a smaller element from <code>B</code>.</li>
+                    <li><strong>If <code>sum &lt; C</code>:</strong> the sum is too small, so increase <code>i</code> to select a larger element from <code>A</code>.</li>
+                </ul>
+                <p class="text-slate-700 mb-5">
+                    When updating the answer, equal differences must prefer the smaller <code>i</code>, then the smaller <code>j</code>.
+                    However, stopping at the first exact sum can miss an exact-sum pair with a smaller <code>i</code>.
+                    The implementation below is useful for illustrating the scan, but the recommended solution afterward avoids that issue.
+                </p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Java solution — two-pointer scan</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm"><code>public class Solution {
+    public int[] solve(int[] A, int[] B, int C) {
+        int n = A.length;
+        int m = B.length;
+
+        int i = 0;       // Start of A
+        int j = m - 1;   // End of B
+
+        int minDiff = Integer.MAX_VALUE;
+        int bestI = 0;
+        int bestJ = 0;
+
+        while (i &lt; n &amp;&amp; j &gt;= 0) {
+            int sum = A[i] + B[j];
+            int diff = Math.abs(sum - C);
+
+            // Prefer a smaller difference, then smaller indices.
+            if (diff &lt; minDiff ||
+                (diff == minDiff &amp;&amp;
+                 (i &lt; bestI || (i == bestI &amp;&amp; j &lt; bestJ)))) {
+
+                minDiff = diff;
+                bestI = i;
+                bestJ = j;
+            }
+
+            // An exact sum cannot be improved.
+            if (sum == C) {
+                break;
+            } else if (sum &gt; C) {
+                j--;
+            } else {
+                i++;
+            }
+        }
+
+        return new int[] { A[bestI], B[bestJ] };
+    }
+}</code></pre>
+            </section>
+
+            <section id="binary-search">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Recommended Implementation — Binary Search</h2>
+                <p class="text-slate-700 mb-4">
+                    For each <code>A[i]</code>, find the position in <code>B</code> where
+                    <code>C - A[i]</code> would fit. Only the value at that insertion point and its predecessor
+                    can be the closest candidates for that <code>A[i]</code>.
+                </p>
+                <p class="text-slate-700 mb-4">
+                    Process <code>A</code> from left to right. Retain the first <code>i</code> when minimum differences tie.
+                    For a given <code>i</code>, check the predecessor before the insertion-point value so an equal difference
+                    keeps the smaller <code>j</code>.
+                </p>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5"><code>public class Solution {
+    public int[] solve(int[] A, int[] B, int C) {
+        int minDiff = Integer.MAX_VALUE;
+        int[] answer = new int[2];
+
+        for (int i = 0; i &lt; A.length; i++) {
+            // Find the first index in B whose value is
+            // greater than or equal to C - A[i].
+            long target = (long) C - A[i];
+            int left = 0;
+            int right = B.length;
+
+            while (left &lt; right) {
+                int mid = left + (right - left) / 2;
+
+                if (B[mid] &lt; target) {
+                    left = mid + 1;
+                } else {
+                    right = mid;
+                }
+            }
+
+            // Check the predecessor first so smaller j wins equal differences.
+            if (left &gt; 0) {
+                int sum = A[i] + B[left - 1];
+                int diff = Math.abs(sum - C);
+
+                if (diff &lt; minDiff) {
+                    minDiff = diff;
+                    answer[0] = A[i];
+                    answer[1] = B[left - 1];
+                }
+            }
+
+            // Check the first value greater than or equal to target.
+            if (left &lt; B.length) {
+                int sum = A[i] + B[left];
+                int diff = Math.abs(sum - C);
+
+                if (diff &lt; minDiff) {
+                    minDiff = diff;
+                    answer[0] = A[i];
+                    answer[1] = B[left];
+                }
+            }
+
+            // A is processed in increasing index order.
+            if (minDiff == 0) {
+                return answer;
+            }
+        }
+
+        return answer;
+    }
+}</code></pre>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <h3 class="font-semibold mb-2">Why the tie-breaking works</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><code>A</code> is processed in increasing index order, and equal differences do not overwrite the current answer, so the smallest <code>i</code> is kept.</li>
+                        <li>For one <code>A[i]</code>, the closest candidates in <code>B</code> are at the insertion point or immediately before it.</li>
+                        <li>The predecessor has the smaller index and is checked first, so it remains selected if both candidates have equal differences.</li>
+                        <li>An exact sum allows an immediate return: the first exact sum has the smallest possible <code>i</code>, and the insertion point is the smallest <code>j</code> with that exact value.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Dry Run of the Recommended Solution</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-3">Example 1</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm mb-4"><code>A = [1, 2, 3, 4, 5]
+B = [2, 4, 6, 8]
+C = 9</code></pre>
+                <p class="text-slate-700 mb-3">Initially, <code>minDiff = Integer.MAX_VALUE</code>.</p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[36rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">A[i]</th>
+                                <th scope="col" class="py-2 pr-4">Target C - A[i]</th>
+                                <th scope="col" class="py-2 pr-4">Closest candidate in B</th>
+                                <th scope="col" class="py-2 pr-4">Sum</th>
+                                <th scope="col" class="py-2">Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="py-2 pr-4">1</td><td class="py-2 pr-4">8</td><td class="py-2 pr-4">8</td><td class="py-2 pr-4">9</td><td class="py-2">0</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-2">For the first element of <code>A</code>, binary search finds <code>8</code> in <code>B</code>.</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Sum = \(1+8=9\).</li>
+                    <li>Difference = \(|9-9|=0\).</li>
+                    <li>Update the answer to <code>[1, 8]</code>.</li>
+                    <li>Since the difference is zero, return immediately.</li>
+                </ul>
+                <p class="text-slate-700 mb-5"><strong>Output:</strong> <code>[1, 8]</code></p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-3">Example 2</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm mb-4"><code>A = [5, 10, 20]
+B = [1, 2, 30]
+C = 13</code></pre>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[36rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">A[i]</th>
+                                <th scope="col" class="py-2 pr-4">Target</th>
+                                <th scope="col" class="py-2 pr-4">Closest candidate</th>
+                                <th scope="col" class="py-2 pr-4">Sum</th>
+                                <th scope="col" class="py-2">Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">5</td><td class="py-2 pr-4">8</td><td class="py-2 pr-4">2</td><td class="py-2 pr-4">7</td><td class="py-2">6</td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">10</td><td class="py-2 pr-4">3</td><td class="py-2 pr-4">2</td><td class="py-2 pr-4">12</td><td class="py-2">1</td></tr>
+                            <tr><td class="py-2 pr-4">20</td><td class="py-2 pr-4">-7</td><td class="py-2 pr-4">1</td><td class="py-2 pr-4">21</td><td class="py-2">8</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700"><strong>Output:</strong> <code>[10, 2]</code>. The minimum difference is <code>1</code>.</p>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Complexity Analysis</h2>
+                <p class="text-slate-700 mb-4">Let \(N\) be the length of <code>A</code> and \(M\) be the length of <code>B</code>.</p>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full min-w-[32rem] text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-3 pr-4">Approach</th>
+                                <th scope="col" class="py-3 pr-4">Time complexity</th>
+                                <th scope="col" class="py-3">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-3 pr-4">Brute force</td><td class="py-3 pr-4">\(O(NM)\)</td><td class="py-3">\(O(1)\)</td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-3 pr-4">Two pointers</td><td class="py-3 pr-4">\(O(N+M)\)</td><td class="py-3">\(O(1)\)</td></tr>
+                            <tr><td class="py-3 pr-4">Recommended binary search</td><td class="py-3 pr-4">\(O(N\log M)\)</td><td class="py-3">\(O(1)\)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mt-4">The binary-search solution uses constant extra working memory. The returned two-element array is output space.</p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Edge Cases</h2>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li>Single element in each array: the only possible pair is returned.</li>
+                    <li>Target smaller than every possible sum: the smallest available sum is selected.</li>
+                    <li>Target larger than every possible sum: the largest available sum is selected.</li>
+                    <li>Multiple pairs with equal differences: the smallest <code>i</code> wins, followed by the smallest <code>j</code>.</li>
+                    <li>Exact target sum: return the earliest valid pair according to the tie-breaking rules.</li>
+                    <li>Large values: the given constraints keep pair sums within Java's <code>int</code> range. The binary-search target uses <code>long</code> for safer arithmetic.</li>
+                </ul>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Similar LeetCode Problems</h2>
+                <p class="text-slate-700 mb-4">These problems reinforce two pointers, binary search, and closest-sum reasoning.</p>
+                <ol class="list-decimal list-inside space-y-2 text-slate-700">
+                    <li><a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/">167. Two Sum II - Input Array Is Sorted</a> — Medium. Uses two pointers on a sorted array.</li>
+                    <li><a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/find-k-closest-elements/">658. Find K Closest Elements</a> — Medium. Finds elements closest to a target and handles ties.</li>
+                    <li><a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/two-sum-less-than-k/">1099. Two Sum Less Than K</a> — Easy. Uses sorted arrays and two pointers to optimize a sum.</li>
+                    <li><a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/3sum/">15. 3Sum</a> — Medium. Sorts an array and applies two pointers.</li>
+                    <li><a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/two-sum/">1. Two Sum</a> — Easy. Builds the foundation for pair-sum problems.</li>
+                </ol>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Interview Preparation Notes</h2>
+                <p class="text-slate-700 mb-4"><strong>Pattern to remember:</strong> Sorted input often allows two pointers or binary search to avoid checking every pair.</p>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Returning indices instead of values.</li>
+                    <li>Overwriting an answer when the difference ties.</li>
+                    <li>Breaking on the first exact sum without checking whether an earlier <code>i</code> could produce an exact sum.</li>
+                    <li>Checking only one side of a binary-search insertion point.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Likely interviewer follow-ups</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong>Why does binary search work here?</strong> Because <code>B</code> is sorted, and the closest value to a target must be at the insertion point or immediately before it.</li>
+                    <li><strong>Can we achieve \(O(N+M)\)?</strong> Yes, a carefully implemented two-pointer scan can do so while explicitly enforcing the tie-breaking rules.</li>
+                    <li><strong>Why not use brute force?</strong> It takes \(O(NM)\) time, which is too expensive for arrays of size \(10^5\).</li>
+                </ul>
+            </section>
+
+            <section id="recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">10. Final Recommendation</h2>
+                <p class="text-slate-700 mb-4">For a beginner, first understand the two-pointer intuition. For a solution that directly and transparently preserves the tie-breaking rules, the binary-search implementation is a reliable choice.</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Recommended time: \(O(N\log M)\).</li>
+                    <li>Auxiliary space: \(O(1)\).</li>
+                    <li>Core intuition: for each element in <code>A</code>, binary-search <code>B</code> for the target complement and inspect the two nearest candidates.</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
