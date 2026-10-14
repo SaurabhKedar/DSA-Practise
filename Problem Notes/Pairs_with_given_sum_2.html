@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pairs with Given Sum II — Java Solution</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for mathematical notation rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['(', ')']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        pre code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        :root {
+            color-scheme: dark;
+        }
+        body.bg-slate-50 {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        body [class~="bg-white"] { background-color: #1e293b; }
+        body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-50/50"] { background-color: rgba(49, 46, 129, 0.28); }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="bg-indigo-200"] { background-color: #3730a3; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="bg-rose-50"] { background-color: #4c0519; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="text-rose-700"] { color: #fda4af; }
+        body [class~="text-emerald-600"] { color: #6ee7b7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-rose-200"] { border-color: #9f1239; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+
+<div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+
+    <!-- Header Section -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">
+            Pairs with Given Sum II — Java Solution
+        </h1>
+        <p class="text-lg text-slate-600 mb-6">
+            This problem is a classic Two Pointers problem. Since the array is already sorted, we can count matching pairs efficiently.
+        </p>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-medium">
+            <li class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center space-x-3">
+                <span class="flex-shrink-0 w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">1</span>
+                <span><strong>Brute Force</strong> — check every possible pair of distinct indices.</span>
+            </li>
+            <li class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center space-x-3 text-indigo-900">
+                <span class="flex-shrink-0 w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
+                <span><strong>Two Pointers</strong> — utilize sorted order and count duplicate combinations efficiently. <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded ml-1 font-semibold">Recommended</span></span>
+            </li>
+        </ul>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="space-y-12 bg-white rounded-2xl shadow-sm border border-slate-200 p-8 sm:p-10">
+
+        <!-- Section 1: Problem Understanding -->
+        <section id="problem-understanding">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">1. Problem Understanding</h2>
+            <p class="mb-4 text-slate-700">You are given:</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-6">
+                <li><strong>A:</strong> A sorted integer array. Duplicate values are allowed.</li>
+                <li><strong>B:</strong> The target sum.</li>
+            </ul>
+            <p class="mb-4 text-slate-700">You need to count the number of index pairs $(i,j)$ such that $i \ne j$ and $A[i] + A[j] = B$. Return the answer modulo $10^9+7$.</p>
+
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-6 text-amber-900 text-sm">
+                <strong>Important:</strong> Different indices count as different pairs, even if their values are identical.
+            </div>
+
+            <div class="bg-slate-50 border-l-4 border-indigo-500 p-4 rounded-r-xl mb-6">
+                <p class="font-semibold text-slate-900 mb-2">Example:</p>
+                <p class="text-sm font-mono bg-white p-2 rounded border border-slate-200 mb-2">A = [1, 1, 1]<br>B = 2</p>
+                <p class="text-slate-700 text-sm">The valid pairs of indices are <code>(0,1)</code>, <code>(0,2)</code>, and <code>(1,2)</code>. Therefore, the answer is <strong>3</strong>.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: Brute Force Approach -->
+        <section id="approach-1">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">2. Brute Force Approach</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+            <p class="text-slate-700 mb-4">
+                Check every possible pair of distinct indices. If their sum equals $B$, increment the count.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Java Code</h3>
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-6 shadow-inner">
+                <pre><code>public class Solution {
+    public int solve(int[] A, int B) {
+        int n = A.length;
+        long count = 0;
+        long MOD = 1_000_000_007L;
+
+        // Try every possible pair of indices.
+        for (int i = 0; i &lt; n; i++) {
+            for (int j = i + 1; j &lt; n; j++) {
+
+                // Check whether the pair has the target sum.
+                if ((long) A[i] + A[j] == B) {
+                    count++;
+                }
+            }
+        }
+
+        return (int) (count % MOD);
+    }
+}</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Dry Run</h3>
+            <p class="text-slate-700 mb-3">For <code>A = [1, 1, 1]</code>, <code>B = 2</code>:</p>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">i</th>
+                        <th class="p-3">j</th>
+                        <th class="p-3">Sum</th>
+                        <th class="p-3">Count</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3 font-mono">1 + 1 = 2</td>
+                        <td class="p-3 font-mono">1</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">1 + 1 = 2</td>
+                        <td class="p-3 font-mono">2</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">1 + 1 = 2</td>
+                        <td class="p-3 font-mono font-semibold text-emerald-600">3</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Final answer: <strong>3</strong>.</p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity & Limitation</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><strong>Time:</strong> $O(N^2)$, because we examine every pair.</li>
+                <li><strong>Auxiliary space:</strong> $O(1)$, because we use only a few variables.</li>
+            </ul>
+            <p class="text-sm text-rose-700 bg-rose-50 p-3 rounded-lg border border-rose-200">
+                <strong>Limitation:</strong> With up to $100,000$ elements, checking every pair is too slow.
+            </p>
+        </section>
+
+        <!-- Section 3: Optimized Approach — Two Pointers -->
+        <section id="approach-2">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">3. Optimized Approach — Two Pointers</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+            <p class="text-slate-700 mb-4">
+                Because the array is sorted, we can use two pointers:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><code>left</code> starts at the beginning.</li>
+                <li><code>right</code> starts at the end.</li>
+            </ul>
+            <p class="text-slate-700 mb-4">Calculate $A[left] + A[right]$ and decide what to do:</p>
+            <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-4">
+                <li>Sum is smaller than $B$: Move <code>left</code> forward to get a larger value.</li>
+                <li>Sum is greater than $B$: Move <code>right</code> backward to get a smaller value.</li>
+                <li>Sum equals $B$: Count all valid pairs formed by the duplicate values at both pointers.</li>
+            </ol>
+
+            <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-6">
+                <p class="font-semibold text-indigo-900 mb-2">Handling Duplicates</p>
+                <p class="text-indigo-800 text-sm mb-2">Suppose $A = [1, 1, 1, 3, 3, 3]$ and $B = 4$. There are three occurrences of 1 and three occurrences of 3. Every 1 can pair with every 3, so the number of pairs is:</p>
+                <div class="bg-white p-3 rounded text-center font-mono text-indigo-700 mb-2">
+                    $$3 imes 3 = 9$$
+                </div>
+                <p class="text-indigo-800 text-sm mb-2">Now suppose $A = [2, 2, 2, 2]$ and $B = 4$. All four values are equal. The number of distinct index pairs is:</p>
+                <div class="bg-white p-3 rounded text-center font-mono text-indigo-700">
+                    $$\frac{4(4-1)}{2} = 6$$
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Java Code</h3>
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-6 shadow-inner">
+                <pre><code>public class Solution {
+    public int solve(int[] A, int B) {
+        final long MOD = 1_000_000_007L;
+
+        int left = 0;
+        int right = A.length - 1;
+        long count = 0;
+
+        while (left &lt; right) {
+            long sum = (long) A[left] + A[right];
+
+            if (sum &lt; B) {
+                // The sum is too small.
+                // Increase the left value.
+                left++;
+
+            } else if (sum &gt; B) {
+                // The sum is too large.
+                // Decrease the right value.
+                right--;
+
+            } else {
+                // We found a valid sum.
+
+                // If both values are equal, every remaining
+                // element has this same value.
+                if (A[left] == A[right]) {
+                    long n = right - left + 1L;
+
+                    // Choose any 2 distinct indices from n.
+                    count += n * (n - 1) / 2;
+                    count %= MOD;
+
+                    break;
+                }
+
+                // Count duplicate occurrences on the left.
+                long leftCount = 1;
+                while (left + 1 &lt; right
+                        &amp;&amp; A[left] == A[left + 1]) {
+                    leftCount++;
+                    left++;
+                }
+
+                // Count duplicate occurrences on the right.
+                long rightCount = 1;
+                while (right - 1 &gt; left
+                        &amp;&amp; A[right] == A[right - 1]) {
+                    rightCount++;
+                    right--;
+                }
+
+                // Every left occurrence pairs with every
+                // right occurrence.
+                count = (count + leftCount * rightCount) % MOD;
+
+                // Move past both groups of duplicates.
+                left++;
+                right--;
+            }
+        }
+
+        return (int) (count % MOD);
+    }
+}</code></pre>
+            </div>
+            <p class="text-sm text-slate-600 mb-6"><strong>Why use long?</strong> The number of pairs can exceed Java's <code>int</code> range before the modulo is applied. Using <code>long</code> prevents overflow in pair-count calculations.</p>
+        </section>
+
+        <!-- Section 4: Dry Run -->
+        <section id="dry-run">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+            <p class="text-slate-700 mb-3">Input: <code>A = [1, 1, 2, 2, 3, 3]</code>, <code>B = 4</code>. Initially, <code>left = 0</code>, <code>right = 5</code>, and <code>count = 0</code>.</p>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Step</th>
+                        <th class="p-3">Left Value</th>
+                        <th class="p-3">Right Value</th>
+                        <th class="p-3">Sum</th>
+                        <th class="p-3">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3 font-mono">4</td>
+                        <td class="p-3">Count 2 ones × 2 threes (= 4 pairs)</td>
+                    </tr>
+                    <tr class="border-b border-slate-100 bg-indigo-50/50">
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">4</td>
+                        <td class="p-3 font-semibold text-indigo-700">Two remaining twos: $2(2-1)/2 = 1$ pair</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Final count: $4 + 1 = \mathbf{5}$.</p>
+        </section>
+
+        <!-- Section 5: Complexity Analysis -->
+        <section id="complexity-analysis">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">5. Complexity Analysis</h2>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Approach</th>
+                        <th class="p-3">Time Complexity</th>
+                        <th class="p-3">Auxiliary Space</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Brute Force</td>
+                        <td class="p-3 font-mono">$O(N^2)$</td>
+                        <td class="p-3 font-mono">$O(1)$</td>
+                    </tr>
+                    <tr class="border-b border-slate-100 bg-indigo-50/50">
+                        <td class="p-3 font-medium text-indigo-900">Two Pointers</td>
+                        <td class="p-3 font-mono font-semibold text-indigo-700">$O(N)$</td>
+                        <td class="p-3 font-mono font-semibold text-indigo-700">$O(1)$</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-700 mb-4">
+                <strong>Why is the optimized approach $O(N)$?</strong> Each pointer (left and right) traverses the array at most once. Duplicate-counting loops move pointers inward without redundant re-scanning, requiring no extra data structures.
+            </p>
+        </section>
+
+        <!-- Section 6: Edge Cases -->
+        <section id="edge-cases">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">6. Edge Cases</h2>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Input (A)</th>
+                        <th class="p-3">Target (B)</th>
+                        <th class="p-3">Expected Output</th>
+                        <th class="p-3">Reason</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[1]</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3">Only one index; no pair exists</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[1, 2]</td>
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3">One valid pair</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[1, 1, 1]</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3">Three distinct index pairs</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[2, 2, 2, 2]</td>
+                        <td class="p-3 font-mono">4</td>
+                        <td class="p-3 font-mono">6</td>
+                        <td class="p-3">Four choose two</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[1, 3, 5]</td>
+                        <td class="p-3 font-mono">10</td>
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3">No valid pair</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">[1, 2, 3, 4]</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3">Pairs (1,4) and (2,3)</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 7: Similar LeetCode Problems -->
+        <section id="leetcode-problems">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">7. Similar Problems on LeetCode</h2>
+            <p class="text-slate-700 mb-4">These problems reinforce the same pattern:</p>
+            <ul class="space-y-3 text-slate-700">
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>1. LeetCode 167 — Two Sum II — Input Array Is Sorted</strong> (Medium · Two pointers) — Find two numbers that sum to a target in a sorted array.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>2. LeetCode 15 — 3Sum</strong> (Medium · Sorting + two pointers) — Find unique triplets whose sum is zero; learn how to handle duplicates.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>3. LeetCode 18 — 4Sum</strong> (Medium · Sorting + two pointers) — Extends the sum pattern to four numbers and requires careful duplicate handling.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>4. LeetCode 532 — K-diff Pairs in an Array</strong> (Medium · Pair counting) — Reinforces counting pairs while avoiding duplicate-value overcounting.
+                </li>
+            </ul>
+        </section>
+
+        <!-- Section 8: Interview Preparation Notes -->
+        <section id="interview-notes">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">8. Interview Preparation Notes</h2>
+            <p class="font-semibold text-slate-800 mb-2">Key Pattern:</p>
+            <p class="text-slate-700 mb-6">Sorted array + two pointers + duplicate counting.</p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-3">Common Interviewer Follow-ups</h3>
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q1. Why not use a HashMap?</p>
+                    <p class="text-slate-700 text-sm">A HashMap can solve a general two-sum problem in expected $O(N)$ time, but the sorted array lets us use two pointers with $O(1)$ auxiliary space.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q2. Why multiply the duplicate frequencies?</p>
+                    <p class="text-slate-700 text-sm">Every occurrence of the left value can pair with every occurrence of the right value, so the number of pairs is <code>leftCount * rightCount</code>.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q3. Why use combinations when both values are equal?</p>
+                    <p class="text-slate-700 text-sm">Because we must select two distinct indices from the same group of $k$ occurrences. The number of ways is $k(k-1)/2$.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q4. Why take modulo $10^9+7$?</p>
+                    <p class="text-slate-700 text-sm">The total number of pairs can be very large. Modulo keeps the result within the required range while preserving the requested answer.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Final Recommendation -->
+        <section id="final-recommendation">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">9. Final Recommendation</h2>
+            <div class="bg-indigo-50 border border-indigo-200 p-6 rounded-2xl mb-6">
+                <p class="font-bold text-indigo-900 text-lg mb-2">Use the Two-Pointer Approach in Interviews</p>
+                <ul class="list-disc list-inside space-y-1 text-indigo-900 text-sm mb-4">
+                    <li><strong>Time:</strong> $O(N)$</li>
+                    <li><strong>Auxiliary space:</strong> $O(1)$</li>
+                </ul>
+                <p class="text-indigo-800 text-sm mb-2"><strong>Core rule to remember:</strong></p>
+                <p class="text-indigo-900 text-sm italic">
+                    If the sum is too small, move left; if too large, move right; if equal, count all combinations of matching duplicates.
+                </p>
+            </div>
+            <p class="text-slate-700 font-medium text-center">
+                Finding a matching sum and counting every matching index pair are different tasks. Handling duplicates correctly is what makes this solution complete.
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center mt-12 text-sm text-slate-500">
+        <p>Pairs with Given Sum II — Java Solution Documentation &copy; 2026</p>
+    </footer>
+
+</div>
+
+</body>
+</html>

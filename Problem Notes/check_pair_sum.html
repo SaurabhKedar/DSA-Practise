@@ -16,6 +16,35 @@
         pre code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
+        :root {
+            color-scheme: dark;
+        }
+        body.bg-slate-50 {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        body [class~="bg-white"] { background-color: #1e293b; }
+        body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-50/50"] { background-color: rgba(49, 46, 129, 0.28); }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="bg-indigo-200"] { background-color: #3730a3; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="bg-rose-50"] { background-color: #4c0519; }
+        body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="text-rose-700"] { color: #fda4af; }
+        body [class~="text-emerald-600"] { color: #6ee7b7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-rose-200"] { border-color: #9f1239; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
@@ -153,7 +182,7 @@
                 Instead of repeatedly searching the array for a matching element, remember the elements we have already visited in a HashSet. For every element \(x\), calculate the complement:
             </p>
             <div class="bg-slate-50 p-3 rounded-lg text-center font-mono text-indigo-700 mb-4">
-                $$\text{complement} = A - x$$
+                \[\text{complement} = A - x\]
             </div>
             <p class="text-slate-700 mb-4">
                 If the complement is already in the set, we have found a valid pair. Otherwise, add \(x\) to the set and continue. The key is to check before inserting the current element. This ensures that an element cannot pair with itself unless another occurrence exists at a different index.
