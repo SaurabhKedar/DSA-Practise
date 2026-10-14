@@ -1,3 +1,6 @@
+//Advanced DSA 3: Backtracking & Advanced Trees
+// Lecture 2 | DSA: Lab Session on Prime Numbers & 2 Pointers
+
 public class PairsWithGivenSum2 {
     private static int solve(int[] A, int B)
     {

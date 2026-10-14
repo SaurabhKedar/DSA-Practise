@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Count of Divisors — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body.bg-slate-950 {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        body [class~="bg-slate-800"] { background-color: #1e293b; }
+        body [class~="bg-slate-700"] { background-color: #334155; }
+        body [class~="bg-indigo-950"] { background-color: #1e1b4b; }
+        body [class~="text-slate-100"] { color: #f1f5f9; }
+        body [class~="text-slate-300"] { color: #cbd5e1; }
+        body [class~="text-slate-400"] { color: #94a3b8; }
+        body [class~="text-indigo-200"] { color: #c7d2fe; }
+        body [class~="text-indigo-300"] { color: #a5b4fc; }
+        body [class~="border-slate-700"] { border-color: #334155; }
+        body [class~="border-indigo-800"] { border-color: #3730a3; }
+        pre {
+            tab-size: 4;
+        }
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <article class="bg-slate-800 border border-slate-700 shadow-2xl rounded-2xl p-5 sm:p-8 lg:p-10">
+            <header class="border-b border-slate-700 pb-6 mb-8">
+                <span class="inline-block bg-indigo-950 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Java Algorithm Guide</span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-100 mt-4 mb-3">Count of Divisors — Java Solution</h1>
+                <p class="text-slate-400 text-lg">This problem is a good example of number theory and the Sieve technique. Since the array can contain up to <code>100,000</code> elements and each element can be as large as <code>10^6</code>, we should avoid repeatedly checking every possible divisor.</p>
+            </header>
+
+            <main class="space-y-12">
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given an integer array <code>A</code>. For every element, count how many positive integers divide it completely, and return those counts in the same order.</p>
+                    <p class="mb-2">For example, for <code>A = [2, 3, 4, 5]</code>:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-4 text-slate-300">
+                        <li><code>2</code> → divisors are <code>[1, 2]</code> → count = <code>2</code></li>
+                        <li><code>3</code> → divisors are <code>[1, 3]</code> → count = <code>2</code></li>
+                        <li><code>4</code> → divisors are <code>[1, 2, 4]</code> → count = <code>3</code></li>
+                        <li><code>5</code> → divisors are <code>[1, 5]</code> → count = <code>2</code></li>
+                    </ul>
+                    <p class="mb-4">Output: <code>[2, 2, 3, 2]</code></p>
+                    <p class="font-semibold mb-2">Important observations:</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Only positive divisors are counted.</li>
+                        <li>Every number has at least one divisor: <code>1</code>.</li>
+                        <li>Every number is divisible by itself.</li>
+                        <li>The order of the answer must match the input order.</li>
+                        <li><code>1 ≤ A[i] ≤ 10^6</code>.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">2. Brute Force Approach</h2>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Intuition</h3>
+                    <p class="mb-4">For each number, check every integer from <code>1</code> to that number. If the number is divisible by the current integer, increment the divisor count.</p>
+                    <p class="mb-3">For example, for <code>A[i] = 6</code>:</p>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Candidate divisor</th>
+                                <th class="border border-slate-700 px-4 py-2"><code>6 % divisor == 0</code>?</th>
+                                <th class="border border-slate-700 px-4 py-2">Count</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">No</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">No</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">4</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4">The total number of divisors is <code>4</code>.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Java code — Brute Force</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200 mb-4"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; solve(ArrayList&lt;Integer&gt; A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Process every number in the input array.
+        for (int num : A) {
+            int count = 0;
+
+            // Check every possible divisor from 1 to num.
+            for (int d = 1; d &lt;= num; d++) {
+                if (num % d == 0) {
+                    count++;
+                }
+            }
+
+            result.add(count);
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Complexity analysis</h3>
+                    <p class="mb-2">Let <code>n</code> be the array length and <code>M = max(A)</code>.</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Time: \(O(nM)\) in the worst case, because each number may require checking up to <code>M</code> candidates.</li>
+                        <li>Auxiliary space: \(O(1)\), excluding the returned array.</li>
+                        <li>Limitation: With <code>n = 100,000</code> and <code>M = 10^6</code>, this can require far too many operations.</li>
+                    </ul>
+                    <p class="mt-4">We can improve this by using the fact that divisors come in pairs.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">3. Optimized Approach 1 — Check Divisors up to √N</h2>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Intuition</h3>
+                    <p class="mb-3">Divisors occur in pairs. For example, the divisors of <code>36</code> are:</p>
+                    <p class="bg-slate-950 border border-slate-700 rounded-lg p-3 mb-4 font-mono text-indigo-200">(1, 36), (2, 18), (3, 12), (4, 9), (6, 6)</p>
+                    <p class="mb-4">Notice that if <code>d</code> divides <code>num</code>, then <code>num / d</code> is also a divisor. Therefore, we only need to check divisors up to \(\sqrt{num}\). When a divisor is found, count both members of the pair. If both are the same number, count only once.</p>
+                    <p class="mb-4">For example, <code>36</code> has five divisor pairs, but <code>(6, 6)</code> contributes only one divisor. Its total divisor count is <code>9</code>.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Java code</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200 mb-4"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; solve(ArrayList&lt;Integer&gt; A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        for (int num : A) {
+            int count = 0;
+
+            // We only need to check divisors up to sqrt(num).
+            for (int i = 1; i * i &lt;= num; i++) {
+                if (num % i == 0) {
+                    if (i == num / i) {
+                        count++;
+                    } else {
+                        count = count + 2;
+                    }
+                }
+            }
+
+            result.add(count);
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Complexity</h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Time: \(O(n\sqrt{M})\), where <code>M</code> is the maximum element.</li>
+                        <li>Auxiliary space: \(O(1)\), excluding the returned array.</li>
+                    </ul>
+                    <p class="mt-4">This is much faster than brute force. However, we can do even better when many numbers need their divisor counts calculated.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">4. Recommended Optimized Approach — Sieve of Divisors</h2>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Intuition</h3>
+                    <p class="mb-4">Instead of calculating the divisor count separately for every array element, precompute the divisor counts for every number up to the maximum value in the array. This is similar to the Sieve of Eratosthenes, which finds prime numbers by processing their multiples.</p>
+                    <p class="font-semibold mb-2">The key idea is simple:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-4 text-slate-300">
+                        <li><code>1</code> divides every number.</li>
+                        <li><code>2</code> divides <code>2, 4, 6, 8, ...</code>.</li>
+                        <li><code>3</code> divides <code>3, 6, 9, 12, ...</code>.</li>
+                        <li><code>4</code> divides <code>4, 8, 12, 16, ...</code>.</li>
+                    </ul>
+                    <p class="mb-4">Whenever we visit a multiple of <code>d</code>, we increase its divisor count by one.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Algorithm steps</h3>
+                    <ol class="list-decimal list-inside space-y-2 mb-5 text-slate-300">
+                        <li>Find the maximum value <code>max</code> in the input array.</li>
+                        <li>Create an integer array <code>divisors</code> of size <code>max + 1</code>, initialized to zero.</li>
+                        <li>For every possible divisor <code>d</code> from <code>1</code> to <code>max</code>, visit all multiples of <code>d</code>.</li>
+                        <li>Increase <code>divisors[multiple]</code> by one for every multiple visited.</li>
+                        <li>Traverse the original array and retrieve <code>divisors[num]</code> for each element.</li>
+                        <li>Return the result array in the original order.</li>
+                    </ol>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Java code — Interview-ready solution</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; solve(ArrayList&lt;Integer&gt; A) {
+        int max = 0;
+
+        // Step 1: Find the maximum element.
+        for (int num : A) {
+            max = Math.max(max, num);
+        }
+
+        // divisors[x] stores the number of divisors of x.
+        int[] divisors = new int[max + 1];
+
+        // Step 2: Count divisors for every number using a sieve.
+        for (int d = 1; d &lt;= max; d++) {
+
+            // Every multiple of d is divisible by d.
+            for (int multiple = d; multiple &lt;= max; multiple += d) {
+                divisors[multiple]++;
+            }
+        }
+
+        // Step 3: Retrieve the precomputed counts in input order.
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        for (int num : A) {
+            result.add(divisors[num]);
+        }
+
+        return result;
+    }
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">5. Dry Run of the Sieve Approach</h2>
+                    <p class="mb-3">Consider <code>A = [2, 3, 4, 5]</code>. The maximum value is <code>5</code>, so we create <code>divisors[0...5]</code>.</p>
+                    <p class="mb-2">Initially:</p>
+                    <p class="bg-slate-950 border border-slate-700 rounded-lg p-3 mb-5 font-mono text-indigo-200">divisors = [0, 0, 0, 0, 0, 0]</p>
+                    <p class="mb-3">The sieve processes each divisor as follows:</p>
+                    <div class="overflow-x-auto mb-6">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Divisor <code>d</code></th>
+                                <th class="border border-slate-700 px-4 py-2">Multiples visited</th>
+                                <th class="border border-slate-700 px-4 py-2">Updated counts</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">1, 2, 3, 4, 5</td><td class="border border-slate-700 px-4 py-2">Every number from 1 to 5 gets +1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">2, 4</td><td class="border border-slate-700 px-4 py-2">Counts of 2 and 4 get +1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">Count of 3 gets +1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">Count of 4 gets +1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">Count of 5 gets +1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">After processing all divisors:</p>
+                    <div class="overflow-x-auto mb-6">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Number</th>
+                                <th class="border border-slate-700 px-4 py-2">Divisors</th>
+                                <th class="border border-slate-700 px-4 py-2"><code>divisors[number]</code></th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">1, 2</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">1, 3</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">1, 2, 4</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">1, 5</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">Now retrieve counts in the original array's order:</p>
+                    <div class="overflow-x-auto mb-4">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Input element</th>
+                                <th class="border border-slate-700 px-4 py-2">Precomputed count</th>
+                                <th class="border border-slate-700 px-4 py-2">Result</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[2]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[2, 2]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[2, 2, 3]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[2, 2, 3, 2]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3"><strong>Final output:</strong> <code>[2, 2, 3, 2]</code></p>
+                    <p>Notice that the sieve calculates the count for each possible number only once. If the input contains duplicates, we can reuse the same precomputed count.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">6. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(n\) be the array length and \(M\) be its maximum element.</p>
+                    <p class="mb-4">In the sieve approach, each divisor <code>d</code> visits approximately <code>M/d</code> multiples. Therefore, the total number of updates is:</p>
+                    <div class="overflow-x-auto bg-slate-950 border border-slate-700 rounded-xl p-4 mb-5 text-center">
+                        \[\sum_{d=1}^{M}\left\lfloor\frac{M}{d}\right\rfloor = O(M\log M)\]
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Approach</th>
+                                <th class="border border-slate-700 px-4 py-2">Time complexity</th>
+                                <th class="border border-slate-700 px-4 py-2">Auxiliary space</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">Brute force</td><td class="border border-slate-700 px-4 py-2">\(O(nM)\)</td><td class="border border-slate-700 px-4 py-2">\(O(1)\)</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">Square-root optimization</td><td class="border border-slate-700 px-4 py-2">\(O(n\sqrt{M})\)</td><td class="border border-slate-700 px-4 py-2">\(O(1)\)</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">Sieve of divisors</td><td class="border border-slate-700 px-4 py-2">\(O(M\log M+n)\)</td><td class="border border-slate-700 px-4 py-2">\(O(M)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">The sieve also uses \(O(n)\) space for the returned result, which is output space rather than auxiliary space.</p>
+                    <p class="mt-3"><strong class="text-indigo-300">Recommendation:</strong> Use the sieve approach for this problem because the maximum element is bounded by <code>10^6</code>, making precomputation practical.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">7. Edge Cases</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700"><tr>
+                                <th class="border border-slate-700 px-4 py-2">Input</th>
+                                <th class="border border-slate-700 px-4 py-2">Expected output</th>
+                                <th class="border border-slate-700 px-4 py-2">Reason</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2">Only divisor of 1 is 1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>[2]</code></td><td class="border border-slate-700 px-4 py-2"><code>[2]</code></td><td class="border border-slate-700 px-4 py-2">2 is prime</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[4]</code></td><td class="border border-slate-700 px-4 py-2"><code>[3]</code></td><td class="border border-slate-700 px-4 py-2">Divisors are 1, 2, 4</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>[8, 8]</code></td><td class="border border-slate-700 px-4 py-2"><code>[4, 4]</code></td><td class="border border-slate-700 px-4 py-2">Duplicate values reuse the same count</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[1, 2, 3, 4, 5]</code></td><td class="border border-slate-700 px-4 py-2"><code>[1, 2, 2, 3, 2]</code></td><td class="border border-slate-700 px-4 py-2">Mixed prime and composite numbers</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>[1000000]</code></td><td class="border border-slate-700 px-4 py-2"><code>[49]</code></td><td class="border border-slate-700 px-4 py-2">The maximum permitted value has 49 positive divisors</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">The sieve handles all these cases, provided the array satisfies the given constraints.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">8. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems help reinforce divisor counting and related number-theory concepts.</p>
+                    <ol class="list-decimal list-inside space-y-5 text-slate-300">
+                        <li>
+                            <span class="font-semibold text-slate-100">Three Divisors</span> — Problem 1952 · Easy
+                            <p class="ml-6 mt-1">Determine whether a number has exactly three positive divisors. This directly reinforces divisor counting.</p>
+                            <a class="ml-6 inline-block mt-1 text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/three-divisors/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100">Four Divisors</span> — Problem 1390 · Medium
+                            <p class="ml-6 mt-1">Count divisors for array elements and calculate a sum based on numbers having exactly four divisors.</p>
+                            <a class="ml-6 inline-block mt-1 text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/four-divisors/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100">Number of Common Factors</span> — Problem 2427 · Easy
+                            <p class="ml-6 mt-1">Count integers that divide two given numbers, reinforcing divisibility and factor counting.</p>
+                            <a class="ml-6 inline-block mt-1 text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/number-of-common-factors/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100">Distinct Prime Factors of Product of Array</span> — Problem 2521 · Medium
+                            <p class="ml-6 mt-1">Builds on factorization and counting factors across array elements.</p>
+                            <a class="ml-6 inline-block mt-1 text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/distinct-prime-factors-of-product-of-array/">Solve on LeetCode</a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">9. Interview Preparation Notes</h2>
+                    <p class="mb-4"><strong class="text-indigo-300">Key concept to remember:</strong> Sieve of divisors — instead of asking which divisors belong to every number individually, iterate over each divisor and update all its multiples.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Common mistakes</h3>
+                    <ul class="list-disc list-inside space-y-1 mb-5 text-slate-300">
+                        <li>Counting <code>d</code> and <code>num / d</code> twice when they are equal in the square-root approach.</li>
+                        <li>Returning results in sorted order instead of preserving input order.</li>
+                        <li>Forgetting that <code>1</code> has exactly one positive divisor.</li>
+                        <li>Using brute force when the input constraints make it too slow.</li>
+                    </ul>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-3">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div><p class="font-semibold text-slate-100">Q1. Why does the sieve work?</p><p>Every positive divisor of a number visits that number as one of its multiples. Thus, each number's count is incremented exactly once for each of its positive divisors.</p></div>
+                        <div><p class="font-semibold text-slate-100">Q2. What if the array contains many duplicate values?</p><p>The sieve calculates each number's divisor count once. Every occurrence can then retrieve the same precomputed result.</p></div>
+                        <div><p class="font-semibold text-slate-100">Q3. Can we reduce the sieve's space usage?</p><p>Yes. If we only need a small number of divisor counts and the maximum value is large, checking divisors up to the square root may use less memory. The best choice depends on the constraints.</p></div>
+                        <div><p class="font-semibold text-slate-100">Q4. How is this related to the Sieve of Eratosthenes?</p><p>Both techniques process a number and its multiples. The prime sieve marks multiples as composite, while this sieve increments divisor counts for multiples.</p></div>
+                    </div>
+                </section>
+
+                <section class="bg-indigo-950 border border-indigo-800 rounded-xl p-5 sm:p-6">
+                    <h2 class="text-2xl font-bold text-slate-100 mb-3">10. Final Recommendation</h2>
+                    <p class="mb-4">For interview preparation, understand all three approaches, but implement the sieve of divisors for these constraints.</p>
+                    <ul class="list-disc list-inside space-y-1 mb-4 text-slate-300">
+                        <li>Time: \(O(M\log M+n)\)</li>
+                        <li>Auxiliary space: \(O(M)\)</li>
+                        <li>Pattern: Number theory + sieve/precomputation</li>
+                    </ul>
+                    <p>Remember the core intuition: Every divisor contributes one count to each of its multiples. Precompute those counts once, then answer each array element in \(O(1)\) time.</p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
