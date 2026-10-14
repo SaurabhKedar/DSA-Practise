@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Lucky Numbers — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body.bg-slate-950 {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        body [class~="bg-slate-800"] { background-color: #1e293b; }
+        body [class~="bg-slate-700"] { background-color: #334155; }
+        body [class~="bg-indigo-950"] { background-color: #1e1b4b; }
+        body [class~="text-slate-100"] { color: #f1f5f9; }
+        body [class~="text-slate-300"] { color: #cbd5e1; }
+        body [class~="text-slate-400"] { color: #94a3b8; }
+        body [class~="text-indigo-200"] { color: #c7d2fe; }
+        body [class~="text-indigo-300"] { color: #a5b4fc; }
+        body [class~="border-slate-700"] { border-color: #334155; }
+        body [class~="border-indigo-800"] { border-color: #3730a3; }
+        pre { tab-size: 4; }
+        code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <article class="bg-slate-800 border border-slate-700 shadow-2xl rounded-2xl p-5 sm:p-8 lg:p-10">
+            <header class="border-b border-slate-700 pb-6 mb-8">
+                <span class="inline-block bg-indigo-950 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Java Algorithm Guide</span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-100 mt-4 mb-3">Lucky Numbers — Java Solution</h1>
+                <p class="text-slate-400 text-lg">Count the numbers from <code>1</code> through <code>A</code> that have exactly two distinct prime factors. A modified Sieve of Eratosthenes counts those factors efficiently.</p>
+            </header>
+
+            <main class="space-y-12">
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">1. Problem Understanding</h2>
+                    <p class="mb-4">A number is called a lucky number if it has exactly two distinct prime factors. Given an integer <code>A</code>, count how many lucky numbers exist from <code>1</code> to <code>A</code>, including both endpoints.</p>
+                    <p class="mb-3">Examples:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-4 text-slate-300">
+                        <li><code>6 = 2 × 3</code> → two distinct prime factors, <code>2</code> and <code>3</code> → Lucky.</li>
+                        <li><code>10 = 2 × 5</code> → two distinct prime factors, <code>2</code> and <code>5</code> → Lucky.</li>
+                        <li><code>12 = 2 × 2 × 3</code> → two distinct prime factors, <code>2</code> and <code>3</code> → Lucky. Repeated factors count only once.</li>
+                        <li><code>8 = 2 × 2 × 2</code> → only one distinct prime factor, <code>2</code> → Not lucky.</li>
+                        <li><code>30 = 2 × 3 × 5</code> → three distinct prime factors → Not lucky.</li>
+                    </ul>
+                    <p class="text-slate-300">Constraint: \(1 \le A \le 50000\).</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">2. Brute Force Approach</h2>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Intuition</h3>
+                    <p class="mb-4">Check every number from <code>1</code> to <code>A</code>. For each number, find its prime factors and count how many are distinct. If the count is exactly <code>2</code>, increase the answer.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Algorithm</h3>
+                    <ol class="list-decimal list-inside space-y-1 mb-5 text-slate-300">
+                        <li>Iterate through every number <code>num</code> from <code>1</code> to <code>A</code>.</li>
+                        <li>Find its distinct prime factors by checking possible divisors.</li>
+                        <li>Count each prime factor only once, even if it divides the number repeatedly.</li>
+                        <li>If the number has exactly two distinct prime factors, increment the result.</li>
+                        <li>Return the result.</li>
+                    </ol>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Brute-force Java code</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200 mb-5"><code>public class Solution {
+    public int solve(int A) {
+        int luckyCount = 0;
+
+        // Check every number from 1 to A.
+        for (int num = 1; num &lt;= A; num++) {
+            int distinctFactors = 0;
+            int remaining = num;
+
+            // Try dividing by every possible divisor.
+            for (int divisor = 2; divisor &lt;= remaining; divisor++) {
+                if (remaining % divisor == 0) {
+                    distinctFactors++;
+
+                    // Remove all occurrences of this factor.
+                    while (remaining % divisor == 0) {
+                        remaining /= divisor;
+                    }
+                }
+            }
+
+            if (distinctFactors == 2) {
+                luckyCount++;
+            }
+        }
+
+        return luckyCount;
+    }
+}</code></pre>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Complexity analysis</h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Time: \(O(A\sqrt A)\) is a typical optimized bound for trial division up to the square root. The exact code above can take \(O(A^2)\) in the worst case because its divisor loop does not stop at the square root.</li>
+                        <li>Auxiliary space: \(O(1)\).</li>
+                    </ul>
+                    <p class="mt-4">The brute-force method repeats factorization for every number, so we can do better.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">3. Optimized Approach — Sieve of Eratosthenes</h2>
+                    <p class="mb-4">The recommended approach counts the distinct prime factors of every number at once using a modified sieve.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Intuition</h3>
+                    <p class="mb-4">Instead of finding the prime factors of each number separately, identify prime numbers and visit all their multiples. For each prime <code>p</code>, increment the prime-factor count of <code>p, 2*p, 3*p, 4*p, ...</code>. Each prime contributes exactly once to each multiple, regardless of how many times that prime divides the multiple.</p>
+                    <p class="mb-3">For example, prime <code>2</code> contributes to <code>2, 4, 6, 8, 10, 12...</code>; prime <code>3</code> contributes to <code>3, 6, 9, 12...</code>.</p>
+                    <p class="font-semibold text-slate-100 mb-3">Example: <code>A = 12</code></p>
+                    <div class="overflow-x-auto mb-4">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Distinct prime factor counts from 1 through 12 after processing all primes</caption>
+                            <thead class="bg-slate-700"><tr>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Number</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Distinct prime-factor count</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">0</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">8</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">9</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">10</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">11</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">12</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-5">Numbers <code>6</code>, <code>10</code>, and <code>12</code> each have exactly two distinct prime factors. Answer = <code>3</code>.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Algorithm</h3>
+                    <ol class="list-decimal list-inside space-y-1 mb-5 text-slate-300">
+                        <li>Create an integer array <code>primeFactors</code> of size <code>A + 1</code>, initialized to zero.</li>
+                        <li>Iterate through each number <code>p</code> from <code>2</code> to <code>A</code>.</li>
+                        <li>If <code>primeFactors[p] == 0</code>, then <code>p</code> is prime because no smaller prime has marked it as a multiple.</li>
+                        <li>Increment the count for every multiple of <code>p</code>.</li>
+                        <li>Count all numbers whose factor count equals <code>2</code>.</li>
+                        <li>Return the total.</li>
+                    </ol>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Optimized Java solution</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int solve(int A) {
+        // primeFactors[i] stores the number of distinct
+        // prime factors of i.
+        int[] primeFactors = new int[A + 1];
+
+        // Find primes and count their contribution
+        // to every multiple.
+        for (int p = 2; p &lt;= A; p++) {
+
+            // A zero count means p is prime.
+            if (primeFactors[p] == 0) {
+
+                // Each multiple of p gets one additional
+                // distinct prime factor.
+                for (int multiple = p;
+                     multiple &lt;= A;
+                     multiple += p) {
+
+                    primeFactors[multiple]++;
+                }
+            }
+        }
+
+        int luckyCount = 0;
+
+        // Count numbers having exactly two distinct
+        // prime factors.
+        for (int num = 2; num &lt;= A; num++) {
+            if (primeFactors[num] == 2) {
+                luckyCount++;
+            }
+        }
+
+        return luckyCount;
+    }
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Let <code>A = 12</code>. Initially, all entries in <code>primeFactors</code> are zero.</p>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Prime numbers and their multiples in the sieve for A equal to 12</caption>
+                            <thead class="bg-slate-700"><tr>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Prime <code>p</code></th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Multiples updated</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Effect</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">2, 4, 6, 8, 10, 12</td><td class="border border-slate-700 px-4 py-2">Each gets +1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">3, 6, 9, 12</td><td class="border border-slate-700 px-4 py-2">Each gets +1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">5, 10</td><td class="border border-slate-700 px-4 py-2">Each gets +1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2">Gets +1</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">11</td><td class="border border-slate-700 px-4 py-2">11</td><td class="border border-slate-700 px-4 py-2">Gets +1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-5"><code>4</code>, <code>8</code>, and <code>9</code> are not treated as primes because their counts are already nonzero: they were marked by the smaller primes <code>2</code> or <code>3</code>.</p>
+                    <p class="font-semibold text-slate-100 mb-3">After processing all primes:</p>
+                    <div class="overflow-x-auto mb-4">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Prime factorization, number of distinct prime factors, and lucky status for numbers 1 through 12</caption>
+                            <thead class="bg-slate-700"><tr>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Number</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Prime factorization</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Distinct prime factors</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Lucky?</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No prime factors</td><td class="border border-slate-700 px-4 py-2">0</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">\(2\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">\(3\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">\(2^2\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">\(5\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2">\(2 \times 3\)</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">Yes</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2">\(7\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">8</td><td class="border border-slate-700 px-4 py-2">\(2^3\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">9</td><td class="border border-slate-700 px-4 py-2">\(3^2\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">10</td><td class="border border-slate-700 px-4 py-2">\(2 \times 5\)</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">Yes</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">11</td><td class="border border-slate-700 px-4 py-2">\(11\)</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">12</td><td class="border border-slate-700 px-4 py-2">\(2^2 \times 3\)</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">Yes</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-2">The lucky numbers are <code>6</code>, <code>10</code>, and <code>12</code>.</p>
+                    <p>Final output: <code>3</code></p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(A\) be the input number.</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Time and auxiliary-space complexities of the two approaches</caption>
+                            <thead class="bg-slate-700"><tr>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Approach</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Time complexity</th>
+                                <th scope="col" class="border border-slate-700 px-4 py-2">Auxiliary space</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">Brute force, as coded</td><td class="border border-slate-700 px-4 py-2">\(O(A^2)\) worst case</td><td class="border border-slate-700 px-4 py-2">\(O(1)\)</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">Modified sieve</td><td class="border border-slate-700 px-4 py-2">\(O(A\log\log A)\)</td><td class="border border-slate-700 px-4 py-2">\(O(A)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-100 mt-5 mb-2">Why is the sieve efficient?</h3>
+                    <p class="mb-3">The inner loop visits multiples of each prime <code>p</code>. The total number of updates is approximately:</p>
+                    <p class="overflow-x-auto text-center text-indigo-200">\[A\sum_{\substack{p\text{ prime}\\p\le A}}\frac{1}{p} = O(A\log\log A).\]</p>
+                    <p class="mt-3">The array stores one integer per number, requiring \(O(A)\) auxiliary space.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">6. Edge Cases</h2>
+                    <ul class="list-disc list-inside space-y-2 text-slate-300">
+                        <li><code>A = 1</code>: No lucky numbers; return <code>0</code>.</li>
+                        <li><code>A = 2</code> or <code>A = 3</code>: Both are prime, so each has only one distinct prime factor; return <code>0</code>.</li>
+                        <li><code>A = 4</code>: The number <code>4</code> has only one distinct prime factor; return <code>0</code>.</li>
+                        <li><code>A = 6</code>: Only <code>6</code> is lucky; return <code>1</code>.</li>
+                        <li><code>A = 12</code>: <code>6</code>, <code>10</code>, and <code>12</code> are lucky; return <code>3</code>.</li>
+                        <li><code>A = 50000</code>: The sieve comfortably handles the maximum constraint.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems reinforce prime sieves and distinct prime-factor counting.</p>
+                    <ol class="list-decimal list-inside space-y-5 text-slate-300">
+                        <li>
+                            <span class="font-semibold text-slate-100"><a class="text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/count-primes/">204. Count Primes</a></span> — Medium. Uses the Sieve of Eratosthenes to count prime numbers.
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100"><a class="text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/distinct-prime-factors-of-product-of-array/">2521. Distinct Prime Factors of Product of Array</a></span> — Medium. Focuses on counting distinct prime factors.
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100"><a class="text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/split-the-array-to-make-coprime-products/">2584. Split the Array to Make Coprime Products</a></span> — Hard. Applies prime-factorization concepts to array partitioning.
+                        </li>
+                        <li>
+                            <span class="font-semibold text-slate-100"><a class="text-indigo-300 hover:text-indigo-200 underline underline-offset-4" href="https://leetcode.com/problems/number-of-common-factors/">2427. Number of Common Factors</a></span> — Easy. Builds fundamental divisor-counting skills.
+                        </li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">8. Interview Preparation Notes</h2>
+                    <p class="mb-4"><strong class="text-indigo-300">Key pattern:</strong> Modified Sieve of Eratosthenes. Remember that a prime number contributes exactly one distinct prime factor to each of its multiples.</p>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-2">Common mistakes</h3>
+                    <ul class="list-disc list-inside space-y-2 mb-5 text-slate-300">
+                        <li>Counting repeated factors multiple times. For example, <code>12 = 2 × 2 × 3</code> has only two distinct prime factors.</li>
+                        <li>Treating every number with a nonzero count as prime. A number is prime in this sieve precisely when its count is still zero when visited.</li>
+                        <li>Starting the multiple loop at <code>p * p</code> without also accounting for <code>p</code> itself. This implementation starts at <code>p</code>, which keeps the logic straightforward.</li>
+                    </ul>
+                    <h3 class="text-lg font-semibold text-slate-100 mb-3">Likely interview follow-ups</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <p class="font-semibold text-slate-100">Q1. Why does <code>primeFactors[p] == 0</code> identify a prime?</p>
+                            <p>Every composite number has a prime divisor smaller than itself, so that smaller prime would already have incremented its count.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Q2. Why do repeated powers not increase the count multiple times?</p>
+                            <p>Each prime is processed once, and its multiples are visited once during that prime's iteration.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Q3. Can we reduce memory usage?</p>
+                            <p>The array uses \(O(A)\) space. Since we need factor counts for every number up to <code>A</code>, this is a practical choice.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-100 border-b border-slate-700 pb-2 mb-4">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the modified sieve in an interview. It processes all numbers together instead of repeatedly factoring each number.</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Time: \(O(A\log\log A)\)</li>
+                        <li>Auxiliary space: \(O(A)\)</li>
+                        <li>Core intuition: Find each prime once and increment the count of all its multiples. Numbers with a final count of exactly <code>2</code> are lucky numbers.</li>
+                    </ul>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
