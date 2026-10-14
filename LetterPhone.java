@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class LetterPhone {
     // Mapping of digits to corresponding letters
-    private static String[] mapping = new String[]{
+    private static final String[] mapping = new String[]{
             "0",      // 0
             "1",      // 1
             "abc",    // 2
@@ -65,6 +65,6 @@ public class LetterPhone {
     }
 
     static void main() {
-        System.out.println(letterCombinations("013"));
+        System.out.println(letterCombinations("9633"));
     }
 }
