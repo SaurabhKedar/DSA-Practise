@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Pair Sum — Java Solution</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for mathematical notation rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        pre code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+
+<div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+
+    <!-- Header Section -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+            Check Pair Sum — Java Solution
+        </h1>
+        <p class="text-lg text-slate-600 mb-6">
+            We can solve this problem using three approaches:
+        </p>
+        <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium">
+            <li class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center space-x-3">
+                <span class="flex-shrink-0 w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">1</span>
+                <span><strong>Brute Force</strong> — check every possible pair.</span>
+            </li>
+            <li class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center space-x-3 text-indigo-900">
+                <span class="flex-shrink-0 w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
+                <span><strong>HashSet</strong> — store previously seen elements and check for complement. <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded ml-1 font-semibold">Recommended</span></span>
+            </li>
+            <li class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center space-x-3">
+                <span class="flex-shrink-0 w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">3</span>
+                <span><strong>Two Pointers</strong> — sort the array and move pointers based on current sum.</span>
+            </li>
+        </ul>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="space-y-12 bg-white rounded-2xl shadow-sm border border-slate-200 p-8 sm:p-10">
+
+        <!-- Section 1: Problem Understanding -->
+        <section id="problem-understanding">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">1. Problem Understanding</h2>
+            <p class="mb-4 text-slate-700">You are given:</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-6">
+                <li><strong>A:</strong> the target sum.</li>
+                <li><strong>B:</strong> an integer array.</li>
+            </ul>
+            <p class="mb-4 text-slate-700">Return <strong>1</strong> if two elements at different indices add up to <code>A</code>. Otherwise, return <strong>0</strong>.</p>
+
+            <div class="bg-slate-50 border-l-4 border-indigo-500 p-4 rounded-r-xl mb-6">
+                <p class="font-semibold text-slate-900 mb-2">Example 1:</p>
+                <p class="text-sm font-mono bg-white p-2 rounded border border-slate-200 mb-2">A = 8<br>B = [3, 5, 1, 2, 1, 2]</p>
+                <p class="text-slate-700 text-sm">The pair <code>3 + 5 = 8</code>, so the answer is <strong>1</strong>.</p>
+            </div>
+
+            <div class="bg-slate-50 border-l-4 border-indigo-500 p-4 rounded-r-xl mb-6">
+                <p class="font-semibold text-slate-900 mb-2">Example 2:</p>
+                <p class="text-sm font-mono bg-white p-2 rounded border border-slate-200 mb-2">A = 21<br>B = [9, 10, 7, 10, 9, 1, 5, 1, 5]</p>
+                <p class="text-slate-700 text-sm">No pair adds up to 21, so the answer is <strong>0</strong>.</p>
+            </div>
+
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl text-amber-900 text-sm">
+                <strong>Important condition:</strong> You cannot use the same array element twice. For example, if <code>A = 10</code> and <code>B = [5]</code>, the answer is <code>0</code>, because there is only one occurrence of <code>5</code>.
+            </div>
+        </section>
+
+        <!-- Section 2: Approach 1 -->
+        <section id="approach-1">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">2. Approach 1: Brute Force</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+            <p class="text-slate-700 mb-4">
+                Check every possible pair of elements in the array. For each element at index <code>i</code>, check every element after it at index <code>j</code>. If their sum equals <code>A</code>, return 1 immediately. If no pair works, return 0.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Java Code</h3>
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-6 shadow-inner">
+                    <pre><code>public class Solution {
+    public int solve(int A, int[] B) {
+        int n = B.length;
+
+        // Select the first element of the pair.
+        for (int i = 0; i &lt; n; i++) {
+
+            // Select a different element after index i.
+            for (int j = i + 1; j &lt; n; j++) {
+
+                // Check whether the pair gives the target sum.
+                if (B[i] + B[j] == A) {
+                    return 1;
+                }
+            }
+        }
+
+        // No valid pair was found.
+        return 0;
+    }
+}</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Dry Run</h3>
+            <p class="text-slate-700 mb-3">For <code>A = 8</code> and <code>B = [3, 5, 1, 2, 1, 2]</code>:</p>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">i</th>
+                        <th class="p-3">j</th>
+                        <th class="p-3">Pair</th>
+                        <th class="p-3">Sum</th>
+                        <th class="p-3">Result</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">0</td>
+                        <td class="p-3">1</td>
+                        <td class="p-3">(3, 5)</td>
+                        <td class="p-3">8</td>
+                        <td class="p-3 font-semibold text-emerald-600">Return 1</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">We find the answer in the first comparison, so the remaining pairs do not need to be checked.</p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity Analysis</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><strong>Time:</strong> \(O(N^2)\) in the worst case because we check all possible pairs.</li>
+                <li><strong>Auxiliary space:</strong> \(O(1)\) because we use only a few variables.</li>
+            </ul>
+            <p class="text-sm text-rose-700 bg-rose-50 p-3 rounded-lg border border-rose-200">
+                <strong>Limitation:</strong> For an array of \(10^5\) elements, checking every pair can require billions of comparisons in the worst case.
+            </p>
+        </section>
+
+        <!-- Section 3: Approach 2 -->
+        <section id="approach-2">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">3. Approach 2: HashSet — Recommended</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+            <p class="text-slate-700 mb-4">
+                Instead of repeatedly searching the array for a matching element, remember the elements we have already visited in a HashSet. For every element \(x\), calculate the complement:
+            </p>
+            <div class="bg-slate-50 p-3 rounded-lg text-center font-mono text-indigo-700 mb-4">
+                $$\text{complement} = A - x$$
+            </div>
+            <p class="text-slate-700 mb-4">
+                If the complement is already in the set, we have found a valid pair. Otherwise, add \(x\) to the set and continue. The key is to check before inserting the current element. This ensures that an element cannot pair with itself unless another occurrence exists at a different index.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Algorithm</h3>
+            <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-6">
+                <li>Create an empty <code>HashSet&lt;Integer&gt;</code>.</li>
+                <li>Iterate through every element \(x\) in \(B\).
+                    <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
+                        <li>Calculate \(A - x\).</li>
+                        <li>If the set contains \(A - x\), return 1.</li>
+                        <li>Otherwise, insert \(x\) into the set.</li>
+                    </ul>
+                </li>
+                <li>If the loop finishes without finding a pair, return 0.</li>
+            </ol>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Java Code</h3>
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-6 shadow-inner">
+                    <pre><code>import java.util.HashSet;
+
+public class Solution {
+    public int solve(int A, int[] B) {
+
+        // Store elements that have already been visited.
+        HashSet&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+
+        for (int x : B) {
+
+            // Find the element needed to reach the target sum.
+            int complement = A - x;
+
+            // If it was seen earlier, a valid pair exists.
+            if (seen.contains(complement)) {
+                return 1;
+            }
+
+            // Store the current element for future comparisons.
+            seen.add(x);
+        }
+
+        // No valid pair was found.
+        return 0;
+    }
+}</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Dry Run of the HashSet Approach</h3>
+            <p class="text-slate-700 mb-3">Input: <code>A = 8</code>, <code>B = [3, 5, 1, 2, 1, 2]</code>. Initially, <code>seen = {}</code>.</p>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Current \(x\)</th>
+                        <th class="p-3">Complement (\(A - x\))</th>
+                        <th class="p-3">Is complement in set?</th>
+                        <th class="p-3">Set after processing</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3">No</td>
+                        <td class="p-3 font-mono">{3}</td>
+                    </tr>
+                    <tr class="border-b border-slate-100 bg-indigo-50/50">
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3 font-semibold text-indigo-700">Yes</td>
+                        <td class="p-3 font-mono">{3}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">When \(x = 5\), the set already contains 3. Since \(3 + 5 = 8\), return 1. Notice that we do not need to store 5 before returning.</p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Why Does This Approach Work?</h3>
+            <p class="text-slate-700 mb-4">
+                For every element \(x\), there is exactly one value needed to complete the sum: \(A - x\). If that value has already appeared, we have a valid pair at two different indices. If it has not appeared, storing \(x\) allows a future element to match it.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity Analysis</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><strong>Time:</strong> \(O(N)\) average, because HashSet insertion and lookup take \(O(1)\) average time per element.</li>
+                <li><strong>Auxiliary space:</strong> \(O(N)\) worst case, because the set may store all elements.</li>
+            </ul>
+            <p class="text-xs text-slate-500 italic">Note: HashSet operations have \(O(N)\) worst-case time under pathological collision scenarios, but \(O(N)\) average total time is the standard expected complexity.</p>
+        </section>
+
+        <!-- Section 4: Approach 3 -->
+        <section id="approach-3">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">4. Approach 3: Two Pointers</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+            <p class="text-slate-700 mb-4">
+                The two-pointer technique works most naturally on a sorted array. Use two pointers:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><code>left</code> starts at the beginning.</li>
+                <li><code>right</code> starts at the end.</li>
+            </ul>
+            <p class="text-slate-700 mb-4">
+                Calculate the sum of the elements at those positions:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li>If the sum equals <code>A</code>, return 1.</li>
+                <li>If the sum is smaller than <code>A</code>, move <code>left</code> forward to get a larger value.</li>
+                <li>If the sum is greater than <code>A</code>, move <code>right</code> backward to get a smaller value.</li>
+            </ul>
+            <p class="text-slate-700 mb-4">
+                <strong>Why sort the array?</strong> Sorting makes these pointer movements predictable. Without sorting, moving a pointer would not guarantee that the sum increases or decreases.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Java Code</h3>
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-6 shadow-inner">
+                    <pre><code>import java.util.Arrays;
+
+public class Solution {
+    public int solve(int A, int[] B) {
+
+        // Copy the array so the original input remains unchanged.
+        int[] sorted = B.clone();
+
+        // Two pointers require a sorted array.
+        Arrays.sort(sorted);
+
+        int left = 0;
+        int right = sorted.length - 1;
+
+        while (left &lt; right) {
+
+            int sum = sorted[left] + sorted[right];
+
+            // The target sum has been found.
+            if (sum == A) {
+                return 1;
+            }
+
+            // The sum is too small; increase the left value.
+            else if (sum &lt; A) {
+                left++;
+            }
+
+            // The sum is too large; decrease the right value.
+            else {
+                right--;
+            }
+        }
+
+        // The pointers met without finding a valid pair.
+        return 0;
+    }
+}</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Dry Run of the Two Pointers Approach</h3>
+            <p class="text-slate-700 mb-3">Input: <code>A = 8</code>, <code>B = [3, 5, 1, 2, 1, 2]</code>. After sorting: <code>sorted = [1, 1, 2, 2, 3, 5]</code></p>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Step</th>
+                        <th class="p-3">left</th>
+                        <th class="p-3">right</th>
+                        <th class="p-3">Values</th>
+                        <th class="p-3">Sum</th>
+                        <th class="p-3">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">1</td>
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">1 + 5</td>
+                        <td class="p-3 font-mono">6</td>
+                        <td class="p-3">Sum too small; left++</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">2</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">1 + 5</td>
+                        <td class="p-3 font-mono">6</td>
+                        <td class="p-3">Sum too small; left++</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">3</td>
+                        <td class="p-3 font-mono">2</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">2 + 5</td>
+                        <td class="p-3 font-mono">7</td>
+                        <td class="p-3">Sum too small; left++</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">4</td>
+                        <td class="p-3 font-mono">3</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">2 + 5</td>
+                        <td class="p-3 font-mono">7</td>
+                        <td class="p-3">Sum too small; left++</td>
+                    </tr>
+                    <tr class="border-b border-slate-100 bg-indigo-50/50">
+                        <td class="p-3">5</td>
+                        <td class="p-3 font-mono">4</td>
+                        <td class="p-3 font-mono">5</td>
+                        <td class="p-3 font-mono">3 + 5</td>
+                        <td class="p-3 font-mono">8</td>
+                        <td class="p-3 font-semibold text-indigo-700">Return 1</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">The pair is found when <code>left = 4</code> and <code>right = 5</code>.</p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Why Must We Use <code>left &lt; right</code>?</h3>
+            <p class="text-slate-700 mb-4">
+                The condition ensures that both pointers refer to different positions. If we used <code>left &lt;= right</code>, the algorithm could incorrectly use the same element twice.
+            </p>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity Analysis</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li><strong>Sorting time:</strong> \(O(N \log N)\).</li>
+                <li><strong>Two-pointer traversal:</strong> \(O(N)\), because each pointer moves in only one direction.</li>
+                <li><strong>Total time:</strong> \(O(N \log N)\).</li>
+                <li><strong>Auxiliary space:</strong> \(O(N)\) for the copied array, plus the sorting implementation's internal space.</li>
+            </ul>
+            <p class="text-xs text-slate-500 italic">If you sort the original array instead of cloning it, you avoid the \(O(N)\) copy space, but you modify the input array.</p>
+        </section>
+
+        <!-- Section 5: Compare All Approaches -->
+        <section id="compare-approaches">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">5. Compare All Three Approaches</h2>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Feature</th>
+                        <th class="p-3">Brute Force</th>
+                        <th class="p-3 bg-indigo-50 text-indigo-900">HashSet</th>
+                        <th class="p-3">Two Pointers</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Requires sorting</td>
+                        <td class="p-3">No</td>
+                        <td class="p-3 bg-indigo-50/50">No</td>
+                        <td class="p-3">Yes</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Time complexity</td>
+                        <td class="p-3">\(O(N^2)\)</td>
+                        <td class="p-3 bg-indigo-50/50 font-semibold text-indigo-700">\(O(N)\) average</td>
+                        <td class="p-3">\(O(N \log N)\)</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Auxiliary space</td>
+                        <td class="p-3">\(O(1)\)</td>
+                        <td class="p-3 bg-indigo-50/50">\(O(N)\)</td>
+                        <td class="p-3">\(O(N)\) with copy</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Preserves input</td>
+                        <td class="p-3">Yes</td>
+                        <td class="p-3 bg-indigo-50/50">Yes</td>
+                        <td class="p-3">Yes, with copy</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">Recommended?</td>
+                        <td class="p-3">For learning</td>
+                        <td class="p-3 bg-indigo-50/50 font-bold text-indigo-700">Yes</td>
+                        <td class="p-3">Good alternative</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 6: Edge Cases -->
+        <section id="edge-cases">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">6. Important Edge Cases</h2>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Input</th>
+                        <th class="p-3">Expected Output</th>
+                        <th class="p-3">Reason</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 10, B = [5]</td>
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3">Only one element; cannot reuse it</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 10, B = [5, 5]</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3">Two occurrences of 5</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 0, B = [0, 0]</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3">Two zeros sum to zero</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 7, B = [1, 2, 3]</td>
+                        <td class="p-3 font-mono">0</td>
+                        <td class="p-3">No pair matches</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 10, B = [1, 9, 2, 8]</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3">The pair 1 and 9 matches</td>
+                    </tr>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3 font-mono">A = 6, B = [1, 2, 3, 4]</td>
+                        <td class="p-3 font-mono">1</td>
+                        <td class="p-3">The pair 2 and 4 matches</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-slate-600">All three approaches handle these valid inputs correctly.</p>
+        </section>
+
+        <!-- Section 7: Similar LeetCode Problems -->
+        <section id="leetcode-problems">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">7. Similar LeetCode Problems</h2>
+            <p class="text-slate-700 mb-4">These problems will help you practise the same concepts:</p>
+            <ul class="space-y-3 text-slate-700">
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>1. LeetCode 1 — Two Sum</strong> (Easy) — The closest match; practise finding two elements using a HashMap.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>2. LeetCode 167 — Two Sum II — Input Array Is Sorted</strong> (Medium) — Practise the two-pointer technique on a sorted array.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>3. LeetCode 217 — Contains Duplicate</strong> (Easy) — Practise HashSet lookups and efficient searching.
+                </li>
+                <li class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <strong>4. LeetCode 653 — Two Sum IV — Input is a BST</strong> (Easy) — Practise the pair-sum pattern with a binary search tree.
+                </li>
+            </ul>
+        </section>
+
+        <!-- Section 8: Interview Preparation Notes -->
+        <section id="interview-notes">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">8. Interview Preparation Notes</h2>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Key Patterns to Remember</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mb-6">
+                <li><strong>Brute force:</strong> nested loops to explore every pair.</li>
+                <li><strong>HashSet:</strong> complement lookup, often the best approach for unsorted pair-sum problems.</li>
+                <li><strong>Two pointers:</strong> sort first, then move pointers based on the sum.</li>
+            </ul>
+
+            <h3 class="text-lg font-semibold text-slate-800 mb-3">Common Interviewer Follow-ups</h3>
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q1. Why do we check the HashSet before inserting the current element?</p>
+                    <p class="text-slate-700 text-sm">To guarantee that the matching element comes from a different index.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q2. Why is HashSet generally faster than two pointers here?</p>
+                    <p class="text-slate-700 text-sm">HashSet takes \(O(N)\) average time without sorting, while two pointers need \(O(N \log N)\) time for sorting an unsorted array.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q3. Can we use a HashMap instead?</p>
+                    <p class="text-slate-700 text-sm">Yes. A HashMap can store each number and its index. For this problem, a HashSet is simpler because we only need to know whether the complement exists.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <p class="font-semibold text-slate-900 mb-1">Q4. Can two pointers work without sorting?</p>
+                    <p class="text-slate-700 text-sm">Not reliably. The array must be sorted for pointer movements to eliminate possibilities safely.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Final Recommendation -->
+        <section id="final-recommendation">
+            <h2 class="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">9. Final Recommendation</h2>
+            <div class="bg-indigo-50 border border-indigo-200 p-6 rounded-2xl mb-6">
+                <p class="font-bold text-indigo-900 text-lg mb-2">Implement the HashSet Approach in an Interview</p>
+                <ul class="list-disc list-inside space-y-1 text-indigo-900 text-sm mb-4">
+                    <li><strong>Time:</strong> \(O(N)\) average.</li>
+                    <li><strong>Auxiliary space:</strong> \(O(N)\).</li>
+                </ul>
+                <p class="text-indigo-800 text-sm mb-2"><strong>Remember the core idea:</strong></p>
+                <p class="text-indigo-900 text-sm italic">
+                    For every number \(x\), look for \(A - x\) among the numbers already seen. If it exists, return 1; otherwise, store \(x\) and continue.
+                </p>
+            </div>
+            <p class="text-slate-700 font-medium text-center">
+                This complement-search pattern is one of the most important techniques for solving pair-sum problems efficiently.
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center mt-12 text-sm text-slate-500">
+        <p>Check Pair Sum — Java Solution Documentation &copy; 2026</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
