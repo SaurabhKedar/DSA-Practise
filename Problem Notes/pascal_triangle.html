@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pascal Triangle — Java DSA Explanation</title>
+  <style>
+    :root { color-scheme: light; --ink: #172033; --muted: #596579; --line: #dbe2ea; --panel: #f5f7fa; --accent: #2457c5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef2f7; color: var(--ink); font: 16px/1.65 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    main { max-width: 960px; margin: 32px auto; padding: 36px; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 28px rgba(23,32,51,.07); }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { margin-top: 0; font-size: 2.1rem; }
+    h2 { margin-top: 2.1rem; padding-bottom: .45rem; border-bottom: 1px solid var(--line); font-size: 1.45rem; }
+    h3 { margin-top: 1.4rem; font-size: 1.1rem; }
+    p, li { color: #263247; }
+    .lead { color: var(--muted); font-size: 1.08rem; }
+    .callout { background: #f0f5ff; border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 8px; }
+    pre { overflow-x: auto; padding: 18px; background: #111827; color: #f3f4f6; border-radius: 10px; font: 14px/1.6 Consolas, "Courier New", monospace; }
+    code { font-family: Consolas, "Courier New", monospace; }
+    p code, li code, td code { background: #edf1f6; padding: .12rem .32rem; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid var(--line); }
+    th { background: var(--panel); }
+    .triangle { padding: 14px; border-radius: 8px; background: var(--panel); font-family: Consolas, monospace; white-space: pre; overflow-x: auto; }
+    a { color: var(--accent); }
+    .small { color: var(--muted); font-size: .92rem; }
+    @media (max-width: 640px) { main { margin: 0; padding: 22px 16px; border-radius: 0; } h1 { font-size: 1.7rem; } }
+    @media print { body { background: #fff; } main { margin: 0; padding: 0; border: 0; box-shadow: none; max-width: none; } a { color: inherit; text-decoration: none; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Pascal Triangle — Java Solution</h1>
+  <p class="lead">A beginner-friendly DSA explanation covering problem understanding, brute force, the optimized dynamic programming solution, dry run, complexity, edge cases, related LeetCode problems, and interview notes.</p>
+
+  <div class="callout">
+    <strong>Core idea:</strong> Each middle element in Pascal's Triangle is the sum of the two elements directly above it. This problem requires exactly <code>A</code> integers in every row, so unused positions at the end of each row must remain <code>0</code>.
+  </div>
+
+  <h2>1. Problem Understanding</h2>
+  <p>You are given an integer <code>A</code>, representing the number of rows.</p>
+  <ul>
+    <li>Create a 2D integer array of size <code>A × A</code>.</li>
+    <li>The first element of every row is <code>1</code>.</li>
+    <li>The last meaningful element of every row is <code>1</code>.</li>
+    <li>Every middle element is the sum of the two elements above it.</li>
+    <li>All remaining positions stay <code>0</code> automatically in Java.</li>
+  </ul>
+  <p>For <code>A = 3</code>, the result is:</p>
+  <pre>1 0 0
+1 1 0
+1 2 1</pre>
+
+  <h2>2. Brute-Force Approach</h2>
+  <p>We can calculate every meaningful element using the combination formula:</p>
+  <p><strong>C(n, r) = n! / (r! × (n-r)!)</strong></p>
+  <p>For the third row, where <code>n = 2</code>, the values are C(2,0) = 1, C(2,1) = 2, and C(2,2) = 1. The code below calculates combinations using multiplication and division rather than explicitly calculating factorials.</p>
+  <h3>Java code — brute force</h3>
+  <pre><code>public class Solution {
+    public int[][] solve(int A) {
+        int[][] result = new int[A][A];
+
+        // Each row is numbered from 0 to A - 1.
+        for (int i = 0; i &lt; A; i++) {
+
+            // Calculate only the meaningful elements in this row.
+            for (int j = 0; j &lt;= i; j++) {
+                result[i][j] = combination(i, j);
+            }
+
+            // All remaining positions stay 0 by default.
+        }
+
+        return result;
+    }
+
+    // Calculates nCr using multiplication and division.
+    private int combination(int n, int r) {
+        int answer = 1;
+
+        // Use the smaller of r and n-r to reduce iterations.
+        r = Math.min(r, n - r);
+
+        for (int k = 1; k &lt;= r; k++) {
+            answer = answer * (n - k + 1) / k;
+        }
+
+        return answer;
+    }
+}</code></pre>
+  <h3>Brute-force complexity</h3>
+  <ul>
+    <li><strong>Time: O(A³).</strong> There are O(A²) meaningful elements, and calculating each combination can take up to O(A) operations.</li>
+    <li><strong>Auxiliary space: O(1).</strong> Only a few variables are used to calculate each combination.</li>
+    <li><strong>Output space: O(A²).</strong> The returned 2D array contains A² positions.</li>
+  </ul>
+  <p>This approach works for the given constraint <code>A ≤ 25</code>, but we can do better by reusing values already calculated.</p>
+
+  <h2>3. Optimized Approach — Dynamic Programming</h2>
+  <p>We can calculate each number using previously calculated numbers, without computing combinations from scratch.</p>
+  <div class="triangle">Row 0:       1
+Row 1:      1 1
+Row 2:     1 2 1
+Row 3:    1 3 3 1
+Row 4:   1 4 6 4 1</div>
+  <p>For example, the <code>6</code> in row 4 is <code>3 + 3</code>, using the two values directly above it in the previous row.</p>
+  <p><strong>Recurrence:</strong> <code>result[i][j] = result[i-1][j-1] + result[i-1][j]</code> for middle elements.</p>
+  <h3>Algorithm</h3>
+  <ol>
+    <li>Create an <code>A × A</code> 2D array. Java initializes every position to <code>0</code>.</li>
+    <li>Traverse rows from <code>0</code> to <code>A - 1</code>.</li>
+    <li>Set the first element of every row to <code>1</code>.</li>
+    <li>For each middle element, add the two elements above it.</li>
+    <li>Set the last meaningful element of each row to <code>1</code>.</li>
+    <li>Return the completed array.</li>
+  </ol>
+  <h3>Recommended Java solution</h3>
+  <pre><code>public class Solution {
+    public int[][] solve(int A) {
+
+        // Create an A x A array.
+        // All positions are initialized to 0 in Java.
+        int[][] result = new int[A][A];
+
+        // Build Pascal's Triangle one row at a time.
+        for (int i = 0; i &lt; A; i++) {
+
+            // The first element of every row is always 1.
+            result[i][0] = 1;
+
+            // Calculate the middle elements.
+            // Each element is the sum of the two elements
+            // directly above it in the previous row.
+            for (int j = 1; j &lt; i; j++) {
+                result[i][j] =
+                    result[i - 1][j - 1] +
+                    result[i - 1][j];
+            }
+
+            // The last meaningful element is always 1.
+            // Skip this for the first row, whose first
+            // element is already 1.
+            if (i &gt; 0) {
+                result[i][i] = 1;
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+  <p><strong>Why is this better?</strong> We calculate each meaningful element exactly once and reuse previously calculated values. We do not need a separate combination function.</p>
+
+  <h2>4. Dry Run of the Optimized Solution</h2>
+  <p>Let's execute <code>solve(5)</code>. Initially, Java creates a 5 × 5 array filled with zeros.</p>
+  <pre>0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0</pre>
+
+  <h3>Iteration 1: <code>i = 0</code></h3>
+  <p>Set <code>result[0][0] = 1</code>. There are no middle elements, so the first row becomes:</p>
+  <pre>1 0 0 0 0</pre>
+
+  <h3>Iteration 2: <code>i = 1</code></h3>
+  <p>Set <code>result[1][0] = 1</code>. The middle-element loop does not execute because <code>j &lt; i</code> is false at <code>j = 1</code>. Set <code>result[1][1] = 1</code>.</p>
+  <pre>1 0 0 0 0
+1 1 0 0 0</pre>
+
+  <h3>Iteration 3: <code>i = 2</code></h3>
+  <p>Set the first element to <code>1</code>. For <code>j = 1</code>:</p>
+  <pre>result[2][1] = result[1][0] + result[1][1]
+              = 1 + 1
+              = 2</pre>
+  <p>Set <code>result[2][2] = 1</code>. The third row becomes:</p>
+  <pre>1 2 1 0 0</pre>
+
+  <h3>Iteration 4: <code>i = 3</code></h3>
+  <p>Set <code>result[3][0] = 1</code>.</p>
+  <pre>result[3][1] = result[2][0] + result[2][1] = 1 + 2 = 3
+result[3][2] = result[2][1] + result[2][2] = 2 + 1 = 3</pre>
+  <p>Finally, set <code>result[3][3] = 1</code>. The fourth row becomes:</p>
+  <pre>1 3 3 1 0</pre>
+
+  <h3>Iteration 5: <code>i = 4</code></h3>
+  <p>Set the first element to <code>1</code>, then calculate the middle elements:</p>
+  <table>
+    <thead><tr><th>j</th><th>Calculation</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>1 + 3</code></td><td>4</td></tr>
+      <tr><td>2</td><td><code>3 + 3</code></td><td>6</td></tr>
+      <tr><td>3</td><td><code>3 + 1</code></td><td>4</td></tr>
+    </tbody>
+  </table>
+  <p>Set <code>result[4][4] = 1</code>. The final row is <code>1 4 6 4 1</code>.</p>
+
+  <h3>Final output</h3>
+  <pre>1 0 0 0 0
+1 1 0 0 0
+1 2 1 0 0
+1 3 3 1 0
+1 4 6 4 1</pre>
+  <p>The zeros are never explicitly assigned. They remain zero because Java initializes integer array elements to <code>0</code>.</p>
+
+  <h2>5. Complexity Comparison</h2>
+  <table>
+    <thead><tr><th>Factor</th><th>Brute force</th><th>Optimized</th></tr></thead>
+    <tbody>
+      <tr><td>Technique</td><td>Calculate combinations</td><td>Dynamic programming</td></tr>
+      <tr><td>Time complexity</td><td>O(A³)</td><td><strong>O(A²)</strong></td></tr>
+      <tr><td>Auxiliary space</td><td>O(1)</td><td>O(1)</td></tr>
+      <tr><td>Output space</td><td>O(A²)</td><td>O(A²)</td></tr>
+      <tr><td>Recommendation</td><td>Acceptable</td><td><strong>Best choice</strong></td></tr>
+    </tbody>
+  </table>
+  <p>The optimized approach takes O(A²) time because the nested loops visit the meaningful elements across the triangle. Their total count is:</p>
+  <p><strong>1 + 2 + … + A = A(A + 1) / 2 = O(A²)</strong></p>
+  <p>The returned array requires O(A²) space. The algorithm uses only a constant number of additional variables, so its auxiliary space is O(1).</p>
+
+  <h2>6. Important Edge Cases</h2>
+  <table>
+    <thead><tr><th>Input</th><th>Expected behavior</th></tr></thead>
+    <tbody>
+      <tr><td><code>A = 1</code></td><td>Returns <code>[[1]]</code>.</td></tr>
+      <tr><td><code>A = 2</code></td><td>Returns <code>[[1, 0], [1, 1]]</code>.</td></tr>
+      <tr><td><code>A = 3</code></td><td>Returns the first three rows with trailing zeros.</td></tr>
+      <tr><td><code>A = 25</code></td><td>Correctly builds all 25 rows.</td></tr>
+      <tr><td>Any valid <code>A</code></td><td>All positions after the last meaningful element remain zero.</td></tr>
+    </tbody>
+  </table>
+  <p>The maximum value for <code>A = 25</code> is C(24,12) = <code>2,704,156</code>, which fits safely within Java's <code>int</code> range.</p>
+
+  <h2>7. Similar LeetCode Problems</h2>
+  <ol>
+    <li><strong>LeetCode 118 — Pascal's Triangle (Easy):</strong> Generate all rows of Pascal's Triangle. This is almost exactly the same problem. <a href="https://leetcode.com/problems/pascals-triangle/">Solve on LeetCode</a>.</li>
+    <li><strong>LeetCode 119 — Pascal's Triangle II (Easy):</strong> Return only a specified row. This helps you understand how to reuse previous values and reduce space. <a href="https://leetcode.com/problems/pascals-triangle-ii/">Solve on LeetCode</a>.</li>
+    <li><strong>LeetCode 62 — Unique Paths (Medium):</strong> Build a DP table using previously computed results. The recurrence pattern is related. <a href="https://leetcode.com/problems/unique-paths/">Solve on LeetCode</a>.</li>
+    <li><strong>LeetCode 120 — Triangle (Medium):</strong> Work with a triangular 2D structure and use neighboring values to calculate a result. <a href="https://leetcode.com/problems/triangle/">Solve on LeetCode</a>.</li>
+  </ol>
+
+  <h2>8. Interview Preparation Notes</h2>
+  <p><strong>Pattern to remember:</strong> Dynamic programming (DP), using previously calculated results to avoid repeated work.</p>
+  <h3>Common mistakes</h3>
+  <ul>
+    <li>Using <code>j &lt;= i</code> for the middle-element loop instead of <code>j &lt; i</code>. The last element is handled separately.</li>
+    <li>Forgetting to initialize the first element of each row to <code>1</code>.</li>
+    <li>Forgetting that the required output has exactly <code>A</code> columns per row, including trailing zeros.</li>
+    <li>Using unnecessary factorial calculations when a simple recurrence is available.</li>
+  </ul>
+  <h3>Likely interviewer follow-ups</h3>
+  <p><strong>Q1. Can we generate Pascal's Triangle using only one array?</strong><br>
+  Yes. Update a single array from right to left so that previous-row values are not overwritten before use. This reduces auxiliary space to O(A), excluding the returned output.</p>
+  <p><strong>Q2. Why is this dynamic programming?</strong><br>
+  Each result depends on smaller subproblems whose answers have already been calculated and stored.</p>
+  <p><strong>Q3. Can the optimized solution overflow <code>int</code>?</strong><br>
+  Not under the given constraint <code>A ≤ 25</code>. The largest value is <code>2,704,156</code>.</p>
+
+  <h2>9. Final Recommendation</h2>
+  <p>Use the <strong>optimized dynamic programming solution</strong> in your interview.</p>
+  <ol>
+    <li>First element of each row = <code>1</code>.</li>
+    <li>Middle element = upper-left element + upper-right element.</li>
+    <li>Last meaningful element of each row = <code>1</code>.</li>
+  </ol>
+  <p>The final solution runs in <strong>O(A²) time</strong>, uses <strong>O(1) auxiliary space</strong>, and returns an <strong>O(A²) 2D array</strong>.</p>
+  <p class="small">Tip: Save this file and open it in any modern browser. Use the browser's Print option to save a PDF if needed.</p>
+</main>
+</body>
+</html>

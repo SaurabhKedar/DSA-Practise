@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nCr Modulo m — Optimized DP Approach</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#536176; --line:#dbe3ee; --panel:#f4f7fb; --accent:#2457c5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef2f7; color: var(--ink); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 960px; margin: 32px auto; padding: 40px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(20,35,60,.08); }
+    h1,h2,h3 { line-height: 1.25; }
+    h1 { margin-top: 0; font-size: 2.1rem; }
+    h2 { margin-top: 2rem; padding-bottom: .45rem; border-bottom: 1px solid var(--line); }
+    h3 { margin-top: 1.4rem; }
+    p, li { color: #263449; }
+    .lead { color: var(--muted); font-size: 1.08rem; }
+    .note { padding: 14px 18px; background: #edf4ff; border-left: 4px solid var(--accent); border-radius: 6px; }
+    .formula { padding: 14px; text-align: center; background: var(--panel); border-radius: 8px; font-family: Georgia, serif; font-size: 1.2rem; overflow-wrap: anywhere; }
+    pre { background: #101827; color: #edf3ff; padding: 20px; border-radius: 10px; overflow-x: auto; line-height: 1.55; font-size: .93rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    :not(pre) > code { background: #eef2f7; padding: .12rem .35rem; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-variant-numeric: tabular-nums; }
+    th,td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; }
+    th { background: var(--panel); }
+    .array { display: flex; gap: 12px; margin: 14px 0; }
+    .cell { flex: 1; text-align: center; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+    .cell strong { display:block; font-size: 1.35rem; }
+    .caption { font-size: .9rem; color: var(--muted); }
+    @media (max-width: 640px) { main { margin: 0; padding: 22px 16px; border-radius: 0; } h1 { font-size: 1.7rem; } table { font-size: .9rem; } th,td { padding: 7px; } }
+    @media print { body { background: white; } main { margin: 0; padding: 0; box-shadow: none; max-width: none; } pre { white-space: pre-wrap; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Calculate <em>nCr mod m</em> Using Dynamic Programming</h1>
+  <p class="lead">A beginner-friendly explanation of the symmetry property, one-dimensional Pascal's Triangle DP, and a complete dry run in Java.</p>
+
+  <h2>1. Problem understanding</h2>
+  <p>You are given three integers: <code>A = n</code> (total items), <code>B = r</code> (items to select), and <code>C = m</code> (modulo value). Return the number of ways to choose <code>B</code> items from <code>A</code>, modulo <code>C</code>.</p>
+  <div class="formula">nCr = n! / (r! × (n − r)!) &nbsp; and the required answer is nCr mod m</div>
+  <p>Example: <code>A = 5</code>, <code>B = 2</code>, <code>C = 13</code>. Since 5C2 = 10, the result is <code>10 % 13 = 10</code>.</p>
+  <div class="note"><strong>Why not calculate factorials?</strong> Factorials grow very quickly and overflow Java integer types. Instead, calculate combinations from smaller combinations using DP.</div>
+
+  <h2>2. Useful nCr property: symmetry</h2>
+  <div class="formula">nCr = nC(n − r)</div>
+  <p>Selecting <code>r</code> items to include is equivalent to selecting the remaining <code>n − r</code> items to leave out. Therefore, use the smaller value:</p>
+  <pre><code>int r = Math.min(B, A - B);</code></pre>
+  <p>For example, if <code>A = 100</code> and <code>B = 98</code>, then <code>r = min(98, 2) = 2</code>. We only need to calculate combinations up to 2 instead of 98.</p>
+
+  <h2>3. Optimized solution: one-dimensional DP</h2>
+  <p>Pascal's Triangle gives us this recurrence:</p>
+  <div class="formula">C(i, j) = C(i − 1, j) + C(i − 1, j − 1)</div>
+  <p>In plain language, choosing <code>j</code> items from <code>i</code> items means either excluding the newest item (choose <code>j</code> from <code>i − 1</code>) or including it (choose <code>j − 1</code> from <code>i − 1</code>). Add those possibilities and take the modulo.</p>
+
+  <h3>Complete Java code</h3>
+  <pre><code>public int solve(int A, int B, int C) {
+
+    // Use nCr = nC(n-r) to minimize the DP array size.
+    int r = Math.min(B, A - B);
+
+    // dp[j] stores the current number of ways to choose j items,
+    // modulo C.
+    int[] dp = new int[r + 1];
+
+    // There is one way to choose zero items.
+    // This also handles C = 1.
+    dp[0] = 1 % C;
+
+    // Build combinations for each i from 1 through A.
+    for (int i = 1; i &lt;= A; i++) {
+
+        // Update backward so dp[j-1] still belongs to the previous row.
+        for (int j = Math.min(i, r); j &gt;= 1; j--) {
+
+            // Pascal's Triangle recurrence, with modulo applied each time.
+            dp[j] = (int) (((long) dp[j] + dp[j - 1]) % C);
+        }
+    }
+
+    // By symmetry, ACr is the same as ACB.
+    return dp[r];
+}</code></pre>
+
+  <h3>How the code works</h3>
+  <ol>
+    <li><strong>Reduce r:</strong> <code>Math.min(B, A - B)</code> uses symmetry to reduce the amount of work.</li>
+    <li><strong>Initialize:</strong> <code>dp[0] = 1 % C</code>, because there is exactly one way to choose nothing.</li>
+    <li><strong>Build each row:</strong> The outer loop processes values from 1 to <code>A</code>.</li>
+    <li><strong>Update backward:</strong> The inner loop goes from <code>min(i, r)</code> down to 1, preserving values from the previous row.</li>
+    <li><strong>Apply modulo:</strong> Each value remains between 0 and <code>C - 1</code>. The <code>long</code> cast makes the addition safe.</li>
+    <li><strong>Return:</strong> <code>dp[r]</code> is the requested combination modulo <code>C</code>.</li>
+  </ol>
+
+  <h2>4. Dry run: A = 5, B = 2, C = 13</h2>
+  <h3>Step 1: Apply symmetry</h3>
+  <pre><code>r = min(B, A - B)
+  = min(2, 5 - 2)
+  = min(2, 3)
+  = 2</code></pre>
+  <p>So the DP array has <code>r + 1 = 3</code> entries.</p>
+  <h3>Step 2: Initialize</h3>
+  <div class="array">
+    <div class="cell"><strong>1</strong><span>dp[0]</span></div>
+    <div class="cell"><strong>0</strong><span>dp[1]</span></div>
+    <div class="cell"><strong>0</strong><span>dp[2]</span></div>
+  </div>
+  <p class="caption">Choosing zero items has one way. The other values have not been calculated yet.</p>
+
+  <h3>Step 3: Process each i</h3>
+  <p><strong>When i = 1:</strong></p>
+  <pre><code>dp[1] = (dp[1] + dp[0]) % 13
+      = (0 + 1) % 13
+      = 1</code></pre>
+  <p>Array: <code>[1, 1, 0]</code></p>
+
+  <p><strong>When i = 2:</strong> Update <code>j = 2</code>, then <code>j = 1</code>.</p>
+  <pre><code>dp[2] = (0 + 1) % 13 = 1
+dp[1] = (1 + 1) % 13 = 2</code></pre>
+  <p>Array: <code>[1, 2, 1]</code></p>
+
+  <p><strong>When i = 3:</strong></p>
+  <pre><code>dp[2] = (1 + 2) % 13 = 3
+dp[1] = (2 + 1) % 13 = 3</code></pre>
+  <p>Array: <code>[1, 3, 3]</code></p>
+
+  <p><strong>When i = 4:</strong></p>
+  <pre><code>dp[2] = (3 + 3) % 13 = 6
+dp[1] = (3 + 1) % 13 = 4</code></pre>
+  <p>Array: <code>[1, 4, 6]</code></p>
+
+  <p><strong>When i = 5:</strong></p>
+  <pre><code>dp[2] = (6 + 4) % 13 = 10
+dp[1] = (4 + 1) % 13 = 5</code></pre>
+  <p>Final array: <code>[1, 5, 10]</code></p>
+
+  <h3>Complete DP table</h3>
+  <table>
+    <thead><tr><th>i</th><th>j update order</th><th>dp[0]</th><th>dp[1]</th><th>dp[2]</th></tr></thead>
+    <tbody>
+      <tr><td>Initial</td><td>—</td><td>1</td><td>0</td><td>0</td></tr>
+      <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+      <tr><td>2</td><td>2, 1</td><td>1</td><td>2</td><td>1</td></tr>
+      <tr><td>3</td><td>2, 1</td><td>1</td><td>3</td><td>3</td></tr>
+      <tr><td>4</td><td>2, 1</td><td>1</td><td>4</td><td>6</td></tr>
+      <tr><td>5</td><td>2, 1</td><td>1</td><td>5</td><td>10</td></tr>
+    </tbody>
+  </table>
+  <p>At the end, <code>r = 2</code>, so we return <code>dp[2] = 10</code>. Thus, <code>5C2 % 13 = 10</code>.</p>
+
+  <h2>5. Why must the inner loop run backward?</h2>
+  <p>Before processing <code>i = 3</code>, the array is <code>[1, 2, 1]</code>. We must calculate <code>dp[2]</code> using the old <code>dp[1] = 2</code>:</p>
+  <pre><code>dp[2] = (1 + 2) % 13 = 3</code></pre>
+  <p>If we updated left to right, <code>dp[1]</code> would first become 3, and then <code>dp[2]</code> would incorrectly become <code>(1 + 3) % 13 = 4</code>. Backward updates preserve the previous row's values.</p>
+
+  <h2>6. Complexity analysis</h2>
+  <p>Let <code>k = min(B, A - B)</code>.</p>
+  <ul>
+    <li><strong>Time:</strong> <code>O(A × k)</code>, because at most <code>k</code> DP entries are updated for each of the <code>A</code> rows.</li>
+    <li><strong>Auxiliary space:</strong> <code>O(k)</code>, because the solution stores one array of size <code>k + 1</code>.</li>
+  </ul>
+  <p>The constraints guarantee <code>A × B ≤ 10⁶</code>, so the number of DP updates is within a practical range.</p>
+
+  <h2>7. Edge cases</h2>
+  <table>
+    <thead><tr><th>A, B, C</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>(5, 1, 7)</td><td>5</td><td>There are five ways to choose one item.</td></tr>
+      <tr><td>(5, 5, 7)</td><td>1</td><td>There is one way to choose all items.</td></tr>
+      <tr><td>(6, 2, 13)</td><td>2</td><td>6C2 = 15 and 15 % 13 = 2.</td></tr>
+      <tr><td>(5, 2, 1)</td><td>0</td><td>Every integer modulo 1 is zero.</td></tr>
+    </tbody>
+  </table>
+  <p>The stated constraints require <code>B ≥ 1</code>, but the code also handles <code>B = 0</code> if that case is allowed by another platform.</p>
+
+  <h2>8. Interview takeaways</h2>
+  <ol>
+    <li><strong>Symmetry:</strong> <code>nCr = nC(n-r)</code>; use the smaller selection count.</li>
+    <li><strong>Pascal's Triangle:</strong> Calculate combinations by adding smaller combinations, avoiding factorial overflow.</li>
+    <li><strong>Backward updates:</strong> Preserve the previous row while using a one-dimensional DP array.</li>
+    <li><strong>Modulo:</strong> Applying modulo after each addition works for any positive modulus, including composite values; no modular inverse is needed.</li>
+  </ol>
+  <div class="note"><strong>Final answer for the dry run:</strong> <code>solve(5, 2, 13)</code> returns <code>10</code>. If a judge reports a different expected result, check the exact values of A, B, and C supplied to the failing test.</div>
+</main>
+</body>
+</html>

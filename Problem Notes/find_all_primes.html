@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find All Prime Numbers from 1 to A — Java Solution</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for rendering LaTeX mathematical notation -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 leading-relaxed">
+
+    <div class="max-w-4xl mx-auto px-6 py-12 bg-white shadow-xl rounded-2xl my-10 border border-slate-100">
+        
+        <!-- Header -->
+        <header class="border-b border-slate-200 pb-6 mb-8">
+            <span class="bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Java Algorithm Guide</span>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 mb-2">Find All Prime Numbers from 1 to $A$ — Java Solution</h1>
+            <p class="text-slate-600 text-lg">The best approach for this problem is the Sieve of Eratosthenes. Since $A$ can be as large as $10^6$, this algorithm efficiently finds all prime numbers without checking every number individually for primality.</p>
+        </header>
+
+        <!-- Main Content Sections -->
+        <main class="space-y-10">
+
+            <!-- Section 1 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">1. Problem Understanding</h2>
+                <p class="mb-4">We are given an integer <code>A</code>. We need to return all prime numbers from <code>1</code> to <code>A</code> in sorted order.</p>
+                <p class="mb-4">A prime number is a number greater than <code>1</code> that has exactly two factors: <code>1</code> and itself.</p>
+                <p class="font-semibold mb-2">For example:</p>
+                <ul class="list-disc list-inside space-y-1 mb-4 text-slate-700">
+                    <li><code>2</code> is prime because its factors are <code>1, 2</code>.</li>
+                    <li><code>5</code> is prime because its factors are <code>1, 5</code>.</li>
+                    <li><code>6</code> is not prime because its factors include <code>1, 2, 3, 6</code>.</li>
+                    <li><code>1</code> is not a prime number.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-3">Examples</h3>
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full border border-slate-200 text-left text-sm">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Input</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Output</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 7</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2, 3, 5, 7]</code></td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 12</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2, 3, 5, 7, 11]</code></td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 2</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2]</code></td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 1</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[]</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">2. Brute Force Approach</h2>
+                
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="mb-4">Check every number from <code>2</code> to <code>A</code>. For each number, check whether it is divisible by any integer from <code>2</code> up to its square root.</p>
+                <p class="mb-4">If no divisor is found, the number is prime and we add it to our result.</p>
+                <p class="mb-4">Why only check up to $\sqrt{n}$? If a number has a factor greater than its square root, its corresponding factor must be smaller than the square root.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Brute-force code (Java)</h3>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-sm font-mono mb-6"><code>import java.util.*;
+
+public class Solution {
+    public int[] solve(int A) {
+        List&lt;Integer&gt; primes = new ArrayList&lt;&gt;();
+
+        // Check every number from 2 to A.
+        for (int num = 2; num &lt;= A; num++) {
+            boolean isPrime = true;
+
+            // Check whether num has any divisor other than 1 and itself.
+            for (int divisor = 2; divisor * divisor &lt;= num; divisor++) {
+                if (num % divisor == 0) {
+                    isPrime = false;
+                    break;
+                }
+            }
+
+            // Add the number if no divisor was found.
+            if (isPrime) {
+                primes.add(num);
+            }
+        }
+
+        // Convert the list into the required int[] output.
+        int[] result = new int[primes.size()];
+        for (int i = 0; i &lt; primes.size(); i++) {
+            result[i] = primes.get(i);
+        }
+
+        return result;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Dry run: <code>A = 7</code></h3>
+                <ul class="list-disc list-inside space-y-1 mb-4 text-slate-700">
+                    <li><code>2</code>: no divisor to check, so it is prime.</li>
+                    <li><code>3</code>: not divisible by <code>2</code>, so it is prime.</li>
+                    <li><code>4</code>: divisible by <code>2</code>, so it is not prime.</li>
+                    <li><code>5</code>: no divisor up to $\sqrt{5}$, so it is prime.</li>
+                    <li><code>6</code>: divisible by <code>2</code>, so it is not prime.</li>
+                    <li><code>7</code>: no divisor up to $\sqrt{7}$, so it is prime.</li>
+                </ul>
+                <p class="font-medium text-slate-900 mb-4">Result: <code>[2, 3, 5, 7]</code></p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Time: $O(A\sqrt{A})$ in the worst case, because we test divisors for each number.</li>
+                    <li>Auxiliary space: $O(P)$, where $P$ is the number of primes stored in the result. The returned array also requires $O(P)$ space.</li>
+                </ul>
+                <p class="mt-2 text-indigo-700 font-medium">This works, but we can do better.</p>
+            </section>
+
+            <!-- Section 3 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">3. Optimized Approach — Sieve of Eratosthenes</h2>
+                
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="mb-4">Instead of repeatedly checking whether every number is prime, we start by assuming every number is prime. Then we mark the multiples of each prime as non-prime.</p>
+                <p class="font-semibold mb-2">For example, when <code>A = 12</code>:</p>
+                <ol class="list-decimal list-inside space-y-1 mb-4 text-slate-700">
+                    <li>Start with the numbers from <code>0</code> to <code>12</code>.</li>
+                    <li>Mark <code>0</code> and <code>1</code> as non-prime.</li>
+                    <li>Start with <code>2</code>, which is prime. Mark <code>4, 6, 8, 10, 12</code> as non-prime.</li>
+                    <li>Move to <code>3</code>, which is prime. Mark <code>6, 9, 12</code> as non-prime.</li>
+                    <li>Continue with the remaining unmarked numbers.</li>
+                    <li>Collect all unmarked numbers from <code>2</code> to <code>12</code>.</li>
+                </ol>
+                <p class="font-medium text-slate-900 mb-4">The result is <code>[2, 3, 5, 7, 11]</code>.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Why start marking from <code>i * i</code>?</h3>
+                <p class="mb-4">When processing a prime <code>i</code>, all its smaller multiples have already been marked by smaller prime factors.</p>
+                <p class="mb-4">For example, when processing <code>5</code>, the multiples <code>10</code> and <code>15</code> are already handled by <code>2</code> and <code>3</code>. Therefore, we start from <code>5 * 5 = 25</code>.</p>
+                <p class="mb-4">We only need to process candidate primes up to $\sqrt{A}$. Any composite number up to <code>A</code> must have a prime factor no greater than that.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Step-by-step algorithm</h3>
+                <ol class="list-decimal list-inside space-y-1 mb-6 text-slate-700">
+                    <li>Create a boolean array <code>isPrime</code> of size <code>A + 1</code>.</li>
+                    <li>Mark every entry from <code>2</code> through <code>A</code> as <code>true</code>.</li>
+                    <li>Loop from <code>i = 2</code> while <code>i * i &lt;= A</code>.</li>
+                    <li>If <code>isPrime[i]</code> is <code>true</code>, mark its multiples starting at <code>i * i</code> as <code>false</code>.</li>
+                    <li>Count the remaining prime numbers.</li>
+                    <li>Create an integer array of the required size and fill it with the unmarked numbers in increasing order.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Optimized Java solution</h3>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-sm font-mono mb-6"><code>public class Solution {
+    public int[] solve(int A) {
+        // isPrime[i] tells us whether i is prime.
+        boolean[] isPrime = new boolean[A + 1];
+
+        // Initially, assume every number &gt;= 2 is prime.
+        for (int i = 2; i &lt;= A; i++) {
+            isPrime[i] = true;
+        }
+
+        // We only need to process numbers up to sqrt(A).
+        for (int i = 2; i * i &lt;= A; i++) {
+
+            // Skip numbers already identified as composite.
+            if (isPrime[i]) {
+
+                // Mark multiples of i as non-prime.
+                // Start at i * i because smaller multiples
+                // have already been handled.
+                for (int j = i * i; j &lt;= A; j += i) {
+                    isPrime[j] = false;
+                }
+            }
+        }
+
+        // Count how many primes exist in the range.
+        int count = 0;
+        for (int i = 2; i &lt;= A; i++) {
+            if (isPrime[i]) {
+                count++;
+            }
+        }
+
+        // Create an array of exactly the required size.
+        int[] result = new int[count];
+        int index = 0;
+
+        // Collect prime numbers in ascending order.
+        for (int i = 2; i &lt;= A; i++) {
+            if (isPrime[i]) {
+                result[index++] = i;
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+            </section>
+
+            <!-- Section 4 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="mb-4">Let's execute the Sieve of Eratosthenes for <code>A = 12</code>. Initially, all numbers from <code>2</code> to <code>12</code> are considered prime.</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full border border-slate-200 text-left text-sm">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Step</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Number processed</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Multiples marked non-prime</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2">1</td>
+                                <td class="border border-slate-200 px-4 py-2"><code>i = 2</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>4, 6, 8, 10, 12</code></td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2">2</td>
+                                <td class="border border-slate-200 px-4 py-2"><code>i = 3</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>9</code> (<code>6</code> and <code>12</code> are already marked)</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2">3</td>
+                                <td class="border border-slate-200 px-4 py-2"><code>i = 4</code></td>
+                                <td class="border border-slate-200 px-4 py-2">Skipped; already marked non-prime</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="mb-4">We stop after <code>i = 3</code> because the next number, <code>4</code>, exceeds $\sqrt{12}$.</p>
+                <p class="font-medium text-slate-900 mb-2">The unmarked numbers form our answer:</p>
+                <p class="font-mono bg-slate-100 p-3 rounded-lg text-indigo-700 font-bold">[2, 3, 5, 7, 11]</p>
+            </section>
+
+            <!-- Section 5 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">5. Complexity Analysis</h2>
+                <p class="mb-4">Let $A$ be the input number and $P$ be the number of primes in the range.</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full border border-slate-200 text-left text-sm">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Approach</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Time complexity</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2">Brute force</td>
+                                <td class="border border-slate-200 px-4 py-2">$O(A\sqrt A)$</td>
+                                <td class="border border-slate-200 px-4 py-2">$O(P)$ for the list</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2">Sieve of Eratosthenes</td>
+                                <td class="border border-slate-200 px-4 py-2">$O(A\log\log A)$</td>
+                                <td class="border border-slate-200 px-4 py-2">$O(A)$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Why is the sieve faster?</h3>
+                <p class="mb-4">Each prime marks its multiples rather than testing every candidate independently. The total marking work is approximately:</p>
+                <p class="text-center my-4 font-mono text-lg">$$A\left(\frac12+\frac13+\frac15+\cdots\right)$$</p>
+                <p class="mb-4">where the sum is over primes, giving the standard $O(A\log\log A)$ time complexity.</p>
+                <p class="text-slate-700">The sieve uses $O(A)$ auxiliary space for the boolean array. The returned array separately uses $O(P)$ space. Since $P \le A$, the overall space remains $O(A)$.</p>
+            </section>
+
+            <!-- Section 6 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">6. Edge Cases</h2>
+                
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full border border-slate-200 text-left text-sm">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Input</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Expected output</th>
+                                <th class="border border-slate-200 px-4 py-2 font-semibold text-slate-700">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 1</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[]</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>1</code> is not prime</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 2</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2]</code></td>
+                                <td class="border border-slate-200 px-4 py-2">Smallest prime number</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 3</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2, 3]</code></td>
+                                <td class="border border-slate-200 px-4 py-2">Both numbers are prime</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 4</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2, 3]</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>4</code> is composite</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 10</code></td>
+                                <td class="border border-slate-200 px-4 py-2"><code>[2, 3, 5, 7]</code></td>
+                                <td class="border border-slate-200 px-4 py-2">Only primes are included</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border border-slate-200 px-4 py-2"><code>A = 1000000</code></td>
+                                <td class="border border-slate-200 px-4 py-2">All primes up to one million</td>
+                                <td class="border border-slate-200 px-4 py-2">Efficiently handled by the sieve</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700">The code handles <code>A = 1</code> correctly because no number is marked prime, so the result array has length zero.</p>
+            </section>
+
+            <!-- Section 7 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">7. Similar Problems on LeetCode</h2>
+                <p class="mb-4 text-slate-700">These problems help reinforce prime-number logic and the sieve pattern:</p>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong class="text-slate-900">204. Count Primes (Medium):</strong> Count the prime numbers strictly less than a given integer. This is the closest match and uses the same sieve technique. (<a href="https://leetcode.com/problems/count-primes/" target="_blank" class="text-indigo-600 hover:underline">Solve on LeetCode</a>)</li>
+                    <li><strong class="text-slate-900">2523. Closest Prime Numbers in Range (Medium):</strong> Find two prime numbers in a given interval that are closest together. (<a href="https://leetcode.com/problems/closest-prime-numbers-in-range/" target="_blank" class="text-indigo-600 hover:underline">Solve on LeetCode</a>)</li>
+                    <li><strong class="text-slate-900">866. Prime Palindrome (Medium):</strong> Find the smallest number at least as large as the input that is both prime and a palindrome. (<a href="https://leetcode.com/problems/prime-palindrome/" target="_blank" class="text-indigo-600 hover:underline">Solve on LeetCode</a>)</li>
+                    <li><strong class="text-slate-900">2761. Prime Pairs With Target Sum (Medium):</strong> Find prime pairs whose sum equals a given number. It reinforces prime precomputation and efficient lookup. (<a href="https://leetcode.com/problems/prime-pairs-with-target-sum/" target="_blank" class="text-indigo-600 hover:underline">Solve on LeetCode</a>)</li>
+                </ul>
+            </section>
+
+            <!-- Section 8 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">8. Interview Preparation Notes</h2>
+                <p class="mb-3 font-semibold text-slate-800">Key pattern to remember:</p>
+                <p class="mb-4 text-slate-700">Sieve of Eratosthenes — use a boolean array to eliminate multiples of prime numbers.</p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Common mistakes:</h3>
+                <ul class="list-disc list-inside space-y-1 mb-4 text-slate-700">
+                    <li>Including <code>1</code> as a prime.</li>
+                    <li>Creating an array of size <code>A</code> instead of <code>A + 1</code>, which would make index <code>A</code> inaccessible.</li>
+                    <li>Starting marking at <code>2 * i</code> instead of <code>i * i</code>. Starting at <code>i * i</code> avoids unnecessary work.</li>
+                    <li>Forgetting to collect primes in ascending order.</li>
+                    <li>Using <code>i * i</code> with an integer type that could overflow in problems with much larger limits. For this problem, $A \le 10^6$, so <code>int</code> is safe.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Likely interviewer follow-up questions:</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700">
+                    <li>Why does the sieve work? Every composite number has a prime factor that marks it as non-prime.</li>
+                    <li>Why start at <code>i * i</code>? Smaller multiples have already been marked by smaller factors.</li>
+                    <li>Can we reduce the memory usage? Yes, an odd-only sieve stores status for odd numbers only, though it adds implementation complexity.</li>
+                    <li>Can we find whether one number is prime without precomputing all primes? Yes. Trial division up to its square root is suitable when checking only a few numbers.</li>
+                </ol>
+            </section>
+
+            <!-- Section 9 -->
+            <section class="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl">
+                <h2 class="text-2xl font-bold text-indigo-900 mb-3">9. Final Recommendation</h2>
+                <p class="mb-4 text-indigo-800">Use the Sieve of Eratosthenes in an interview for this problem. It is efficient, easy to explain, and handles the maximum constraint comfortably.</p>
+                <ul class="list-disc list-inside space-y-1 mb-4 text-indigo-900 font-medium">
+                    <li>Time: $O(A\log\log A)$</li>
+                    <li>Auxiliary space: $O(A)$</li>
+                    <li>Output space: $O(P)$</li>
+                </ul>
+                <p class="text-indigo-900 font-semibold">Remember: Instead of checking every number separately, mark the multiples of each prime, then collect the numbers that remain unmarked.</p>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-200 mt-12 pt-6 text-center text-slate-500 text-sm">
+            <p>Java Solution Guide for Finding All Prime Numbers from 1 to A.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
