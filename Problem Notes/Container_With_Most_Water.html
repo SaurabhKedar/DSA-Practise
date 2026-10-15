@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Container With Most Water — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a { color: #a5b4fc; text-underline-offset: 3px; }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Container With Most Water</h1>
+                <p class="mb-4 text-lg text-slate-300">A classic two-pointer problem. Since \(N\) can be as large as \(10^5\), the two-pointer solution reduces the running time to \(O(N)\).</p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong> Start with the widest pair and move inward from the shorter boundary.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given an array <code class="text-indigo-300">A</code>, where each element represents the height of a vertical line. Choose two lines that, together with the x-axis, form a container that holds as much water as possible.</p>
+                    <p class="mb-3">For lines at indices <code>i</code> and <code>j</code>, the area is:</p>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg">
+                        \[\text{Area}=\min(A[i],A[j])\times(j-i)\]
+                    </div>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>A[i]</code> and <code>A[j]</code> are the heights of the two lines.</li>
+                        <li><code>j - i</code> is the width between them.</li>
+                        <li>The shorter line determines the maximum water height.</li>
+                    </ul>
+
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Example: <code>A = [1, 5, 4, 3]</code></h3>
+                        <p class="mb-2">Choose heights <code>5</code> and <code>3</code>, at zero-based indices <code>1</code> and <code>3</code>.</p>
+                        <ul class="list-inside list-disc space-y-1 text-slate-300">
+                            <li>Width: \(3-1=2\)</li>
+                            <li>Height: \(\min(5,3)=3\)</li>
+                            <li>Area: \(2\times3=\mathbf{6}\)</li>
+                        </ul>
+                        <p class="mt-3 text-slate-200"><strong>Output:</strong> <code>6</code></p>
+                    </div>
+                    <p class="mt-4">For <code>A = [1]</code>, there is only one line, so no container can be formed. The output is <code>0</code>.</p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">Try every possible pair of lines, calculate its area, and keep track of the maximum.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int maxArea(int[] A) {
+        int n = A.length;
+        int maxArea = 0;
+
+        // Try every possible pair of lines.
+        for (int i = 0; i &lt; n; i++) {
+            for (int j = i + 1; j &lt; n; j++) {
+                // The shorter line limits the water height.
+                int height = Math.min(A[i], A[j]);
+
+                // Distance between the two lines.
+                int width = j - i;
+
+                int area = height * width;
+
+                // Keep the largest area found so far.
+                maxArea = Math.max(maxArea, area);
+            }
+        }
+
+        return maxArea;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3">For <code>A = [1, 5, 4, 3]</code>:</p>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border-collapse border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Indices <code>(i, j)</code></th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Heights</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Width</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Area</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>(0, 1)</code></td><td class="border border-slate-700 px-4 py-2">1, 5</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">1</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>(0, 2)</code></td><td class="border border-slate-700 px-4 py-2">1, 4</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>(0, 3)</code></td><td class="border border-slate-700 px-4 py-2">1, 3</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>(1, 2)</code></td><td class="border border-slate-700 px-4 py-2">5, 4</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">4</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>(1, 3)</code></td><td class="border border-slate-700 px-4 py-2">5, 3</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">6</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>(2, 3)</code></td><td class="border border-slate-700 px-4 py-2">4, 3</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">3</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4"><strong>Maximum area:</strong> <code>6</code>.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N^2)\), because every pair is examined.</li>
+                        <li>Auxiliary space: \(O(1)\), because only a few variables are used.</li>
+                    </ul>
+                    <p class="rounded-lg border border-amber-800 bg-amber-950 p-4 text-amber-100">For \(N=10^5\), there can be almost five billion pairs, making brute force too slow.</p>
+                </section>
+
+                <section id="two-pointers">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Two Pointers</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Start with the two lines that are farthest apart:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>left = 0</code>: the first line.</li>
+                        <li><code>right = n - 1</code>: the last line.</li>
+                    </ul>
+                    <p class="mb-4">Calculate the area and update the maximum. Then move the pointer at the shorter line. The shorter line limits the water height. Moving the taller line inward would reduce the width without allowing a greater height than the current shorter line. Moving the shorter line gives a chance to find a taller boundary.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Two-pointer algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Initialize <code>left = 0</code>, <code>right = n - 1</code>, and <code>maxArea = 0</code>.</li>
+                        <li>While <code>left &lt; right</code>, calculate the area using the shorter height and the width.</li>
+                        <li>Update <code>maxArea</code> if the current area is larger.</li>
+                        <li>If <code>A[left] &lt; A[right]</code>, move <code>left</code> forward. Otherwise, move <code>right</code> backward.</li>
+                        <li>Return <code>maxArea</code> when the pointers meet.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java code</h3>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int maxArea(int[] A) {
+        int left = 0;
+        int right = A.length - 1;
+        int maxArea = 0;
+
+        // Continue while two different lines remain.
+        while (left &lt; right) {
+            // Water height is limited by the shorter line.
+            int height = Math.min(A[left], A[right]);
+
+            // Width is the distance between the lines.
+            int width = right - left;
+
+            // Calculate this container's area.
+            int area = height * width;
+
+            // Update the best area found so far.
+            maxArea = Math.max(maxArea, area);
+
+            // Move the pointer at the shorter boundary.
+            if (A[left] &lt; A[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+
+        return maxArea;
+    }
+}</code></pre>
+                    <p>This preserves the required method signature for the platform.</p>
+                </section>
+
+                <section id="optimized-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Input: <code>A = [1, 5, 4, 3]</code>. Initially, <code>left = 0</code>, <code>right = 3</code>, and <code>maxArea = 0</code>.</p>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border-collapse border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Step</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Left height</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Right height</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Width</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Area</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">Move <code>left</code></td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2">Move <code>right</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">Move <code>right</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">At the end, <code>left = 1</code> and <code>right = 1</code>. Since <code>left &lt; right</code> is false, the loop stops.</p>
+                    <p class="mb-4"><strong>Final answer:</strong> <code>6</code>.</p>
+                    <p>When the first area is <code>3</code>, we discard the line of height <code>1</code>. Any container using that line has a maximum height of <code>1</code>, and a smaller width cannot improve upon its best possible area.</p>
+                </section>
+
+                <section id="correctness">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">Why Does This Optimization Work?</h2>
+                    <p class="mb-4">Suppose the current boundaries have heights \(h_L\) and \(h_R\), and the width is \(w\).</p>
+                    <p class="mb-4">If \(h_L \le h_R\), the current area is \(h_L \times w\). Moving the right pointer inward keeps the left height as a limiting boundary while reducing the width. Therefore, moving the right pointer cannot produce a better area with the current left boundary.</p>
+                    <p>We can safely discard that shorter boundary and move <code>left</code> forward. The same reasoning applies when the right boundary is shorter. This lets the algorithm skip many pairs without missing the maximum area.</p>
+                </section>
+
+                <section id="complexity-analysis">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border-collapse border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Approach</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Time complexity</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><th scope="row" class="border border-slate-700 px-4 py-2 font-semibold">Brute force</th><td class="border border-slate-700 px-4 py-2">\(O(N^2)\)</td><td class="border border-slate-700 px-4 py-2">\(O(1)\)</td></tr>
+                                <tr class="bg-slate-900"><th scope="row" class="border border-slate-700 px-4 py-2 font-semibold">Two pointers</th><td class="border border-slate-700 px-4 py-2">\(O(N)\)</td><td class="border border-slate-700 px-4 py-2">\(O(1)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3"><strong>Optimized time:</strong> Each iteration moves either <code>left</code> or <code>right</code> inward. Each pointer moves at most \(N-1\) positions, so the total work is linear.</p>
+                    <p><strong>Space:</strong> Only three variables are used, regardless of input size.</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border-collapse border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Input</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Expected output</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2"><code>0</code></td><td class="border border-slate-700 px-4 py-2">Only one line; no container</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>[1, 1]</code></td><td class="border border-slate-700 px-4 py-2"><code>1</code></td><td class="border border-slate-700 px-4 py-2">Both heights are equal</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[1, 2]</code></td><td class="border border-slate-700 px-4 py-2"><code>1</code></td><td class="border border-slate-700 px-4 py-2">Minimum possible valid input</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>[1, 5, 4, 3]</code></td><td class="border border-slate-700 px-4 py-2"><code>6</code></td><td class="border border-slate-700 px-4 py-2">Example with the maximum area</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[5, 1, 2, 1, 5]</code></td><td class="border border-slate-700 px-4 py-2"><code>20</code></td><td class="border border-slate-700 px-4 py-2">Tall boundaries at both ends</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>[2, 2, 2, 2]</code></td><td class="border border-slate-700 px-4 py-2"><code>6</code></td><td class="border border-slate-700 px-4 py-2">Equal heights; maximum width gives the best area</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">For a single element, <code>left == right</code> immediately, so the loop never executes and the method returns <code>0</code>.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems will help you practice the same pattern.</p>
+                    <ul class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">11. Container With Most Water <span class="ml-2 rounded-full bg-indigo-950 px-2 py-1 text-xs text-indigo-200">Medium</span></h3>
+                            <p class="my-2 text-slate-300">This exact problem. Practice the two-pointer proof and implementation.</p>
+                            <a href="https://leetcode.com/problems/container-with-most-water/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">42. Trapping Rain Water <span class="ml-2 rounded-full bg-indigo-950 px-2 py-1 text-xs text-indigo-200">Hard</span></h3>
+                            <p class="my-2 text-slate-300">Uses height boundaries and two pointers to calculate trapped water, with a different area calculation.</p>
+                            <a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">167. Two Sum II - Input Array Is Sorted <span class="ml-2 rounded-full bg-indigo-950 px-2 py-1 text-xs text-indigo-200">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Practices moving left and right pointers based on a condition.</p>
+                            <a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">15. 3Sum <span class="ml-2 rounded-full bg-indigo-950 px-2 py-1 text-xs text-indigo-200">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Combines sorting with two pointers to find triplets efficiently.</p>
+                            <a href="https://leetcode.com/problems/3sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">125. Valid Palindrome <span class="ml-2 rounded-full bg-indigo-950 px-2 py-1 text-xs text-indigo-200">Easy</span></h3>
+                            <p class="my-2 text-slate-300">Builds confidence with pointers moving inward from opposite ends.</p>
+                            <a href="https://leetcode.com/problems/valid-palindrome/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section id="interview-preparation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-4 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-100"><strong>Pattern to remember:</strong> Two pointers start at opposite ends, and we move the pointer at the shorter height.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Common interview questions</h3>
+                    <dl class="space-y-4">
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q1. Why not move the pointer at the taller line?</dt>
+                            <dd class="mt-1 text-slate-300">The shorter line already limits the height. Moving the taller line inward reduces width without improving the limiting height for that boundary.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q2. What if both heights are equal?</dt>
+                            <dd class="mt-1 text-slate-300">Move either pointer. The code above moves <code>right</code> when the heights are equal. The same correctness argument applies.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q3. Can sorting optimize this problem?</dt>
+                            <dd class="mt-1 text-slate-300">No. Sorting changes the original index distances, which determine the container width. The two-pointer method works directly on the original array.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q4. Why is this not a sliding-window problem?</dt>
+                            <dd class="mt-1 text-slate-300">There is no fixed or variable window condition to maintain. Instead, we eliminate one boundary at each step using a mathematical property of the area formula.</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the two-pointer approach in interviews because it reduces the running time from \(O(N^2)\) to \(O(N)\) without requiring extra data structures.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(1)\)</li>
+                    </ul>
+                    <blockquote class="rounded-xl border-l-4 border-indigo-500 bg-slate-900 p-4 text-slate-200">
+                        Start with the widest container. Calculate its area, then move the shorter boundary inward because only that boundary has a chance to improve the limiting height.
+                    </blockquote>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
