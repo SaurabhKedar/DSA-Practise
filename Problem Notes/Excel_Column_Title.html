@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Excel Column Title — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        .algorithm-table th, .algorithm-table td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Excel Column Title — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                The key concept is base-26 conversion with a small adjustment. Excel columns start from
+                <code class="text-indigo-700">1</code> instead of <code class="text-indigo-700">0</code>, so subtracting one before each remainder calculation maps the letters correctly.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Core idea:</strong> Repeatedly decrement the number, use its remainder modulo 26 to select a letter, divide by 26, and reverse the letters at the end.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="column-title-mapping">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">Excel column mapping</h2>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Number</th>
+                                <th scope="col" class="border border-slate-200 p-3">Column title</th>
+                                <th scope="col" class="border border-slate-200 p-3">Number</th>
+                                <th scope="col" class="border border-slate-200 p-3">Column title</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3"><code>A</code></td><td class="border border-slate-200 p-3">27</td><td class="border border-slate-200 p-3"><code>AA</code></td></tr>
+                            <tr><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3"><code>B</code></td><td class="border border-slate-200 p-3">28</td><td class="border border-slate-200 p-3"><code>AB</code></td></tr>
+                            <tr><td class="border border-slate-200 p-3">26</td><td class="border border-slate-200 p-3"><code>Z</code></td><td class="border border-slate-200 p-3">52</td><td class="border border-slate-200 p-3"><code>AZ</code></td></tr>
+                            <tr><td class="border border-slate-200 p-3">53</td><td class="border border-slate-200 p-3"><code>BA</code></td><td class="border border-slate-200 p-3">702</td><td class="border border-slate-200 p-3"><code>ZZ</code></td></tr>
+                            <tr><td class="border border-slate-200 p-3">703</td><td class="border border-slate-200 p-3"><code>AAA</code></td><td class="border border-slate-200 p-3"></td><td class="border border-slate-200 p-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem understanding</h2>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><strong>Input:</strong> A positive integer <code class="text-indigo-700">A</code>, where \(1 \le A \le 10^9\).</li>
+                    <li><strong>Output:</strong> A string representing the Excel column title.</li>
+                    <li><strong>Important condition:</strong> After <code>Z</code>, the sequence continues with <code>AA</code>, <code>AB</code>, and so on.</li>
+                </ul>
+                <p class="text-slate-700 mb-3">Examples:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Input: <code>3</code> → Output: <code>"C"</code></li>
+                    <li>Input: <code>27</code> → Output: <code>"AA"</code></li>
+                </ul>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute-force approach</h2>
+                <p class="text-slate-700 mb-4">
+                    One possible approach is to build the column titles sequentially, starting from <code>A</code>, then <code>B</code>, and continuing until we reach the required number.
+                </p>
+                <p class="text-slate-700 mb-4">
+                    This is highly inefficient because <code>A</code> can be as large as \(10^9\). Generating every previous title would require an enormous number of operations.
+                </p>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Limitation:</strong> Time complexity is at least \(O(A)\), making this approach impractical for large inputs. We should instead calculate each character directly using division and remainder.
+                </div>
+            </section>
+
+            <section id="optimized-approach">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized approach — Base-26 conversion</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Intuition</h3>
+                <p class="text-slate-700 mb-4">
+                    Excel uses 26 letters, from <code>A</code> to <code>Z</code>, similar to a base-26 number system. The challenge is that normal base-26 digits range from 0 to 25, but Excel letters correspond to 1 to 26.
+                </p>
+                <p class="text-slate-700 mb-3">We solve this by subtracting 1 before calculating the remainder:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li><code>A--</code> adjusts the number to a zero-based range.</li>
+                    <li><code>A % 26</code> identifies the current character, from <code>A</code> to <code>Z</code>.</li>
+                    <li><code>A / 26</code> moves to the next position.</li>
+                    <li><code>reverse()</code> restores the correct character order because we build the title from right to left.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Java solution</h3>
+                <pre class="overflow-x-auto rounded-xl border border-slate-200 bg-slate-100 p-4 sm:p-6 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public String convertToTitle(int A) {
+        StringBuilder result = new StringBuilder();
+
+        while (A &gt; 0) {
+            A--; // Convert to zero-based indexing
+
+            int remainder = A % 26;
+
+            // Map 0 to A, 1 to B, ..., 25 to Z
+            char ch = (char) ('A' + remainder);
+            result.append(ch);
+
+            // Move to the next position
+            A = A / 26;
+        }
+
+        // Characters were generated from right to left
+        return result.reverse().toString();
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3 mt-6">Algorithm step by step</h3>
+                <ol class="list-decimal list-inside space-y-2 text-slate-700">
+                    <li>Create an empty <code>StringBuilder</code> to store the characters.</li>
+                    <li>While <code>A &gt; 0</code>, subtract 1 from <code>A</code>.</li>
+                    <li>Calculate <code>A % 26</code> to find the current letter.</li>
+                    <li>Convert the remainder into a character using <code>'A' + remainder</code>.</li>
+                    <li>Append the character to the result.</li>
+                    <li>Divide <code>A</code> by 26 to process the next position.</li>
+                    <li>Reverse the result and return it.</li>
+                </ol>
+            </section>
+
+            <section id="dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry run of the optimized solution</h2>
+                <p class="text-slate-700 mb-3">Let's trace the example \(A = 27\). Initially, <code>result = ""</code>.</p>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Iteration</th>
+                                <th scope="col" class="border border-slate-200 p-3">A before decrement</th>
+                                <th scope="col" class="border border-slate-200 p-3">A after decrement</th>
+                                <th scope="col" class="border border-slate-200 p-3">Remainder</th>
+                                <th scope="col" class="border border-slate-200 p-3">Character</th>
+                                <th scope="col" class="border border-slate-200 p-3">A after division</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">27</td><td class="border border-slate-200 p-3">26</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">A</td><td class="border border-slate-200 p-3">1</td></tr>
+                            <tr><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">A</td><td class="border border-slate-200 p-3">0</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-3">After the loop:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li><code>result = "AA"</code> because characters were appended in reverse order.</li>
+                    <li>Reversing <code>"AA"</code> still gives <code>"AA"</code>, so the final output is <code>"AA"</code>.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Another example: \(A = 52\)</h3>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Iteration</th>
+                                <th scope="col" class="border border-slate-200 p-3">A after decrement</th>
+                                <th scope="col" class="border border-slate-200 p-3">Remainder</th>
+                                <th scope="col" class="border border-slate-200 p-3">Character</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">51</td><td class="border border-slate-200 p-3">25</td><td class="border border-slate-200 p-3">Z</td></tr>
+                            <tr><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">A</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700">The generated string is <code>"ZA"</code>. Reversing it gives <code>"AZ"</code>, the correct Excel column title for 52.</p>
+            </section>
+
+            <section id="decrement-explanation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">Why is <code>A--</code> necessary?</h2>
+                <p class="text-slate-700 mb-4">
+                    This is the most important trick in the problem. If we calculate <code>27 % 26</code>, we get 1, corresponding to <code>B</code>. But 27 should begin with <code>A</code>, because the first 26 columns are <code>A</code> through <code>Z</code>.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[(27-1)\bmod 26 = 0\]
+                </div>
+                <p class="text-slate-700 mb-3">Remainder <code>0</code> maps to <code>A</code>.</p>
+                <p class="text-slate-700">Without this adjustment, boundary cases such as <code>26</code>, <code>27</code>, and <code>52</code> would be handled incorrectly.</p>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity analysis</h2>
+                <p class="text-slate-700 mb-3">Let \(L\) be the number of characters in the resulting title.</p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Approach</th>
+                                <th scope="col" class="border border-slate-200 p-3">Time complexity</th>
+                                <th scope="col" class="border border-slate-200 p-3">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr>
+                                <td class="border border-slate-200 p-3">Brute force: generate titles sequentially</td>
+                                <td class="border border-slate-200 p-3">\(O(A \log A)\) or worse, depending on implementation</td>
+                                <td class="border border-slate-200 p-3">Depends on implementation</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 p-3">Optimized: repeated division by 26</td>
+                                <td class="border border-slate-200 p-3">\(O(\log_{26} A)\)</td>
+                                <td class="border border-slate-200 p-3">\(O(1)\), excluding output</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong>Time:</strong> Each iteration divides <code>A</code> by 26, so the number of iterations is \(O(\log_{26} A)\).</li>
+                    <li><strong>Space:</strong> The <code>StringBuilder</code> stores \(L\) characters, requiring \(O(L)\) output space. The additional working variables use \(O(1)\) space.</li>
+                </ul>
+                <p class="text-slate-700 mt-3">Since \(L = O(\log_{26} A)\), the total space including the output is \(O(\log_{26} A)\).</p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge cases</h2>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Input</th>
+                                <th scope="col" class="border border-slate-200 p-3">Expected output</th>
+                                <th scope="col" class="border border-slate-200 p-3">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3"><code>"A"</code></td><td class="border border-slate-200 p-3">Smallest valid input</td></tr>
+                            <tr><td class="border border-slate-200 p-3">26</td><td class="border border-slate-200 p-3"><code>"Z"</code></td><td class="border border-slate-200 p-3">Last single-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3">27</td><td class="border border-slate-200 p-3"><code>"AA"</code></td><td class="border border-slate-200 p-3">First two-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3">52</td><td class="border border-slate-200 p-3"><code>"AZ"</code></td><td class="border border-slate-200 p-3">Boundary between letter positions</td></tr>
+                            <tr><td class="border border-slate-200 p-3">702</td><td class="border border-slate-200 p-3"><code>"ZZ"</code></td><td class="border border-slate-200 p-3">Last two-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3">703</td><td class="border border-slate-200 p-3"><code>"AAA"</code></td><td class="border border-slate-200 p-3">First three-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3">\(10^9\)</td><td class="border border-slate-200 p-3">Valid column title</td><td class="border border-slate-200 p-3">Handles the maximum constraint efficiently</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mt-4">The loop naturally handles all valid inputs, including the smallest and largest values.</p>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar LeetCode problems</h2>
+                <p class="text-slate-700 mb-4">These problems reinforce base conversion and related number-to-string techniques.</p>
+                <ol class="list-decimal list-inside space-y-3 text-slate-700">
+                    <li><strong>168. Excel Sheet Column Title</strong> —
+                        <a class="text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/excel-sheet-column-title/">Solve on LeetCode</a> — Easy. This is the same problem.</li>
+                    <li><strong>171. Excel Sheet Column Number</strong> —
+                        <a class="text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/excel-sheet-column-number/">Solve on LeetCode</a> — Easy. Converts a column title back into a number.</li>
+                    <li><strong>12. Integer to Roman</strong> —
+                        <a class="text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/integer-to-roman/">Solve on LeetCode</a> — Medium. Converts integers into symbolic representations using carefully chosen values.</li>
+                    <li><strong>13. Roman to Integer</strong> —
+                        <a class="text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/roman-to-integer/">Solve on LeetCode</a> — Easy. Practices converting a string representation into a number.</li>
+                </ol>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview preparation notes</h2>
+                <p class="text-slate-700 mb-4"><strong>Pattern to remember:</strong> Number-system conversion using modulo and division.</p>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700 mb-5">
+                    <li>Forgetting <code>A--</code> before calculating the remainder.</li>
+                    <li>Forgetting to reverse the generated characters.</li>
+                    <li>Using a data type too small for the maximum input. Java's <code>int</code> is sufficient here because \(10^9\) is within its range.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Likely interviewer follow-up questions</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong>Why do we reverse the result?</strong> We calculate the least significant position first, so characters are generated right to left.</li>
+                    <li><strong>Why not use ordinary base-26 conversion?</strong> Excel columns are effectively one-indexed, unlike ordinary positional digits.</li>
+                    <li><strong>Can we solve it recursively?</strong> Yes. We can recursively process the quotient and append the current character, but iteration avoids recursive call-stack space.</li>
+                </ul>
+            </section>
+
+            <section id="final-recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final recommendation</h2>
+                <p class="text-slate-700 mb-4">Use the optimized Java solution in an interview. It processes each character position directly rather than generating previous column titles.</p>
+                <ul class="list-disc list-inside space-y-2 text-slate-700 mb-5">
+                    <li><strong>Time complexity:</strong> \(O(\log_{26} A)\)</li>
+                    <li><strong>Auxiliary space:</strong> \(O(1)\), excluding the output string.</li>
+                    <li><strong>Core intuition:</strong> Subtract 1, take the remainder modulo 26 to get a letter, divide by 26, repeat, and reverse the result.</li>
+                </ul>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Remember:</strong> The one-line trick that makes this problem work is <code>A--;</code> before <code>A % 26</code>.
+                </div>
+            </section>
+        </main>
+        <footer class="text-center text-sm text-slate-500 mt-6">
+            Excel Column Title — Java Algorithm Notes
+        </footer>
+    </div>
+</body>
+</html>
