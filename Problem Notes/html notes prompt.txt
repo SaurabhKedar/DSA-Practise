@@ -8,6 +8,7 @@ Requirements:
 - For mathematical notation, do not use dollar-sign delimiters anywhere in the HTML. Use `\(...\)` for inline math and `\[...\]` for display math. Configure MathJax to recognize these delimiters before loading the MathJax script. Keep math delimiters out of code examples.
 - Check the finished HTML for stray dollar signs, `[cite: ...]` placeholders, unclosed tags, and formulas that are not wrapped in the correct delimiters.
 - Return the complete HTML file, not an excerpt.
+- While writing the java code add comments in it.
 
 Filename: [FILENAME.html]
 

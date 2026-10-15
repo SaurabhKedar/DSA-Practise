@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Pairs with Given Difference — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .content-card {
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.5);
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+        pre {
+            tab-size: 4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #334155;
+            padding: 0.65rem 0.75rem;
+            vertical-align: top;
+        }
+        th {
+            background: rgba(99, 102, 241, 0.12);
+            color: #e2e8f0;
+        }
+        td {
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="content-card border border-slate-700 rounded-2xl p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-400 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-50 tracking-tight mb-4">Pairs with Given Difference — Java Solution</h1>
+            <p class="text-lg text-slate-300 mb-6">
+                The key concept in this problem is HashSet / HashMap and Two Pointers. Since \(N \le 10^4\), we can solve it efficiently in \(O(N \log N)\) time using sorting and two pointers, or expected \(O(N)\) time using a HashSet.
+            </p>
+            <div class="rounded-xl border border-indigo-500/40 bg-indigo-500/10 p-4 text-indigo-100">
+                <strong class="text-indigo-200">Recommended pattern:</strong> Use a frequency map for expected linear-time counting, or sort + two pointers when you want a pointer-based solution.
+            </div>
+        </header>
+
+        <main class="content-card border border-slate-700 rounded-2xl p-6 sm:p-10 space-y-8">
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-300 mb-3">You are given:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-4">
+                    <li>An integer array <code class="text-indigo-300">A</code>.</li>
+                    <li>An integer <code class="text-indigo-300">B</code>, representing the required absolute difference.</li>
+                </ul>
+                <p class="text-slate-300 mb-5">
+                    You must count the number of distinct value pairs whose absolute difference is equal to <code class="text-indigo-300">B</code>.
+                </p>
+
+                <div class="mb-5">
+                    <p class="text-slate-300 mb-2">Mathematically,</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <div class="text-slate-100">\[ |x-y| = B \]</div>
+                    </div>
+                </div>
+
+                <p class="text-slate-300 mb-4">
+                    Important: We count unique value pairs, not every possible combination of array indices.
+                </p>
+
+                <div class="grid gap-4 md:grid-cols-2 mb-5">
+                    <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <h3 class="text-lg font-semibold text-slate-100 mb-2">Example 1</h3>
+                        <p class="text-slate-300 mb-2">Input: <code class="text-indigo-300">A = [1, 5, 3, 4, 2]</code>, <code class="text-indigo-300">B = 3</code></p>
+                        <p class="text-slate-300 mb-2">The valid pairs are:</p>
+                        <ul class="list-disc list-inside space-y-1 text-slate-300">
+                            <li><code class="text-indigo-300">(1, 4)</code> because \(|1-4| = 3\)</li>
+                            <li><code class="text-indigo-300">(2, 5)</code> because \(|2-5| = 3\)</li>
+                        </ul>
+                        <p class="mt-3 text-slate-300"><strong>Output:</strong> <code class="text-indigo-300">2</code></p>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <h3 class="text-lg font-semibold text-slate-100 mb-2">Example 2</h3>
+                        <p class="text-slate-300 mb-2">Input: <code class="text-indigo-300">A = [8, 12, 16, 4, 0, 20]</code>, <code class="text-indigo-300">B = 4</code></p>
+                        <p class="text-slate-300 mb-2">Valid pairs: <code class="text-indigo-300">(0,4)</code>, <code class="text-indigo-300">(4,8)</code>, <code class="text-indigo-300">(8,12)</code>, <code class="text-indigo-300">(12,16)</code>, <code class="text-indigo-300">(16,20)</code>.</p>
+                        <p class="mt-3 text-slate-300"><strong>Output:</strong> <code class="text-indigo-300">5</code></p>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-100">
+                    <h3 class="text-lg font-semibold mb-2 text-amber-50">Example 3: Difference is zero</h3>
+                    <p class="text-amber-100">Input: <code class="text-amber-50">A = [1, 1, 1, 2, 2]</code>, <code class="text-amber-50">B = 0</code></p>
+                    <p class="mt-2 text-amber-100">When <code class="text-amber-50">B = 0</code>, both values in a pair must be equal. The distinct pairs are <code class="text-amber-50">(1,1)</code> and <code class="text-amber-50">(2,2)</code>.</p>
+                    <p class="mt-2 text-amber-100"><strong>Output:</strong> <code class="text-amber-50">2</code></p>
+                    <p class="mt-2 text-amber-100">Notice that even though 1 appears three times, <code class="text-amber-50">(1,1)</code> is counted only once.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">2. Brute Force Approach</h2>
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Intuition</h3>
+                <p class="text-slate-300 mb-4">
+                    Check every pair of elements. If their absolute difference equals <code class="text-indigo-300">B</code>, count the pair only if it has not already been counted.
+                </p>
+                <p class="text-slate-300 mb-4">
+                    Because duplicate values can occur, we need a way to avoid counting the same value pair repeatedly. One simple method is to store each pair in a set.
+                </p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Java code</h3>
+                <pre class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-100 overflow-x-auto"><code>import java.util.*;
+
+public class Solution {
+    public int solve(int[] A, int B) {
+        // Store each unique pair only once, in a normalized order.
+        Set&lt;String&gt; pairs = new HashSet&lt;&gt;();
+
+        // Try every pair of indices.
+        for (int i = 0; i &lt; A.length; i++) {
+            for (int j = i + 1; j &lt; A.length; j++) {
+                // Check if the absolute difference matches B.
+                if (Math.abs(A[i] - A[j]) == B) {
+                    int x = Math.min(A[i], A[j]);
+                    int y = Math.max(A[i], A[j]);
+
+                    // Add the pair in sorted order to avoid duplicates.
+                    pairs.add(x + "," + y);
+                }
+            }
+        }
+
+        // Number of distinct valid pairs.
+        return pairs.size();
+    }
+}</code></pre>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">Dry run</h3>
+                <p class="text-slate-300 mb-3">For <code class="text-indigo-300">A = [1, 5, 3, 4, 2]</code>, <code class="text-indigo-300">B = 3</code>:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-4">
+                    <li>Compare 1 and 4: difference is 3; store (1,4).</li>
+                    <li>Compare 5 and 2: difference is 3; store (2,5).</li>
+                    <li>All other pairs have a different difference.</li>
+                </ul>
+                <p class="text-slate-300">The set contains two unique pairs, so the answer is 2.</p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">Complexity</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-2">
+                    <li>Time: \(O(N^2)\) expected, because we examine every pair.</li>
+                    <li>Space: \(O(N^2)\) in the worst case for storing the distinct pairs.</li>
+                </ul>
+                <p class="text-slate-300">Limitation: We perform many unnecessary comparisons when the array is large.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">3. Optimized Approach — HashMap</h2>
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Intuition</h3>
+                <p class="text-slate-300 mb-4">
+                    Instead of comparing every pair, store each number's frequency in a <code class="text-indigo-300">HashMap</code>.
+                </p>
+                <p class="text-slate-300 mb-4">
+                    For a number <code class="text-indigo-300">x</code>, we need to find another number <code class="text-indigo-300">y</code> such that:
+                </p>
+                <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/80 p-4 mb-4">
+                    <div class="text-slate-100">\[ |x-y| = B \]</div>
+                </div>
+                <p class="text-slate-300 mb-4">
+                    When <code class="text-indigo-300">B &gt; 0</code>, we can count the pair by checking whether <code class="text-indigo-300">x + B</code> exists in the map. Every distinct pair is counted once because we iterate over distinct keys.
+                </p>
+                <p class="text-slate-300 mb-4">
+                    When <code class="text-indigo-300">B == 0</code>, we count numbers that appear at least twice, because <code class="text-indigo-300">(x, x)</code> is valid only when the same value occurs more than once.
+                </p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Step-by-step algorithm</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-300 mb-5">
+                    <li>Create a <code class="text-indigo-300">HashMap</code> to store each number and its frequency.</li>
+                    <li>Count the frequency of every element in <code class="text-indigo-300">A</code>.</li>
+                    <li>If <code class="text-indigo-300">B == 0</code>, count the distinct numbers whose frequency is at least 2.</li>
+                    <li>Otherwise, for each distinct number <code class="text-indigo-300">x</code>, check whether <code class="text-indigo-300">x + B</code> exists in the map.</li>
+                    <li>Return the total count.</li>
+                </ol>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Java solution</h3>
+                <pre class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-100 overflow-x-auto"><code>import java.util.*;
+
+public class Solution {
+    public int solve(int[] A, int B) {
+        // Count how many times each value appears.
+        Map&lt;Integer, Integer&gt; frequency = new HashMap&lt;&gt;();
+
+        for (int num : A) {
+            frequency.put(
+                num, frequency.getOrDefault(num, 0) + 1
+            );
+        }
+
+        int count = 0;
+
+        // Special case: when the difference is zero,
+        // each value can pair only with itself, and only if it appears at least twice.
+        if (B == 0) {
+            for (int freq : frequency.values()) {
+                if (freq &gt;= 2) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        // For B &gt; 0, every valid pair has the form (x, x + B).
+        // Check only distinct numbers so each valid pair is counted once.
+        for (int num : frequency.keySet()) {
+            if (frequency.containsKey(num + B)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+}</code></pre>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">Why does this work?</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-4">
+                    <li>The map stores each distinct number only once as a key.</li>
+                    <li>For positive <code class="text-indigo-300">B</code>, every valid pair has a smaller value <code class="text-indigo-300">x</code> and a larger value <code class="text-indigo-300">x + B</code>. Checking only <code class="text-indigo-300">x + B</code> prevents counting the same pair twice.</li>
+                    <li>For zero difference, checking <code class="text-indigo-300">frequency &gt;= 2</code> ensures that the pair contains two occurrences of the same value.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="text-slate-300 mb-3">Input: <code class="text-indigo-300">A = [1, 1, 1, 2, 2]</code>, <code class="text-indigo-300">B = 0</code></p>
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Step 1: Build the frequency map</h3>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Step 2: Handle <code class="text-indigo-300">B == 0</code></h3>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Frequency</th>
+                                <th>Frequency ≥ 2?</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>3</td>
+                                <td>Yes</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2</td>
+                                <td>Yes</td>
+                                <td>2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-slate-300 mb-3">Final output: <code class="text-indigo-300">2</code></p>
+                <p class="text-slate-300 mb-4">Both <code class="text-indigo-300">(1,1)</code> and <code class="text-indigo-300">(2,2)</code> are counted once, regardless of how many times those values occur.</p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Another quick dry run: <code class="text-indigo-300">B &gt; 0</code></h3>
+                <p class="text-slate-300 mb-3">Input: <code class="text-indigo-300">A = [1, 5, 3, 4, 2]</code>, <code class="text-indigo-300">B = 3</code></p>
+                <p class="text-slate-300 mb-3">The frequency map contains the keys <code class="text-indigo-300">{1, 2, 3, 4, 5}</code>.</p>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Current number</th>
+                                <th>Check</th>
+                                <th>Found?</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><code class="text-indigo-300">1 + 3 = 4</code></td>
+                                <td>Yes</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><code class="text-indigo-300">2 + 3 = 5</code></td>
+                                <td>Yes</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><code class="text-indigo-300">3 + 3 = 6</code></td>
+                                <td>No</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><code class="text-indigo-300">4 + 3 = 7</code></td>
+                                <td>No</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td><code class="text-indigo-300">5 + 3 = 8</code></td>
+                                <td>No</td>
+                                <td>2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-300">Final output: <code class="text-indigo-300">2</code></p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">5. Complexity Analysis</h2>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Approach</th>
+                                <th>Time complexity</th>
+                                <th>Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Brute force with a set</td>
+                                <td>\(O(N^2)\) expected</td>
+                                <td>\(O(N^2)\)</td>
+                            </tr>
+                            <tr>
+                                <td>HashMap (optimized)</td>
+                                <td>\(O(N)\) expected</td>
+                                <td>\(O(U)\), at most \(O(N)\)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-slate-300 mb-3">Why is the optimized approach \(O(N)\)?</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300">
+                    <li>Building the frequency map takes expected \(O(N)\) time.</li>
+                    <li>Iterating through the distinct keys takes \(O(U)\) expected time.</li>
+                    <li>Since \(U \le N\), the overall expected time is \(O(N)\).</li>
+                </ul>
+                <p class="text-slate-300 mt-4">HashMap operations have expected constant-time performance, though their worst-case performance can be worse.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Input</th>
+                                <th>Expected output</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Single element</td>
+                                <td><code class="text-indigo-300">A = [5], B = 0</code></td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>Duplicate values, zero difference</td>
+                                <td><code class="text-indigo-300">A = [2, 2, 2], B = 0</code></td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>All elements distinct, zero difference</td>
+                                <td><code class="text-indigo-300">A = [1, 2, 3], B = 0</code></td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>No valid pairs</td>
+                                <td><code class="text-indigo-300">A = [1, 2, 3], B = 5</code></td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>Multiple valid pairs</td>
+                                <td><code class="text-indigo-300">A = [1, 3, 5, 7], B = 2</code></td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Difference equals a value gap</td>
+                                <td><code class="text-indigo-300">A = [1, 4, 7], B = 3</code></td>
+                                <td>2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">7. Similar Problems on LeetCode</h2>
+                <ol class="list-decimal list-inside space-y-2 text-slate-300">
+                    <li>532. K-diff Pairs in an Array — <a href="https://leetcode.com/problems/k-diff-pairs-in-an-array/" class="text-indigo-300 underline">LeetCode 532</a> — Medium. Very similar problem involving unique pairs with a given difference.</li>
+                    <li>2006. Count Number of Pairs With Absolute Difference K — <a href="https://leetcode.com/problems/count-number-of-pairs-with-absolute-difference-k/" class="text-indigo-300 underline">LeetCode 2006</a> — Easy. Practices counting pairs with a fixed absolute difference; note that it counts index pairs rather than distinct value pairs.</li>
+                    <li>1. Two Sum — <a href="https://leetcode.com/problems/two-sum/" class="text-indigo-300 underline">LeetCode 1</a> — Easy. Uses a HashMap to find complementary values efficiently.</li>
+                    <li>349. Intersection of Two Arrays — <a href="https://leetcode.com/problems/intersection-of-two-arrays/" class="text-indigo-300 underline">LeetCode 349</a> — Easy. Reinforces using sets to eliminate duplicates.</li>
+                </ol>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <p class="text-slate-300 mb-4">Key pattern: Hashing + distinct pair counting.</p>
+                <p class="text-slate-300 mb-4">Common mistakes to avoid:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-5">
+                    <li>Counting duplicate occurrences as separate pairs.</li>
+                    <li>Forgetting the special case <code class="text-indigo-300">B == 0</code>.</li>
+                    <li>Counting both <code class="text-indigo-300">(x, y)</code> and <code class="text-indigo-300">(y, x)</code> for positive differences.</li>
+                    <li>Assuming the array is sorted when the problem does not guarantee it.</li>
+                </ul>
+
+                <p class="text-slate-300 mb-3">Likely interviewer follow-up questions:</p>
+                <div class="space-y-4">
+                    <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <p class="font-semibold text-slate-100 mb-1">Q1. Why use a HashMap instead of a HashSet?</p>
+                        <p class="text-slate-300">A HashSet is sufficient for <code class="text-indigo-300">B &gt; 0</code>, but the HashMap also stores frequencies, which makes handling <code class="text-indigo-300">B == 0</code> straightforward.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <p class="font-semibold text-slate-100 mb-1">Q2. Can this be solved using sorting and two pointers?</p>
+                        <p class="text-slate-300">Yes. Sort the array, move two pointers according to the difference, and skip duplicate values. This takes \(O(N \log N)\) time.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+                        <p class="font-semibold text-slate-100 mb-1">Q3. What changes if we must count index pairs instead of distinct value pairs?</p>
+                        <p class="text-slate-300">For <code class="text-indigo-300">B &gt; 0</code>, frequencies must be used to count all valid combinations. For <code class="text-indigo-300">B == 0</code>, a value occurring <code class="text-indigo-300">f</code> times contributes \(f(f-1)/2\) index pairs.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-slate-50 border-b border-slate-700 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-300 mb-4">Use the HashMap solution for this problem. It is efficient, handles duplicate values correctly, and explicitly handles the zero-difference case.</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-5">
+                    <li>Time: \(O(N)\) expected.</li>
+                    <li>Auxiliary space: \(O(N)\) worst case.</li>
+                </ul>
+                <p class="text-slate-300 mb-4">Remember this simple rule: For positive difference, look for <code class="text-indigo-300">x + B</code>; for zero difference, count values appearing at least twice.</p>
+                <p class="text-slate-300 mb-4">Yes! The Two Pointers approach is also an optimized solution for Pairs with Given Difference.</p>
+                <p class="text-slate-300 mb-4">It takes \(O(N\log N)\) time because we first sort the array, then use two pointers to find pairs in a single pass. The HashMap approach is expected \(O(N)\), so it is asymptotically faster, but Two Pointers is a very good interview solution too.</p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">1. Intuition behind Two Pointers</h3>
+                <p class="text-slate-300 mb-3">Suppose:</p>
+                <p class="text-slate-300 mb-3"><code class="text-indigo-300">A = [1, 5, 3, 4, 2]</code>, <code class="text-indigo-300">B = 3</code></p>
+                <p class="text-slate-300 mb-3">First, sort the array:</p>
+                <p class="text-slate-300 mb-3"><code class="text-indigo-300">A = [1, 2, 3, 4, 5]</code></p>
+                <p class="text-slate-300 mb-3">We need to find distinct pairs satisfying:</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/80 p-4 mb-4">
+                    <div class="text-slate-100">\[ A[j] - A[i] = B \]</div>
+                </div>
+                <p class="text-slate-300 mb-3">Maintain two pointers:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-4">
+                    <li><code class="text-indigo-300">i</code>: points to the smaller number.</li>
+                    <li><code class="text-indigo-300">j</code>: points to the larger number.</li>
+                </ul>
+                <p class="text-slate-300 mb-3">Compare <code class="text-indigo-300">A[j] - A[i]</code> with <code class="text-indigo-300">B</code>:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 mb-4">
+                    <li>If the difference is less than <code class="text-indigo-300">B</code>, move <code class="text-indigo-300">j</code> forward to increase the difference.</li>
+                    <li>If the difference is greater than <code class="text-indigo-300">B</code>, move <code class="text-indigo-300">i</code> forward to decrease the difference.</li>
+                    <li>If the difference equals <code class="text-indigo-300">B</code>, count the pair and move both pointers forward, skipping duplicates.</li>
+                </ul>
+                <p class="text-slate-300">Special case: when <code class="text-indigo-300">B == 0</code>, we must find duplicate values and count each distinct value only once.</p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">2. Java solution — Two Pointers</h3>
+                <pre class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-100 overflow-x-auto"><code>import java.util.Arrays;
+
+public class Solution {
+    public int solve(int[] A, int B) {
+        int n = A.length;
+
+        // Sort so that values are in ascending order.
+        Arrays.sort(A);
+
+        int count = 0;
+
+        // Special case: when the required difference is zero,
+        // we only count each distinct repeated value once.
+        if (B == 0) {
+            for (int i = 1; i &lt; n; i++) {
+                // A[i] is a valid repeated value only if it matches the
+                // previous value and is not already counted as part of the
+                // same duplicate block.
+                if (A[i] == A[i - 1] &&
+                    (i == 1 || A[i] != A[i - 2])) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Use two pointers on the sorted array.
+        // i points to the smaller value and j to the larger value.
+        int i = 0;
+        int j = 1;
+
+        while (i &lt; n && j &lt; n) {
+            // Pointers should not refer to the same index.
+            if (i == j) {
+                j++;
+                continue;
+            }
+
+            int diff = A[j] - A[i];
+
+            // Difference too small: move j forward to increase the gap.
+            if (diff &lt; B) {
+                j++;
+            }
+            // Difference too large: move i forward to decrease the gap.
+            else if (diff &gt; B) {
+                i++;
+            }
+            // Found a valid pair: count it and skip duplicates.
+            else {
+                count++;
+
+                int leftValue = A[i];
+                int rightValue = A[j];
+
+                // Skip all occurrences of the left value to avoid recounting.
+                while (i &lt; n && A[i] == leftValue) {
+                    i++;
+                }
+
+                // Skip all occurrences of the right value to avoid recounting.
+                while (j &lt; n && A[j] == rightValue) {
+                    j++;
+                }
+            }
+        }
+
+        return count;
+    }
+}</code></pre>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">3. Dry run</h3>
+                <p class="text-slate-300 mb-3">Input: <code class="text-indigo-300">A = [1, 5, 3, 4, 2]</code>, <code class="text-indigo-300">B = 3</code></p>
+                <p class="text-slate-300 mb-3">After sorting: <code class="text-indigo-300">[1, 2, 3, 4, 5]</code></p>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><code class="text-indigo-300">A[i]</code></th>
+                                <th><code class="text-indigo-300">A[j]</code></th>
+                                <th>Difference</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>2</td>
+                                <td>1</td>
+                                <td>Move <code class="text-indigo-300">j</code></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>3</td>
+                                <td>2</td>
+                                <td>Move <code class="text-indigo-300">j</code></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>4</td>
+                                <td>3</td>
+                                <td>Found pair (1,4)</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>5</td>
+                                <td>3</td>
+                                <td>Found pair (2,5)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-300">The algorithm counts two distinct pairs.</p>
+                <p class="text-slate-300 mt-2">Output: <code class="text-indigo-300">2</code></p>
+
+                <h3 class="text-xl font-semibold text-slate-100 mt-6 mb-2">4. Complexity analysis</h3>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Complexity</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sorting</td>
+                                <td>\(O(N\log N)\)</td>
+                                <td>Sort the array first</td>
+                            </tr>
+                            <tr>
+                                <td>Two-pointer traversal</td>
+                                <td>\(O(N)\)</td>
+                                <td>Each pointer moves forward only</td>
+                            </tr>
+                            <tr>
+                                <td>Total time</td>
+                                <td>\(O(N\log N)\)</td>
+                                <td>Sorting dominates</td>
+                            </tr>
+                            <tr>
+                                <td>Auxiliary space</td>
+                                <td>\(O(\log N)\) typically</td>
+                                <td>Sorting implementation's stack; the pointer logic itself uses \(O(1)\) space</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">5. HashMap vs. Two Pointers</h3>
+                <div class="overflow-x-auto mb-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>HashMap</th>
+                                <th>Two Pointers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Expected time</td>
+                                <td>\(O(N)\)</td>
+                                <td>\(O(N\log N)\)</td>
+                            </tr>
+                            <tr>
+                                <td>Extra space</td>
+                                <td>\(O(N)\)</td>
+                                <td>Typically \(O(\log N)\) including sorting</td>
+                            </tr>
+                            <tr>
+                                <td>Requires sorting</td>
+                                <td>No</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td>Duplicate handling</td>
+                                <td>Frequency map</td>
+                                <td>Skip duplicate values</td>
+                            </tr>
+                            <tr>
+                                <td>Best use case</td>
+                                <td>Faster expected lookup</td>
+                                <td>When sorted-array techniques are preferred</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-300 mb-3">Interview recommendation: Both are valid optimized approaches. Use HashMap when you want expected linear time without sorting. Use Two Pointers when you want to demonstrate the sorted-array pattern and reduce auxiliary data structures.</p>
+                <p class="text-slate-300">Remember: Sort → Compare the difference → Move the appropriate pointer → Skip duplicates.</p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
