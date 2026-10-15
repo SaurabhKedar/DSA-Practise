@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Array 3 Pointers — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Array 3 Pointers</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    This classic three-pointer and greedy problem uses the sorted order of three arrays to find the
+                    smallest possible maximum pairwise difference in \(O(N+M+P)\) time.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Calculate the current range, save the best difference, and move the pointer at the smallest value.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given three sorted arrays <code class="text-indigo-300">A</code>,
+                        <code class="text-indigo-300">B</code>, and <code class="text-indigo-300">C</code>.
+                        Choose one element from each array so that this expression is as small as possible:
+                    </p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg">
+                        \[\max(|A[i]-B[j]|,\ |B[j]-C[k]|,\ |C[k]-A[i]|)\]
+                    </div>
+                    <p class="mb-4">
+                        In simple words, choose three numbers—one from each array—whose maximum pairwise difference
+                        is minimized. For any three numbers, the expression simplifies to:
+                    </p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg">
+                        \[\boxed{\max(A[i],B[j],C[k])-\min(A[i],B[j],C[k])}\]
+                    </div>
+                    <p class="mb-5">
+                        The largest difference between any two numbers is always the maximum number minus the minimum number.
+                    </p>
+
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Example</h3>
+                        <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>A = [1, 4, 10]
+B = [2, 15, 20]
+C = [10, 12]</code></pre>
+                        <p class="mb-2">Choose <code>10</code> from A, <code>15</code> from B, and <code>10</code> from C:</p>
+                        <ul class="mb-3 list-inside list-disc space-y-1 text-slate-300">
+                            <li>\(|10-15|=5\)</li>
+                            <li>\(|15-10|=5\)</li>
+                            <li>\(|10-10|=0\)</li>
+                        </ul>
+                        <p class="text-slate-200"><strong>Maximum difference:</strong> <code>max(5, 5, 0) = 5</code>. Therefore, the answer is <code>5</code>.</p>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Try every possible combination of one element from each array, calculate the maximum pairwise
+                        difference, and keep track of the minimum value found.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int minimize(final int[] A, final int[] B, final int[] C) {
+        int ans = Integer.MAX_VALUE;
+
+        // Try every possible triplet.
+        for (int i = 0; i &lt; A.length; i++) {
+            for (int j = 0; j &lt; B.length; j++) {
+                for (int k = 0; k &lt; C.length; k++) {
+                    int max = Math.max(A[i], Math.max(B[j], C[k]));
+                    int min = Math.min(A[i], Math.min(B[j], C[k]));
+                    ans = Math.min(ans, max - min);
+                }
+            }
+        }
+
+        return ans;
+    }
+}</code></pre>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time complexity</h3>
+                            <p>\(O(NMP)\), because all three loops examine every possible triplet.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Auxiliary space</h3>
+                            <p>\(O(1)\), because only a few variables are used.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 rounded-xl border border-amber-800 bg-amber-950 p-4 text-amber-100">
+                        <strong>Limitation:</strong> Each array can contain up to \(10^6\) elements. Three nested loops are far too slow for these constraints.
+                    </p>
+                </section>
+
+                <section id="three-pointers">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Three Pointers</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Because the arrays are sorted, we do not need to check every combination. Suppose the current elements are:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>A[i] = 4</code></li>
+                        <li><code>B[j] = 15</code></li>
+                        <li><code>C[k] = 10</code></li>
+                    </ul>
+                    <p class="mb-4">
+                        The maximum is <code>15</code> and the minimum is <code>4</code>, so the current difference is
+                        \(15-4=11\). Move the pointer at the smallest element. Advancing a pointer at a non-minimum
+                        element leaves the current minimum unchanged and cannot improve this range; advancing the
+                        minimum pointer is the way to potentially reduce the gap.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Initialize three pointers: <code>i = 0</code>, <code>j = 0</code>, and <code>k = 0</code>.</li>
+                        <li>Calculate the maximum and minimum among <code>A[i]</code>, <code>B[j]</code>, and <code>C[k]</code>.</li>
+                        <li>Update the answer with <code>max - min</code>.</li>
+                        <li>Move the pointer that points to the minimum element one position forward.</li>
+                        <li>Repeat until any one of the arrays is exhausted.</li>
+                        <li>Return the minimum difference found.</li>
+                    </ol>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    // DO NOT MODIFY THE ARGUMENTS WITH "final" PREFIX.
+    // IT IS READ ONLY.
+    public int minimize(final int[] A, final int[] B, final int[] C) {
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        int ans = Integer.MAX_VALUE;
+
+        // Continue while all three arrays have elements.
+        while (i &lt; A.length &amp;&amp; j &lt; B.length &amp;&amp; k &lt; C.length) {
+            int a = A[i];
+            int b = B[j];
+            int c = C[k];
+
+            // Find the largest and smallest current values.
+            int max = Math.max(a, Math.max(b, c));
+            int min = Math.min(a, Math.min(b, c));
+
+            // Save the best difference found so far.
+            ans = Math.min(ans, max - min);
+
+            // Advance one pointer at a minimum value.
+            if (min == a) {
+                i++;
+            } else if (min == b) {
+                j++;
+            } else {
+                k++;
+            }
+        }
+
+        return ans;
+    }
+}</code></pre>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why does moving the minimum pointer work?</h3>
+                    <p class="mb-3">
+                        With current values <code>4</code>, <code>15</code>, and <code>10</code>, the range is
+                        \([4,15]\), with a difference of \(11\).
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Moving <code>15</code> forward cannot make the current maximum smaller.</li>
+                        <li>Moving <code>10</code> forward does not address the smallest value, <code>4</code>.</li>
+                        <li>Moving <code>4</code> forward gives a chance to find a smaller range.</li>
+                    </ul>
+                    <p class="mb-3">
+                        Since the arrays are sorted, moving the minimum pointer forward never decreases that array's
+                        value. We preserve the best answer seen so far and explore the pointer movement that can
+                        improve the current range.
+                    </p>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Important:</strong> Do not stop when you find a small difference.
+                        Continue until one array is exhausted because a better triplet may exist later.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Input:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>A = [1, 4, 10]
+B = [2, 15, 20]
+C = [10, 12]</code></pre>
+                    <p class="mb-4">
+                        Initially, <code>i = 0</code>, <code>j = 0</code>, <code>k = 0</code>, and
+                        <code>ans = Integer.MAX_VALUE</code>.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[44rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Current values (A, B, C)</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Min</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Max</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Difference</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Pointer moved</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Best answer</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">(1, 2, 10)</td><td class="px-4 py-3">1</td><td class="px-4 py-3">10</td><td class="px-4 py-3">9</td><td class="px-4 py-3"><code>i++</code></td><td class="px-4 py-3">9</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">(4, 2, 10)</td><td class="px-4 py-3">2</td><td class="px-4 py-3">10</td><td class="px-4 py-3">8</td><td class="px-4 py-3"><code>j++</code></td><td class="px-4 py-3">8</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">(4, 15, 10)</td><td class="px-4 py-3">4</td><td class="px-4 py-3">15</td><td class="px-4 py-3">11</td><td class="px-4 py-3"><code>i++</code></td><td class="px-4 py-3">8</td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">(10, 15, 10)</td><td class="px-4 py-3">10</td><td class="px-4 py-3">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3"><code>i++</code></td><td class="px-4 py-3">5</td></tr>
+                                <tr><td class="px-4 py-3">Stop</td><td class="px-4 py-3">A exhausted</td><td class="px-4 py-3">—</td><td class="px-4 py-3">—</td><td class="px-4 py-3">—</td><td class="px-4 py-3">—</td><td class="px-4 py-3">5</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        The best triplet is <code>(10, 15, 10)</code>, giving a difference of <code>5</code>.
+                        <strong class="text-slate-100">Output: <code>5</code></strong>
+                    </p>
+
+                    <div class="mt-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Second example</h3>
+                        <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>A = [3, 5, 6]
+B = [2]
+C = [3, 4]</code></pre>
+                        <p class="mb-2">The first triplet is <code>(3, 2, 3)</code>:</p>
+                        <div class="mb-3 overflow-x-auto text-center">\[\max(3,2,3)-\min(3,2,3)=3-2=1\]</div>
+                        <p>The pointer in B moves forward, but B has no more elements. The loop stops, and the answer is <code>1</code>.</p>
+                        <p class="mt-2"><strong class="text-slate-100">Output:</strong> <code>1</code></p>
+                    </div>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let the lengths of the arrays be \(N\), \(M\), and \(P\).</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Brute force</th><td class="px-4 py-3">\(O(NMP)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Three pointers</th><td class="px-4 py-3">\(O(N+M+P)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        Every iteration advances exactly one pointer. Each pointer can advance at most the length of
+                        its corresponding array, so the total number of iterations is at most \(N+M+P\).
+                    </p>
+                    <p class="mt-3">No extra array, sorting, or data structure is needed.</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">All values equal:</strong> The answer is <code>0</code>.</li>
+                        <li><strong class="text-slate-100">Duplicate values:</strong> The algorithm works correctly, even when multiple values share the minimum.</li>
+                        <li><strong class="text-slate-100">One array has a single element:</strong> The algorithm still works and stops when that array is exhausted.</li>
+                        <li><strong class="text-slate-100">Very different ranges:</strong> The algorithm gradually advances the smallest value to search for a closer triplet.</li>
+                        <li><strong class="text-slate-100">Minimum values are zero:</strong> The calculation remains valid because all values are non-negative.</li>
+                        <li><strong class="text-slate-100">Maximum values are \(10^7\):</strong> The difference fits safely within Java's <code>int</code> range.</li>
+                    </ul>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems reinforce the same idea of narrowing a search using sorted data and pointer movement.</p>
+                    <ol class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">632. Smallest Range Covering Elements from K Lists <span class="ml-1 text-sm font-normal text-slate-400">Hard</span></h3>
+                            <p class="my-2 text-slate-300">Find the smallest range containing at least one number from every sorted list. This is the closest conceptual extension to the current problem.</p>
+                            <a href="https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">16. 3Sum Closest <span class="ml-1 text-sm font-normal text-slate-400">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Learn how sorted arrays and pointer movement help find an optimal triplet.</p>
+                            <a href="https://leetcode.com/problems/3sum-closest/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">167. Two Sum II — Input Array Is Sorted <span class="ml-1 text-sm font-normal text-slate-400">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Practice how sorted input allows pointer movement to narrow a search.</p>
+                            <a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">15. 3Sum <span class="ml-1 text-sm font-normal text-slate-400">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Practice combining an outer loop with two pointers to reduce a brute-force search.</p>
+                            <a href="https://leetcode.com/problems/3sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key pattern to remember</h3>
+                    <p class="mb-4 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Three sorted arrays + minimize the maximum difference = three pointers.
+                    </p>
+                    <p class="mb-3">The most important observation is:</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg">
+                        \[\max(|a-b|,|b-c|,|c-a|)=\max(a,b,c)-\min(a,b,c)\]
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Moving the pointer at the maximum instead of the minimum.</li>
+                        <li>Forgetting to update <code>ans</code> before moving a pointer.</li>
+                        <li>Using three nested loops despite sorted input.</li>
+                        <li>Continuing after one array is exhausted and accidentally accessing an invalid index.</li>
+                    </ul>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q1. Why must the arrays be sorted?</h4>
+                            <p>Sorting allows us to advance the minimum element toward larger values without revisiting earlier elements. This is what makes the linear-time approach possible.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q2. What happens if two or three elements share the minimum?</h4>
+                            <p>Moving any pointer whose value equals the minimum is safe. The code moves one such pointer per iteration.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q3. Can we solve this in \(O(NMP)\) without sorting?</h4>
+                            <p>Yes. The brute-force solution works even for unsorted arrays, but it is much slower. Sorting first is another possibility, although it is unnecessary here because the input is already sorted.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q4. Can the answer be negative?</h4>
+                            <p>No. The answer is a maximum absolute difference, so it is always non-negative.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        Implement the three-pointer greedy approach in an interview. It uses the sorted property of
+                        the arrays to eliminate unnecessary combinations and meets the maximum constraints efficiently.
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N+M+P)\)</li>
+                        <li>Auxiliary space: \(O(1)\)</li>
+                    </ul>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Remember:</strong> Calculate the current range, save the best
+                        difference, and move the pointer at the smallest value.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
