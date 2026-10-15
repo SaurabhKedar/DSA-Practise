@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Subarray with Given Sum — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Subarray with Given Sum</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    This is a classic sliding-window and two-pointers problem because all array elements are positive integers.
+                    Maintain a contiguous window and adjust its sum until it equals the target, achieving \(O(N)\) time.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Expand the window when its sum is too small, shrink it when its sum is too large, and return the first match.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-3">You are given:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code class="text-indigo-300">A</code>: an array of positive integers.</li>
+                        <li><code class="text-indigo-300">B</code>: the target sum.</li>
+                    </ul>
+                    <p class="mb-4">
+                        Return the first continuous subarray whose sum is <code>B</code>. Elements must be contiguous;
+                        if multiple subarrays match, return the one with the smallest starting index. Return the actual
+                        elements, not their indices. If no subarray matches, return <code>[-1]</code>.
+                    </p>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Example</h3>
+                        <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>A = [1, 2, 3, 4, 5]
+B = 5</code></pre>
+                        <p>
+                            The subarray <code>[2, 3]</code> sums to \(2+3=5\), so the answer is <code>[2, 3]</code>.
+                            Although <code>[5]</code> also sums to 5, <code>[2, 3]</code> starts earlier and is the correct answer.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Try every possible starting index. From each start, add following elements until the sum equals
+                        <code>B</code>, exceeds <code>B</code>, or the array ends. Since every element is positive, stop
+                        exploring a start as soon as its sum exceeds the target.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int[] solve(int[] A, int B) {
+        int n = A.length;
+
+        // Try every possible starting index.
+        for (int start = 0; start &lt; n; start++) {
+            long sum = 0;
+
+            // Extend the subarray from this starting index.
+            for (int end = start; end &lt; n; end++) {
+                sum += A[end];
+
+                if (sum == B) {
+                    // Copy the matching elements into the returned array.
+                    int[] result = new int[end - start + 1];
+                    for (int k = start; k &lt;= end; k++) {
+                        result[k - start] = A[k];
+                    }
+                    return result;
+                }
+
+                // Positive elements make the sum increase, so this start cannot match.
+                if (sum &gt; B) {
+                    break;
+                }
+            }
+        }
+
+        // No matching subarray exists.
+        return new int[]{-1};
+    }
+}</code></pre>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time complexity</h3>
+                            <p>\(O(N^2)\) in the worst case, because many possible subarrays may be explored.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Auxiliary space</h3>
+                            <p>\(O(1)\), excluding the returned array, which can require \(O(N)\) space.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 rounded-xl border border-amber-800 bg-amber-950 p-4 text-amber-100">
+                        <strong>Limitation:</strong> For \(N=100000\), checking every possible subarray can be too slow.
+                    </p>
+                </section>
+
+                <section id="sliding-window">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Sliding Window</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Maintain one window with two pointers and the sum of its elements:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>left</code>: starting index of the current window.</li>
+                        <li><code>right</code>: ending index of the current window.</li>
+                        <li><code>sum</code>: sum of the elements inside the window.</li>
+                    </ul>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <p class="mb-2 font-semibold text-slate-100">Example window</p>
+                        <p class="text-slate-300">For <code>A = [1, 2, 3, 4, 5]</code> and <code>B = 5</code>:</p>
+                        <p class="mt-2 font-mono text-indigo-200">Window: [2, 3] &rarr; Sum = 5</p>
+                    </div>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>If <code>sum &lt; B</code>, expand the window by moving <code>right</code>.</li>
+                        <li>If <code>sum &gt; B</code>, shrink the window by moving <code>left</code>.</li>
+                        <li>If <code>sum == B</code>, return the elements in the window.</li>
+                    </ul>
+                    <p class="mb-5">
+                        This works because every element is positive: adding one increases the sum, and removing one decreases it.
+                        Therefore, the window can be adjusted without checking every possible subarray.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Step-by-step algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Initialize <code>left = 0</code> and <code>sum = 0</code>.</li>
+                        <li>Move <code>right</code> from the beginning to the end of the array.</li>
+                        <li>Add <code>A[right]</code> to <code>sum</code>.</li>
+                        <li>While <code>sum &gt; B</code>, subtract <code>A[left]</code> and increment <code>left</code>.</li>
+                        <li>If <code>sum == B</code>, copy the window into a result array and return it.</li>
+                        <li>If no matching window exists, return <code>[-1]</code>.</li>
+                    </ol>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int[] solve(int[] A, int B) {
+        int n = A.length;
+        int left = 0;
+        long sum = 0;
+
+        // Expand the window by moving right through the array.
+        for (int right = 0; right &lt; n; right++) {
+            sum += A[right];
+
+            // Remove elements from the left while the window is too large.
+            while (sum &gt; B &amp;&amp; left &lt;= right) {
+                sum -= A[left];
+                left++;
+            }
+
+            // Return the first matching contiguous subarray.
+            if (sum == B) {
+                int length = right - left + 1;
+                int[] result = new int[length];
+
+                // Copy the matching window's values, not its indices.
+                for (int i = 0; i &lt; length; i++) {
+                    result[i] = A[left + i];
+                }
+
+                return result;
+            }
+        }
+
+        // No matching subarray exists.
+        return new int[]{-1};
+    }
+}</code></pre>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Important:</strong> The running <code>sum</code> uses
+                        <code>long</code> because the sum of many array elements can exceed the range of an <code>int</code>.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Input: <code>A = [1, 2, 3, 4, 5]</code>, <code>B = 5</code>. Initially, <code>left = 0</code> and <code>sum = 0</code>.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">right</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Added element</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Sum before shrinking</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Action</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3 font-mono">0</td><td class="p-3 font-mono">1</td><td class="p-3 font-mono">1</td><td class="p-3">Sum &lt; 5</td><td class="p-3">Continue</td></tr>
+                                <tr><td class="p-3 font-mono">1</td><td class="p-3 font-mono">2</td><td class="p-3 font-mono">3</td><td class="p-3">Sum &lt; 5</td><td class="p-3">Continue</td></tr>
+                                <tr><td class="p-3 font-mono">2</td><td class="p-3 font-mono">3</td><td class="p-3 font-mono">6</td><td class="p-3">Remove 1; sum becomes 5</td><td class="p-3">Match found</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-5">
+                        After shrinking, <code>left = 1</code>, <code>right = 2</code>, and <code>sum = 5</code>.
+                        The window is <code>[2, 3]</code>, so the algorithm immediately returns <code>[2, 3]</code>.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Dry run when no answer exists</h3>
+                    <p class="mb-3">Input: <code>A = [5, 10, 20, 100, 105]</code>, <code>B = 110</code>.</p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">right</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Added element</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Window adjustment</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Sum</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3 font-mono">0</td><td class="p-3 font-mono">5</td><td class="p-3">Keep 5</td><td class="p-3 font-mono">5</td></tr>
+                                <tr><td class="p-3 font-mono">1</td><td class="p-3 font-mono">10</td><td class="p-3">Keep 5, 10</td><td class="p-3 font-mono">15</td></tr>
+                                <tr><td class="p-3 font-mono">2</td><td class="p-3 font-mono">20</td><td class="p-3">Keep 5, 10, 20</td><td class="p-3 font-mono">35</td></tr>
+                                <tr><td class="p-3 font-mono">3</td><td class="p-3 font-mono">100</td><td class="p-3">Remove 5, 10, 20; keep 100</td><td class="p-3 font-mono">100</td></tr>
+                                <tr><td class="p-3 font-mono">4</td><td class="p-3 font-mono">105</td><td class="p-3">Remove 100; keep 105</td><td class="p-3 font-mono">105</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>No window reaches 110, so the answer is <code>[-1]</code>.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Brute force</td><td class="p-3">\(O(N^2)\)</td><td class="p-3">\(O(1)\)</td></tr>
+                                <tr><td class="p-3">Sliding window</td><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(1)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        The returned array requires up to \(O(N)\) space in either approach. Although the sliding-window
+                        algorithm has a nested <code>while</code> loop, each pointer moves only forward: <code>right</code>
+                        advances at most \(N\) times, and <code>left</code> also advances at most \(N\) times. The total work is linear.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Input array</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Target</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Expected output</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3 font-mono">[5]</td><td class="p-3">5</td><td class="p-3 font-mono">[5]</td><td class="p-3">Single element matches</td></tr>
+                                <tr><td class="p-3 font-mono">[1, 2, 3]</td><td class="p-3">1</td><td class="p-3 font-mono">[1]</td><td class="p-3">Match at the beginning</td></tr>
+                                <tr><td class="p-3 font-mono">[1, 2, 3]</td><td class="p-3">6</td><td class="p-3 font-mono">[1, 2, 3]</td><td class="p-3">Entire array matches</td></tr>
+                                <tr><td class="p-3 font-mono">[1, 2, 3]</td><td class="p-3">7</td><td class="p-3 font-mono">[-1]</td><td class="p-3">Target exceeds total sum</td></tr>
+                                <tr><td class="p-3 font-mono">[2, 2, 2]</td><td class="p-3">4</td><td class="p-3 font-mono">[2, 2]</td><td class="p-3">Repeated values</td></tr>
+                                <tr><td class="p-3 font-mono">[1, 2, 3, 4, 5]</td><td class="p-3">5</td><td class="p-3 font-mono">[2, 3]</td><td class="p-3">Earliest starting index wins</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">The solution checks for a match after shrinking the window and returns immediately when a valid window is found.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems help reinforce sliding-window concepts.</p>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Minimum Size Subarray Sum</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 209 · Medium</p>
+                            <p class="mb-3">Find the minimum length of a subarray whose sum is at least a target.</p>
+                            <a href="https://leetcode.com/problems/minimum-size-subarray-sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Subarray Product Less Than K</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 713 · Medium</p>
+                            <p class="mb-3">Count subarrays using a sliding window with positive numbers.</p>
+                            <a href="https://leetcode.com/problems/subarray-product-less-than-k/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Longest Substring Without Repeating Characters</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 3 · Medium</p>
+                            <p class="mb-3">Practice expanding and shrinking a window based on a condition.</p>
+                            <a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Fruit Into Baskets</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 904 · Medium</p>
+                            <p class="mb-3">Find the longest window satisfying a constraint on distinct values.</p>
+                            <a href="https://leetcode.com/problems/fruit-into-baskets/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-4"><strong class="text-slate-100">Pattern to remember:</strong> variable-size sliding window with two pointers.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Using sliding window when negative numbers are allowed. Negative values can make the sum increase or decrease unpredictably, so this technique is not generally valid for arbitrary signed arrays.</li>
+                        <li>Returning the indices instead of the actual elements.</li>
+                        <li>Forgetting to shrink the window when its sum exceeds the target.</li>
+                        <li>Using <code>int</code> for a running sum when it can overflow.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-semibold text-indigo-200">Q1. Why does sliding window work here?</p>
+                            <p>Because every element is positive, expanding increases the sum and shrinking decreases it.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-indigo-200">Q2. Can we use prefix sums?</p>
+                            <p>Yes. Prefix sums combined with a suitable search strategy can solve related problems, but sliding window is simpler and runs in \(O(N)\) here.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-indigo-200">Q3. What if negative numbers are allowed?</p>
+                            <p>A standard sliding window is no longer reliable. A prefix-sum plus hash map approach is often appropriate for finding a subarray with a target sum.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-indigo-200">Q4. Why return immediately after finding a match?</p>
+                            <p>The window advances from left to right. If a valid subarray with an earlier starting index existed, it would have been detected before the current window. Returning immediately therefore respects the minimum-start-index requirement.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the sliding-window approach in an interview. It is straightforward, efficient, and takes advantage of the positive-integer constraint.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(1)\), excluding the returned array</li>
+                        <li>Core intuition: expand when the sum is too small; shrink when it is too large; return when it matches.</li>
+                    </ul>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Remember: positive numbers + continuous subarray + target sum = consider sliding window first.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
