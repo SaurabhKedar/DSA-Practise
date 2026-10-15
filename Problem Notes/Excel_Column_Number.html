@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Algorithm notes and a Java solution for converting an Excel column title into its column number.">
+    <title>Excel Column Number — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        .algorithm-table th, .algorithm-table td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Excel Column Number — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                Convert an Excel column title such as <code class="text-indigo-700">AB</code> into its corresponding number.
+                The key idea is to evaluate the letters as a base-26 positional number, with letter values from 1 to 26.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Core idea:</strong> For each letter from left to right, multiply the accumulated result by 26, then add that letter's value.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-4">
+                    In Excel, columns are named using letters instead of numbers. Given a string <code class="text-indigo-700">A</code>
+                    representing an Excel column title, return its corresponding column number.
+                </p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full sm:w-auto border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Column title</th>
+                                <th scope="col" class="border border-slate-200 p-3">Number</th>
+                                <th scope="col" class="border border-slate-200 p-3">Column title</th>
+                                <th scope="col" class="border border-slate-200 p-3">Number</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3"><code>A</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3"><code>AA</code></td><td class="border border-slate-200 p-3">27</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>B</code></td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3"><code>AB</code></td><td class="border border-slate-200 p-3">28</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>Z</code></td><td class="border border-slate-200 p-3">26</td><td class="border border-slate-200 p-3"><code>BA</code></td><td class="border border-slate-200 p-3">53</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>BB</code></td><td class="border border-slate-200 p-3">54</td><td class="border border-slate-200 p-3"></td><td class="border border-slate-200 p-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-3">
+                    This works like a number system with base 26, except the letters represent values from 1 to 26 instead of 0 to 25.
+                </p>
+                <p class="text-slate-700">For example, <code>AB</code> means:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-3 text-center text-slate-100">
+                    \[1 \times 26 + 2 = 28\]
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute Force Approach</h2>
+                <p class="text-slate-700 mb-4">
+                    We could generate Excel column names sequentially, starting from <code>A</code>, until we reach the given title,
+                    counting each column along the way.
+                </p>
+                <p class="text-slate-700">
+                    This is inefficient because we may need to generate a very large number of titles before reaching the target.
+                    A direct mathematical calculation is much better, so the optimized solution uses that logic.
+                </p>
+            </section>
+
+            <section id="optimized-approach">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — Base 26 Conversion</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Intuition</h3>
+                <p class="text-slate-700 mb-4">
+                    Think of <code>AB</code> as a positional number system. In decimal, <code>123</code> is calculated as:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[1 \times 10^2 + 2 \times 10^1 + 3 \times 10^0\]
+                </div>
+                <p class="text-slate-700 mb-4">Similarly, Excel column titles use base 26:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[AB = 1 \times 26^1 + 2 \times 26^0 = 28\]
+                </div>
+                <p class="text-slate-700 mb-3">Instead of calculating powers separately, process the string from left to right. For every character:</p>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Multiply the current result by <code>26</code>.</li>
+                    <li>Convert the character into its numeric value using <code>ch - 'A' + 1</code>.</li>
+                    <li>Add that value to the result.</li>
+                </ol>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Java code — Interview-ready solution</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 sm:p-5 overflow-x-auto text-sm leading-relaxed mb-6"><code>public class Solution {
+    public int titleToNumber(String A) {
+        int result = 0;
+
+        // Process each character from left to right
+        for (int i = 0; i &lt; A.length(); i++) {
+            char ch = A.charAt(i);
+
+            // Convert A-Z into values 1-26
+            int value = ch - 'A' + 1;
+
+            // Shift the previous value by one base-26 position
+            result = result * 26 + value;
+        }
+
+        return result;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Understanding the important line</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-4"><code>int value = ch - 'A' + 1;</code></pre>
+                <p class="text-slate-700 mb-4">
+                    Characters have numeric character codes. Subtracting <code>'A'</code> gives a zero-based offset,
+                    so we add <code>1</code> to get the Excel value.
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full min-w-[28rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Character</th>
+                                <th scope="col" class="border border-slate-200 p-3">Calculation</th>
+                                <th scope="col" class="border border-slate-200 p-3">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">A</td><td class="border border-slate-200 p-3"><code>'A' - 'A' + 1</code></td><td class="border border-slate-200 p-3">1</td></tr>
+                            <tr><td class="border border-slate-200 p-3">B</td><td class="border border-slate-200 p-3"><code>'B' - 'A' + 1</code></td><td class="border border-slate-200 p-3">2</td></tr>
+                            <tr><td class="border border-slate-200 p-3">Z</td><td class="border border-slate-200 p-3"><code>'Z' - 'A' + 1</code></td><td class="border border-slate-200 p-3">26</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Input: <code>AB</code></h3>
+                <p class="text-slate-700 mb-4">Initially, <code>result = 0</code>.</p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[38rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Step</th>
+                                <th scope="col" class="border border-slate-200 p-3">Character</th>
+                                <th scope="col" class="border border-slate-200 p-3">Value</th>
+                                <th scope="col" class="border border-slate-200 p-3">Calculation</th>
+                                <th scope="col" class="border border-slate-200 p-3">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">A</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">\(0 \times 26 + 1\)</td><td class="border border-slate-200 p-3">1</td></tr>
+                            <tr><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">B</td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">\(1 \times 26 + 2\)</td><td class="border border-slate-200 p-3">28</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-6"><strong class="text-slate-900">Output:</strong> <code>28</code></p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Input: <code>BB</code></h3>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[38rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Step</th>
+                                <th scope="col" class="border border-slate-200 p-3">Character</th>
+                                <th scope="col" class="border border-slate-200 p-3">Value</th>
+                                <th scope="col" class="border border-slate-200 p-3">Calculation</th>
+                                <th scope="col" class="border border-slate-200 p-3">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">B</td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">\(0 \times 26 + 2\)</td><td class="border border-slate-200 p-3">2</td></tr>
+                            <tr><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">B</td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">\(2 \times 26 + 2\)</td><td class="border border-slate-200 p-3">54</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-5"><strong class="text-slate-900">Output:</strong> <code>54</code></p>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Why multiply by 26?</strong> Every new character moves the previous value one position to the left in base 26.
+                    Multiplying by 26 makes room for the next character.
+                </div>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity Analysis</h2>
+                <p class="text-slate-700 mb-4">Let \(N\) be the length of the column title.</p>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[30rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Approach</th>
+                                <th scope="col" class="border border-slate-200 p-3">Time complexity</th>
+                                <th scope="col" class="border border-slate-200 p-3">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">Brute force using positional powers</td><td class="border border-slate-200 p-3">\(O(N^2)\)</td><td class="border border-slate-200 p-3">\(O(1)\)</td></tr>
+                            <tr><td class="border border-slate-200 p-3">Optimized iterative conversion</td><td class="border border-slate-200 p-3">\(O(N)\)</td><td class="border border-slate-200 p-3">\(O(1)\)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li><strong>Brute force:</strong> Calculate each character's positional power separately, requiring repeated multiplications.</li>
+                    <li><strong>Optimized:</strong> Visit each character exactly once.</li>
+                    <li><strong>Auxiliary space:</strong> Both approaches use only a constant number of variables.</li>
+                </ul>
+                <p class="text-slate-700 mt-4">The optimized approach is the recommended solution.</p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full min-w-[34rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Input</th>
+                                <th scope="col" class="border border-slate-200 p-3">Expected output</th>
+                                <th scope="col" class="border border-slate-200 p-3">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3"><code>"A"</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">Smallest possible title</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>"Z"</code></td><td class="border border-slate-200 p-3">26</td><td class="border border-slate-200 p-3">Last single-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>"AA"</code></td><td class="border border-slate-200 p-3">27</td><td class="border border-slate-200 p-3">First two-letter title</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>"AZ"</code></td><td class="border border-slate-200 p-3">52</td><td class="border border-slate-200 p-3">End of the second-letter A range</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>"BA"</code></td><td class="border border-slate-200 p-3">53</td><td class="border border-slate-200 p-3">Next column after AZ</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>"ZZ"</code></td><td class="border border-slate-200 p-3">702</td><td class="border border-slate-200 p-3">Largest two-letter title</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mt-4">The same algorithm handles all valid titles up to length 5.</p>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar LeetCode Problems</h2>
+                <div class="space-y-6">
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                        <img class="w-full max-h-64 object-contain rounded-lg mb-4" src="https://images.openai.com/static-rsc-4/ILETSrJEHxZwx_6xPkpqJaoNDqeAPS7OBiXiScYITaM8Ga4vuf-X_Q7ud3HC61hMAUphFwifPoDmuGBGPS_n5RbScsBjwuC3DP8Or8e265B1fLKSa3AwedqoXX-hqfEHXPmWrHSlJ8lKouFavs6mSp5tFqAyD8L8F2mIgigBHTc?purpose=inline" alt="Excel row numbers and column letters">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">1. <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/excel-sheet-column-number/">LeetCode 171 — Excel Sheet Column Number</a></h3>
+                        <p class="text-sm font-semibold text-indigo-700 mb-2">Easy</p>
+                        <p class="text-slate-700">This is the same problem and is ideal for practicing the base-26 conversion.</p>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                        <img class="w-full max-h-64 object-contain rounded-lg mb-4" src="https://images.openai.com/static-rsc-4/mCNLOaUJjXnet9rLDBVWC2ckZL4QW9wCydvPs-KeqJ6QrffWgnTrXxBrD6M5lTXQpXR1dhbfOeKNhFg27CUb40qbZCeDX4KLrbyXNfjCEEiCJI1an1WnObNwbn473LACq8XioyO3Emd7ac6CFQk1cd-5N-2EU27hKffRy0l0vJQ?purpose=inline" alt="Illustration of converting a number to an Excel column title">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">2. <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/excel-sheet-column-title/">LeetCode 168 — Excel Sheet Column Title</a></h3>
+                        <p class="text-sm font-semibold text-indigo-700 mb-2">Easy</p>
+                        <p class="text-slate-700">The reverse problem: convert a number into an Excel column title. Pay attention to the 1-based alphabet mapping.</p>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">3. <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/roman-to-integer/">LeetCode 13 — Roman to Integer</a></h3>
+                        <p class="text-sm font-semibold text-indigo-700 mb-2">Easy</p>
+                        <p class="text-slate-700">Practices converting symbolic representations into numeric values by processing characters.</p>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                        <img class="w-full max-h-64 object-contain rounded-lg mb-4" src="https://images.openai.com/static-rsc-4/CzgLbpkq8AVk42dxd9i64cPC4qY6gjzzOm4qE3i4Kfx7tfaU7HCzWFuwM6v_ZFv5ydiF2Co0V4O-oqEiXnBbj5r3uboqH7jCVJQfyI20AzQRE1e1tKU_uDegNqygLT0JzKoyneG8fzKAGGbYcfWJ3bnF_GXpfOErNx-JhtfZIqM?purpose=inline" alt="Illustration about positional number systems and binary digits">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">4. <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/add-binary/">LeetCode 67 — Add Binary</a></h3>
+                        <p class="text-sm font-semibold text-indigo-700 mb-2">Easy</p>
+                        <p class="text-slate-700">Reinforces positional number systems and how the base affects calculations.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <p class="text-slate-700 mb-4">
+                    <strong class="text-slate-900">Pattern to remember:</strong> Positional number conversion using the Horner-style recurrence:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5 text-center text-slate-100">
+                    \[\text{result}=\text{result}\times26+\text{value}\]
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Using <code>ch - 'A'</code> without adding <code>1</code>.</li>
+                    <li>Forgetting to multiply the existing result by <code>26</code>.</li>
+                    <li>Treating Excel columns as ordinary zero-based base 26.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Likely interviewer follow-up questions</h3>
+                <div class="space-y-4 text-slate-700">
+                    <div>
+                        <p class="font-semibold text-slate-900">Q1. Why is this base 26 rather than base 27?</p>
+                        <p>There are 26 letters. Each position contributes a value from 1 through 26; there is no zero-valued letter.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Q2. How would you solve the reverse problem?</p>
+                        <p>Repeatedly subtract <code>1</code>, take the remainder modulo <code>26</code>, convert that remainder to a letter, and divide by <code>26</code>. Subtracting <code>1</code> handles the fact that Excel's numbering is 1-based.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Q3. What is the maximum value with a title length of 5?</p>
+                        <p class="mb-2"><code>ZZZZZ</code> corresponds to:</p>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center text-slate-100">
+                            \[26+26^2+26^3+26^4+26^5=12{,}356{,}630\]
+                        </div>
+                        <p class="mt-2">This fits within Java's <code>int</code> range.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="final-recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-700 mb-4">
+                    Use the optimized iterative solution in interviews. It is simple, efficient, and processes every character once.
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Time: \(O(N)\)</li>
+                    <li>Auxiliary space: \(O(1)\)</li>
+                </ul>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Remember:</strong> Multiply the current result by 26, then add the current letter's value.
+                </div>
+            </section>
+        </main>
+        <footer class="text-center text-sm text-slate-600 mt-8">
+            Excel Column Number — Java Algorithm Notes
+        </footer>
+    </div>
+</body>
+</html>
