@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Algorithm notes with brute-force and optimized Java solutions for counting digit 1 occurrences from 0 to A.">
+    <title>Number of Digit One — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        .algorithm-table th, .algorithm-table td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Number of Digit One — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                Count how many times digit <code class="text-indigo-700">1</code> appears at each decimal position
+                (ones, tens, hundreds, thousands, and so on), rather than checking every number individually.
+                Since \(A \le 10^9\), an efficient solution avoids iterating from <code>0</code> to <code>A</code>.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Core idea:</strong> For each decimal position, use its higher, current, and lower digits to count how many times that position contributes a <code>1</code>.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-4">
+                    Given an integer <code>A</code>, count the total occurrences of digit <code>1</code> in every integer
+                    from <code>0</code> to <code>A</code>, inclusive.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                    <h3 class="font-semibold text-slate-900 mb-3">Example: <code>A = 11</code></h3>
+                    <p class="text-slate-700 mb-3">The numbers are:</p>
+                    <p class="font-mono text-sm text-indigo-700 break-words">0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700 mt-3">
+                        <li><code>1</code> contains one digit <code>1</code>.</li>
+                        <li><code>10</code> contains one digit <code>1</code>.</li>
+                        <li><code>11</code> contains two digit <code>1</code>s.</li>
+                    </ul>
+                    <p class="text-slate-700 mt-3">Therefore, the answer is \(1+1+2=4\).</p>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Important:</strong> Count occurrences, not just numbers containing the digit.
+                    For example, <code>111</code> contributes three occurrences.
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute Force Approach</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-4">
+                    Visit every number from <code>1</code> to <code>A</code>. For each number, extract its digits one by one
+                    and count how many are equal to <code>1</code>.
+                </p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Java code</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 sm:p-5 overflow-x-auto text-sm leading-relaxed mb-5"><code>public class Solution {
+    public int solve(int A) {
+        int count = 0;
+
+        // Check every number from 1 to A
+        for (int num = 1; num &lt;= A; num++) {
+            int temp = num;
+
+            // Examine each digit
+            while (temp &gt; 0) {
+                if (temp % 10 == 1) {
+                    count++;
+                }
+
+                temp /= 10;
+            }
+        }
+
+        return count;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Dry run: <code>A = 11</code></h3>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[30rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Number</th>
+                                <th scope="col" class="border border-slate-200 p-3">Digit <code>1</code> occurrences</th>
+                                <th scope="col" class="border border-slate-200 p-3">Running count</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3"><code>1</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">1</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>2–9</code></td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">1</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>10</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">2</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>11</code></td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">4</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-4"><strong>Output:</strong> <code>4</code></p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Complexity analysis</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li><strong>Time:</strong> \(O(A\log A)\). We visit \(A\) numbers, and each number has at most \(O(\log A)\) digits.</li>
+                    <li><strong>Auxiliary space:</strong> \(O(1)\), because we use only a few integer variables.</li>
+                </ul>
+                <p class="text-slate-700 mt-3">
+                    <strong>Limitation:</strong> When <code>A</code> approaches \(10^9\), checking every number is too slow.
+                </p>
+            </section>
+
+            <section id="optimized-approach">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — Mathematical Digit Counting</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Intuition</h3>
+                <p class="text-slate-700 mb-3">
+                    Instead of examining every number, count digit <code>1</code> independently at each position:
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Ones place: <code>1</code></li>
+                    <li>Tens place: <code>10</code></li>
+                    <li>Hundreds place: <code>100</code></li>
+                    <li>Thousands place: <code>1000</code></li>
+                    <li>And so on.</li>
+                </ul>
+                <p class="text-slate-700 mb-4">
+                    At each position, divide the number into three parts: <strong>higher</strong> (digits to the left),
+                    <strong>current</strong> (the digit at this position), and <strong>lower</strong> (digits to the right).
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+                    <p class="text-slate-700">
+                        For example, for <code>A = 1234</code> and <code>factor = 10</code>,
+                        <code>higher = 12</code>, <code>current = 3</code>, and <code>lower = 4</code>.
+                        Here, <code>factor</code> represents the position being counted: <code>1</code>, <code>10</code>,
+                        <code>100</code>, and so on.
+                    </p>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Three cases to remember</h3>
+                <p class="text-slate-700 mb-3">For each position, calculate:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+                    <ul class="list-disc list-inside space-y-2 text-slate-700">
+                        <li><code>higher = A / (factor * 10)</code></li>
+                        <li><code>current = (A / factor) % 10</code></li>
+                        <li><code>lower = A % factor</code></li>
+                    </ul>
+                    <p class="text-slate-700 mt-3">The contribution from the current position depends on <code>current</code>:</p>
+                </div>
+
+                <div class="space-y-4">
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="text-lg font-semibold text-slate-900 mb-2">Case 1: <code>current == 0</code></h4>
+                        <p class="text-slate-700 mb-3">The current digit has not reached <code>1</code> in the current cycle.</p>
+                        <div class="bg-slate-900 rounded-lg p-3 text-center text-slate-100">\[\text{count}=\text{higher}\times\text{factor}\]</div>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="text-lg font-semibold text-slate-900 mb-2">Case 2: <code>current == 1</code></h4>
+                        <p class="text-slate-700 mb-3">Count all complete cycles and the portion already covered by <code>A</code>.</p>
+                        <div class="bg-slate-900 rounded-lg p-3 text-center text-slate-100">\[\text{count}=\text{higher}\times\text{factor}+\text{lower}+1\]</div>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="text-lg font-semibold text-slate-900 mb-2">Case 3: <code>current &gt; 1</code></h4>
+                        <p class="text-slate-700 mb-3">The current position has already passed <code>1</code>, so count one additional complete cycle.</p>
+                        <div class="bg-slate-900 rounded-lg p-3 text-center text-slate-100">\[\text{count}=(\text{higher}+1)\times\text{factor}\]</div>
+                    </article>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-900 mt-6 mb-3">Optimized Java code</h3>
+                <p class="text-slate-700 mb-4">This preserves the required <code>solve(int A)</code> method signature.</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 sm:p-5 overflow-x-auto text-sm leading-relaxed mb-5"><code>public class Solution {
+    public int solve(int A) {
+        long count = 0;
+
+        // Examine each decimal position: 1, 10, 100, ...
+        for (long factor = 1; factor &lt;= A; factor *= 10) {
+
+            long higher = A / (factor * 10);
+            long current = (A / factor) % 10;
+            long lower = A % factor;
+
+            if (current == 0) {
+                // No additional 1s in the current partial cycle
+                count += higher * factor;
+            } else if (current == 1) {
+                // Include the partial cycle up to A
+                count += higher * factor + lower + 1;
+            } else {
+                // Include one additional complete cycle
+                count += (higher + 1) * factor;
+            }
+        }
+
+        return (int) count;
+    }
+}</code></pre>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Why use <code>long</code>?</strong> The constraints allow <code>A = 10^9</code>.
+                    Using <code>long</code> for the factor and intermediate calculations prevents overflow during multiplication,
+                    even though the final answer fits in an <code>int</code>.
+                </div>
+            </section>
+
+            <section id="optimized-dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="text-slate-700 mb-4">Take <code>A = 11</code>. Initially, <code>count = 0</code>.</p>
+                <div class="overflow-x-auto mb-5">
+                    <table class="algorithm-table w-full min-w-[42rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Factor</th>
+                                <th scope="col" class="border border-slate-200 p-3">Higher</th>
+                                <th scope="col" class="border border-slate-200 p-3">Current</th>
+                                <th scope="col" class="border border-slate-200 p-3">Lower</th>
+                                <th scope="col" class="border border-slate-200 p-3">Case</th>
+                                <th scope="col" class="border border-slate-200 p-3">Added count</th>
+                                <th scope="col" class="border border-slate-200 p-3">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">Current = 1</td><td class="border border-slate-200 p-3">\(1+0+1=2\)</td><td class="border border-slate-200 p-3">2</td></tr>
+                            <tr><td class="border border-slate-200 p-3">10</td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">Current = 1</td><td class="border border-slate-200 p-3">\(0+1+1=2\)</td><td class="border border-slate-200 p-3">4</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Ones place: <code>factor = 1</code></h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code>higher = 11 / 10 = 1</code></li>
+                    <li><code>current = (11 / 1) % 10 = 1</code></li>
+                    <li><code>lower = 11 % 1 = 0</code></li>
+                </ul>
+                <p class="text-slate-700 mb-4">
+                    The contribution is \(1\times1+0+1=2\). These occurrences come from <code>1</code> and <code>11</code>.
+                </p>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Tens place: <code>factor = 10</code></h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code>higher = 11 / 100 = 0</code></li>
+                    <li><code>current = (11 / 10) % 10 = 1</code></li>
+                    <li><code>lower = 11 % 10 = 1</code></li>
+                </ul>
+                <p class="text-slate-700">
+                    The contribution is \(0\times10+1+1=2\). These occurrences come from <code>10</code> and <code>11</code>.
+                    The final answer is <code>4</code>.
+                </p>
+            </section>
+
+            <section id="complexity-analysis">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity Analysis</h2>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full min-w-[30rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Approach</th>
+                                <th scope="col" class="border border-slate-200 p-3">Time complexity</th>
+                                <th scope="col" class="border border-slate-200 p-3">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3">Brute force</td><td class="border border-slate-200 p-3">\(O(A\log A)\)</td><td class="border border-slate-200 p-3">\(O(1)\)</td></tr>
+                            <tr><td class="border border-slate-200 p-3">Optimized</td><td class="border border-slate-200 p-3">\(O(\log A)\)</td><td class="border border-slate-200 p-3">\(O(1)\)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mt-4">
+                    The optimized solution processes one decimal position per iteration. The number of decimal positions
+                    is proportional to \(\log_{10} A\), so it runs in logarithmic time. For \(A=10^9\), the loop processes
+                    at most 10 decimal positions rather than up to one billion numbers.
+                </p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto">
+                    <table class="algorithm-table w-full min-w-[38rem] border-collapse text-left">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900">
+                                <th scope="col" class="border border-slate-200 p-3">Input</th>
+                                <th scope="col" class="border border-slate-200 p-3">Expected output</th>
+                                <th scope="col" class="border border-slate-200 p-3">Explanation</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr><td class="border border-slate-200 p-3"><code>A = 0</code></td><td class="border border-slate-200 p-3">0</td><td class="border border-slate-200 p-3">No occurrences of digit <code>1</code>.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 1</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">Only the number <code>1</code> contributes.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 9</code></td><td class="border border-slate-200 p-3">1</td><td class="border border-slate-200 p-3">Only the number <code>1</code> contains digit <code>1</code>.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 10</code></td><td class="border border-slate-200 p-3">2</td><td class="border border-slate-200 p-3">Occurrences in <code>1</code> and <code>10</code>.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 11</code></td><td class="border border-slate-200 p-3">4</td><td class="border border-slate-200 p-3"><code>1</code>, <code>10</code>, and two occurrences in <code>11</code>.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 99</code></td><td class="border border-slate-200 p-3">20</td><td class="border border-slate-200 p-3">Ten occurrences in the ones place and ten in the tens place.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 100</code></td><td class="border border-slate-200 p-3">21</td><td class="border border-slate-200 p-3">The number <code>100</code> adds one occurrence.</td></tr>
+                            <tr><td class="border border-slate-200 p-3"><code>A = 1000000000</code></td><td class="border border-slate-200 p-3">900000001</td><td class="border border-slate-200 p-3">Includes all occurrences up to the maximum constraint.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mt-4">
+                    The loop naturally handles <code>A = 0</code>: the initial <code>factor = 1</code> is greater than <code>A</code>,
+                    so no iteration occurs.
+                </p>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar Problems on LeetCode</h2>
+                <p class="text-slate-700 mb-4">These problems help reinforce digit counting and mathematical number patterns.</p>
+                <ol class="list-decimal list-inside space-y-3 text-slate-700">
+                    <li>
+                        <strong>233. Number of Digit One</strong> —
+                        <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/number-of-digit-one/?utm_source=chatgpt.com">LeetCode 233</a>
+                        — Hard. This is the same problem and is the best practice for mastering the formula.
+                    </li>
+                    <li>
+                        <strong>400. Nth Digit</strong> —
+                        <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/nth-digit/?utm_source=chatgpt.com">LeetCode 400</a>
+                        — Medium. Uses decimal digit positions and number ranges.
+                    </li>
+                    <li>
+                        <strong>1012. Numbers With Repeated Digits</strong> —
+                        <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/numbers-with-repeated-digits/?utm_source=chatgpt.com">LeetCode 1012</a>
+                        — Hard. Counts numbers satisfying a digit-based property.
+                    </li>
+                    <li>
+                        <strong>902. Numbers At Most N Given Digit Set</strong> —
+                        <a class="text-indigo-700 underline hover:text-indigo-800" href="https://leetcode.com/problems/numbers-at-most-n-given-digit-set/?utm_source=chatgpt.com">LeetCode 902</a>
+                        — Hard. Uses digit positions and counting rather than enumerating every number.
+                    </li>
+                </ol>
+            </section>
+
+            <section id="interview-preparation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <p class="text-slate-700 mb-4">
+                    <strong class="text-slate-900">Pattern to remember:</strong> Mathematical digit counting by place value.
+                </p>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Counting numbers containing <code>1</code> instead of counting every occurrence.</li>
+                    <li>Forgetting that the upper bound <code>A</code> is inclusive.</li>
+                    <li>Using the wrong formula when the current digit is <code>0</code>, <code>1</code>, or greater than <code>1</code>.</li>
+                    <li>Using <code>int</code> for intermediate multiplication without considering overflow.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Likely follow-up questions</h3>
+                <div class="space-y-4">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-slate-900 mb-2">Q1. Why don't we iterate through every number?</h4>
+                        <p class="text-slate-700">That takes \(O(A\log A)\) time. Counting each decimal position mathematically reduces the time to \(O(\log A)\).</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-slate-900 mb-2">Q2. Why is <code>lower + 1</code> needed when <code>current == 1</code>?</h4>
+                        <p class="text-slate-700">The current partial cycle includes every suffix from <code>0</code> through <code>lower</code>, giving <code>lower + 1</code> possibilities.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-slate-900 mb-2">Q3. Can we count occurrences of another digit, such as <code>2</code>?</h4>
+                        <p class="text-slate-700">Yes. The same place-value technique can be adapted to count other digits, with special handling for leading zeros when counting digit <code>0</code>.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-slate-900 mb-2">Q4. What is the main optimization?</h4>
+                        <p class="text-slate-700">Count the contribution of each decimal position independently instead of examining individual numbers.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="final-recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-700 mb-4">
+                    Use the optimized mathematical approach in interviews. It is efficient, uses constant auxiliary space,
+                    and scales comfortably to the maximum constraint.
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li><strong>Time complexity:</strong> \(O(\log A)\)</li>
+                    <li><strong>Auxiliary space:</strong> \(O(1)\)</li>
+                </ul>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Remember the core intuition:</strong> For every decimal position, calculate how many times
+                    that position contributes a <code>1</code> using the higher, current, and lower digits. Add those
+                    contributions to obtain the total.
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
