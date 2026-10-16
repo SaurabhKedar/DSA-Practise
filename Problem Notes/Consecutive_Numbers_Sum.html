@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Consecutive Numbers Sum — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-indigo-100"] { background-color: #312e81; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-amber-200"] { border-color: #92400e; }
+        .algorithm-table th, .algorithm-table td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Consecutive Numbers Sum — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                The key concept is arithmetic progression. Since <code>A</code> can be as large as
+                <code>10<sup>9</sup></code>, avoid checking every possible consecutive sequence.
+                Test each feasible sequence length using a formula instead.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Core pattern:</strong> Arithmetic progression + divisibility + a triangular-number bound.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-4">
+                    Given a positive integer <code>A</code>, count how many ways it can be represented as the sum
+                    of one or more consecutive positive integers.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                    <h3 class="font-semibold text-slate-900 mb-3">Example: <code>A = 15</code></h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700">
+                        <li><code>[15]</code> → <code>15</code></li>
+                        <li><code>[7, 8]</code> → <code>15</code></li>
+                        <li><code>[4, 5, 6]</code> → <code>15</code></li>
+                        <li><code>[1, 2, 3, 4, 5]</code> → <code>15</code></li>
+                    </ul>
+                    <p class="text-slate-700 mt-3">Therefore, the answer is <code>4</code>.</p>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Important:</strong> A sequence containing just one number is valid. For example,
+                    <code>A = 5</code> has the representation <code>[5]</code>.
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute Force Approach</h2>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-3">
+                    Try every possible starting number and keep adding consecutive positive integers until
+                    the sum becomes equal to or greater than <code>A</code>.
+                </p>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-4">
+                    <li>For each <code>start</code>, initialize <code>sum = 0</code>.</li>
+                    <li>Add <code>start</code>, <code>start + 1</code>, <code>start + 2</code>, and so on.</li>
+                    <li>If the sum equals <code>A</code>, increment the answer.</li>
+                    <li>If the sum exceeds <code>A</code>, stop checking that starting number.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Java code</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 sm:p-5 overflow-x-auto text-sm leading-relaxed mb-5"><code>public class Solution {
+    public int solve(int A) {
+        int count = 0;
+
+        // Try every possible starting number.
+        for (int start = 1; start &lt;= A; start++) {
+            long sum = 0;
+
+            // Add consecutive positive integers until the sum reaches A.
+            for (int num = start; sum &lt; A; num++) {
+                sum += num;
+
+                if (sum == A) {
+                    count++;
+                    break;
+                }
+            }
+        }
+
+        return count;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Dry run for <code>A = 5</code></h3>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[34rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">Starting number</th>
+                                <th scope="col" class="py-2 pr-4">Consecutive sums checked</th>
+                                <th scope="col" class="py-2">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">1</td><td class="py-2 pr-4">1, 3, 6</td><td class="py-2">No match</td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">2</td><td class="py-2 pr-4">2, 5</td><td class="py-2">Match: <code>[2, 3]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">3</td><td class="py-2 pr-4">3, 7</td><td class="py-2">No match</td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">4</td><td class="py-2 pr-4">4, 9</td><td class="py-2">No match</td></tr>
+                            <tr><td class="py-2 pr-4">5</td><td class="py-2 pr-4">5</td><td class="py-2">Match: <code>[5]</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-5"><strong>Answer:</strong> <code>2</code></p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Complexity</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Time: \(O(A^2)\) in the worst case, using a simple upper bound for the nested loops.</li>
+                    <li>Auxiliary space: \(O(1)\).</li>
+                </ul>
+                <p class="text-slate-700 mt-3">This approach is too slow for <code>A</code> as large as <code>10<sup>9</sup></code>.</p>
+            </section>
+
+            <section id="optimized-approach">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — Arithmetic Progression</h2>
+                <p class="text-slate-700 mb-4">
+                    Instead of generating every sequence, determine directly whether a sequence of a particular
+                    length can sum to <code>A</code>.
+                </p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Step 1: Understand the mathematical formula</h3>
+                <p class="text-slate-700 mb-3">
+                    Suppose we want to represent <code>A</code> using <code>k</code> consecutive positive integers
+                    starting from <code>s</code>. The sequence is:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[s,\ s+1,\ s+2,\ \ldots,\ s+k-1\]
+                </div>
+                <p class="text-slate-700 mb-3">Using the sum formula for an arithmetic progression:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[A=\frac{k}{2}(2s+k-1)\]
+                </div>
+                <p class="text-slate-700 mb-3">Rearranging and solving for the starting number <code>s</code> gives:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[2A=k(2s+k-1)\]
+                    \[s=\frac{A-\frac{k(k-1)}{2}}{k}\]
+                </div>
+                <p class="text-slate-700 mb-3">For a valid sequence, two conditions must hold:</p>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-4">
+                    <li><code>s</code> must be a positive integer.</li>
+                    <li>The numerator must be divisible by <code>k</code>.</li>
+                </ol>
+                <p class="text-slate-700 mb-5">
+                    Therefore, test different sequence lengths <code>k</code>, rather than generating all the numbers in every sequence.
+                </p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Step 2: Reduce the search space</h3>
+                <p class="text-slate-700 mb-3">The smallest possible sequence of length <code>k</code> is:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[1+2+\cdots+k=\frac{k(k+1)}{2}\]
+                </div>
+                <p class="text-slate-700 mb-3">
+                    If this minimum sum exceeds <code>A</code>, no sequence of length <code>k</code> or greater can work.
+                    So stop when:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[\frac{k(k+1)}{2}>A\]
+                </div>
+                <p class="text-slate-700 mb-5">This means only \(O(\sqrt A)\) possible lengths need to be checked.</p>
+
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Optimized Java code</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 sm:p-5 overflow-x-auto text-sm leading-relaxed mb-4"><code>public class Solution {
+    public int solve(int A) {
+        int count = 0;
+
+        // Try each possible length of a consecutive sequence.
+        for (long k = 1; k * (k + 1) / 2 &lt;= A; k++) {
+
+            // Subtract the offset contributed by the first k - 1 steps.
+            long remaining = A - k * (k - 1) / 2;
+
+            // A valid sequence exists when the starting number is an integer.
+            if (remaining % k == 0) {
+                long start = remaining / k;
+
+                // The starting number must be positive.
+                if (start &gt;= 1) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+}</code></pre>
+                <p class="text-slate-700">
+                    <strong>Why use <code>long</code>?</strong> The input can reach <code>10<sup>9</sup></code>,
+                    and expressions such as <code>k * (k + 1)</code> can overflow an <code>int</code> in general.
+                    Using <code>long</code> makes the intermediate arithmetic safe.
+                </p>
+            </section>
+
+            <section id="optimized-dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="text-slate-700 mb-4">Take <code>A = 15</code>. Test each possible sequence length <code>k</code>:</p>
+                <div class="overflow-x-auto mb-5">
+                    <table class="algorithm-table w-full min-w-[42rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">Length <code>k</code></th>
+                                <th scope="col" class="py-2 pr-4">Minimum sum</th>
+                                <th scope="col" class="py-2 pr-4"><code>remaining</code></th>
+                                <th scope="col" class="py-2 pr-4">Divisible by <code>k</code>?</th>
+                                <th scope="col" class="py-2">Valid sequence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">1</td><td class="py-2 pr-4">1</td><td class="py-2 pr-4">15</td><td class="py-2 pr-4">Yes</td><td class="py-2"><code>[15]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">2</td><td class="py-2 pr-4">3</td><td class="py-2 pr-4">14</td><td class="py-2 pr-4">Yes</td><td class="py-2"><code>[7, 8]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">3</td><td class="py-2 pr-4">6</td><td class="py-2 pr-4">12</td><td class="py-2 pr-4">Yes</td><td class="py-2"><code>[4, 5, 6]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">4</td><td class="py-2 pr-4">10</td><td class="py-2 pr-4">9</td><td class="py-2 pr-4">No</td><td class="py-2">—</td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">5</td><td class="py-2 pr-4">15</td><td class="py-2 pr-4">5</td><td class="py-2 pr-4">Yes</td><td class="py-2"><code>[1, 2, 3, 4, 5]</code></td></tr>
+                            <tr><td class="py-2 pr-4">6</td><td class="py-2 pr-4">21</td><td class="py-2 pr-4">—</td><td class="py-2 pr-4">Stop</td><td class="py-2">Minimum sum exceeds 15</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-3">For <code>k = 2</code>:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[s=\frac{15-\frac{2(2-1)}2}{2}=\frac{14}{2}=7\]
+                </div>
+                <p class="text-slate-700 mb-4">The sequence is <code>[7, 8]</code>, so increment <code>count</code>.</p>
+                <p class="text-slate-700 mb-3">For <code>k = 4</code>:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[s=\frac{15-\frac{4(4-1)}2}{4}=\frac{9}{4}\]
+                </div>
+                <p class="text-slate-700 mb-4">The result is not an integer, so no valid sequence of length four exists.</p>
+                <p class="text-slate-700"><strong>Final answer:</strong> <code>4</code></p>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity Analysis</h2>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[30rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">Approach</th>
+                                <th scope="col" class="py-2 pr-4">Time complexity</th>
+                                <th scope="col" class="py-2">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4">Brute force</td><td class="py-2 pr-4">\(O(A^2)\) upper bound</td><td class="py-2">\(O(1)\)</td></tr>
+                            <tr><td class="py-2 pr-4">Optimized math</td><td class="py-2 pr-4">\(O(\sqrt A)\)</td><td class="py-2">\(O(1)\)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-3">For the optimized solution, the loop stops when:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center text-slate-100">
+                    \[\frac{k(k+1)}2>A\]
+                </div>
+                <p class="text-slate-700">
+                    Solving approximately gives \(k=O(\sqrt A)\). Each iteration performs a constant
+                    number of arithmetic operations, so total time is \(O(\sqrt A)\).
+                    For <code>A = 10<sup>9</sup></code>, only about <code>44,721</code> lengths need to be checked,
+                    making this approach efficient.
+                </p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto mb-4">
+                    <table class="algorithm-table w-full min-w-[34rem] text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-900">
+                                <th scope="col" class="py-2 pr-4">Input</th>
+                                <th scope="col" class="py-2 pr-4">Expected output</th>
+                                <th scope="col" class="py-2">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>1</code></td><td class="py-2 pr-4"><code>1</code></td><td class="py-2">Only <code>[1]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>2</code></td><td class="py-2 pr-4"><code>1</code></td><td class="py-2">Only <code>[2]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>5</code></td><td class="py-2 pr-4"><code>2</code></td><td class="py-2"><code>[5]</code>, <code>[2, 3]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>9</code></td><td class="py-2 pr-4"><code>3</code></td><td class="py-2"><code>[9]</code>, <code>[4, 5]</code>, <code>[2, 3, 4]</code></td></tr>
+                            <tr class="border-b border-slate-200"><td class="py-2 pr-4"><code>15</code></td><td class="py-2 pr-4"><code>4</code></td><td class="py-2">Four valid representations</td></tr>
+                            <tr><td class="py-2 pr-4"><code>1000000000</code></td><td class="py-2 pr-4">Handled efficiently</td><td class="py-2">Only \(O(\sqrt A)\) lengths are tested</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700">The algorithm naturally handles numbers that have only one representation, as well as numbers with multiple representations.</p>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar Problems on LeetCode</h2>
+                <p class="text-slate-700 mb-5">These problems reinforce the mathematical reasoning or consecutive-sequence patterns used here.</p>
+                <div class="space-y-4">
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900"><span class="text-indigo-700">829</span> — Consecutive Numbers Sum <span class="text-sm font-medium text-slate-500">Hard</span></h3>
+                        <p class="text-slate-700 my-2">This is the exact same problem and the closest practice resource.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/consecutive-numbers-sum/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900"><span class="text-indigo-700">413</span> — Arithmetic Slices <span class="text-sm font-medium text-slate-500">Medium</span></h3>
+                        <p class="text-slate-700 my-2">Practices counting contiguous arithmetic sequences.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/arithmetic-slices/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900"><span class="text-indigo-700">446</span> — Arithmetic Slices II - Subsequence <span class="text-sm font-medium text-slate-500">Hard</span></h3>
+                        <p class="text-slate-700 my-2">Extends arithmetic-sequence counting to subsequences using dynamic programming.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/arithmetic-slices-ii-subsequence/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900"><span class="text-indigo-700">1291</span> — Sequential Digits <span class="text-sm font-medium text-slate-500">Medium</span></h3>
+                        <p class="text-slate-700 my-2">Practices generating sequences with consecutive values, although the elements here are digits.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-500 underline" href="https://leetcode.com/problems/sequential-digits/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                    </article>
+                </div>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900 mb-5">
+                    <strong>Pattern to remember:</strong> Arithmetic progression + divisibility + mathematical bounds.
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Common mistakes</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Forgetting that a sequence of length one is valid.</li>
+                    <li>Checking every possible starting number instead of every possible length.</li>
+                    <li>Using <code>int</code> for intermediate multiplication without considering overflow.</li>
+                    <li>Counting a sequence when the calculated starting number is not a positive integer.</li>
+                    <li>Using a loop bound that does not stop once the minimum possible sum exceeds <code>A</code>.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Likely interviewer follow-ups</h3>
+                <div class="space-y-4 text-slate-700">
+                    <div>
+                        <p class="font-semibold text-slate-900">Q1. Why does divisibility guarantee a valid starting number?</p>
+                        <p>Because \(s=(A-k(k-1)/2)/k\). If the numerator is divisible by <code>k</code>, the starting number is an integer; the loop bound ensures a positive starting number for every counted length.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Q2. Can this problem be solved using a divisor formula?</p>
+                        <p>Yes. The number of representations of a positive integer as a sum of consecutive positive integers equals its number of odd positive divisors. That gives another mathematical solution, but the arithmetic-progression approach is often easier to derive and explain.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Q3. Why is the loop bound based on the triangular number?</p>
+                        <p>A sequence of length <code>k</code> cannot have a sum smaller than \(1+2+\cdots+k\). Once that minimum exceeds <code>A</code>, longer sequences are impossible.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="final-recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-700 mb-4">
+                    Use the optimized arithmetic-progression solution in an interview. It is easy to justify
+                    mathematically, avoids generating unnecessary sequences, and handles the maximum constraint efficiently.
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Time: \(O(\sqrt A)\)</li>
+                    <li>Auxiliary space: \(O(1)\)</li>
+                </ul>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Remember:</strong> Instead of trying every starting number, try each possible sequence length
+                    and check whether its starting number is a positive integer.
+                </div>
+            </section>
+        </main>
+        <footer class="text-center text-sm text-slate-500 py-6">
+            Consecutive Numbers Sum — Java Algorithm Notes
+        </footer>
+    </div>
+</body>
+</html>
