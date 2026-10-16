@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Generate Subsets — Java Backtracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Generate Subsets</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Generate every possible subset of a sorted array of distinct integers using bit manipulation or
+                    include/exclude backtracking.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    At each index, include the element, explore, undo that choice, and then explore without it.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given an array <code class="text-indigo-300">A</code> containing distinct integers in
+                        increasing order. Return all possible subsets of its elements.
+                    </p>
+                    <p class="mb-3">For example, if <code class="text-indigo-300">A = [1, 2, 3]</code>, the subsets are:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>The empty subset: <code>[]</code></li>
+                        <li>Subsets with one element: <code>[1]</code>, <code>[2]</code>, <code>[3]</code></li>
+                        <li>Subsets with two elements: <code>[1, 2]</code>, <code>[1, 3]</code>, <code>[2, 3]</code></li>
+                        <li>The subset with all elements: <code>[1, 2, 3]</code></li>
+                    </ul>
+                    <p class="mb-4">
+                        There are \(2^N\) possible subsets for an array of size \(N\), because each element has two
+                        choices: include it or exclude it. For \(N = 3\), the total is \(2^3 = 8\).
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Important conditions</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>The empty subset must be included.</li>
+                        <li>Every element is distinct.</li>
+                        <li>The output can be returned in any order.</li>
+                        <li>The input array is already sorted in increasing order.</li>
+                    </ul>
+                </section>
+
+                <section id="bit-manipulation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach — Bit Manipulation</h2>
+                    <p class="mb-4">
+                        Represent every subset using a binary number. For an array of size <code>N</code>, check all
+                        numbers from <code>0</code> to <code>2^N - 1</code>. For each number, inspect each bit; if a
+                        bit is <code>1</code>, include the corresponding array element in that subset.
+                    </p>
+                    <p class="mb-3">For <code>A = [1, 2, 3]</code>:</p>
+                    <div class="mb-5 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Binary</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Selected elements</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Subset</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>000</code></td><td class="border border-slate-700 px-4 py-2">None</td><td class="border border-slate-700 px-4 py-2"><code>[]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>001</code></td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>010</code></td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[2]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>011</code></td><td class="border border-slate-700 px-4 py-2">1, 2</td><td class="border border-slate-700 px-4 py-2"><code>[1, 2]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>100</code></td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[3]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>101</code></td><td class="border border-slate-700 px-4 py-2">1, 3</td><td class="border border-slate-700 px-4 py-2"><code>[1, 3]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>110</code></td><td class="border border-slate-700 px-4 py-2">2, 3</td><td class="border border-slate-700 px-4 py-2"><code>[2, 3]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>111</code></td><td class="border border-slate-700 px-4 py-2">1, 2, 3</td><td class="border border-slate-700 px-4 py-2"><code>[1, 2, 3]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code — Bit Manipulation</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+class Solution {
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; subsets(ArrayList&lt;Integer&gt; A) {
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        int n = A.size();
+        int total = 1 &lt;&lt; n; // Total subsets = 2^n
+
+        // Generate every possible bitmask.
+        for (int mask = 0; mask &lt; total; mask++) {
+            ArrayList&lt;Integer&gt; subset = new ArrayList&lt;&gt;();
+
+            // Check whether each element should be included.
+            for (int i = 0; i &lt; n; i++) {
+                if ((mask &amp; (1 &lt;&lt; i)) != 0) {
+                    subset.add(A.get(i));
+                }
+            }
+
+            result.add(subset);
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N \times 2^N)\), because we examine up to \(N\) bits for each of the \(2^N\) subsets.</li>
+                        <li>Auxiliary space: \(O(N)\) for constructing one subset, excluding the returned output.</li>
+                        <li>Output space: \(O(N \times 2^N)\) to store all subsets.</li>
+                    </ul>
+                    <p class="mt-4">This solution works efficiently within the given constraints. Recursion provides another natural way to understand the problem.</p>
+                </section>
+
+                <section id="backtracking">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Backtracking</h2>
+                    <p class="mb-4">
+                        For every element, make two choices: include it or exclude it. Process the array one element
+                        at a time. When the index reaches the end of the array, save the current subset.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Create an empty <code>result</code> list and an empty <code>currentSubset</code>.</li>
+                        <li>Start the recursive function at index <code>0</code>.</li>
+                        <li>If <code>index == A.size()</code>, save a copy of <code>currentSubset</code> and return.</li>
+                        <li>Include the current element and recursively process the next index.</li>
+                        <li>Remove the current element to undo the previous choice. This is called backtracking.</li>
+                        <li>Recursively process the next index without including the current element.</li>
+                        <li>Return the result after all choices have been explored.</li>
+                    </ol>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Backtracking</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+class Solution {
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; subsets(ArrayList&lt;Integer&gt; A) {
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+        ArrayList&lt;Integer&gt; currentSubset = new ArrayList&lt;&gt;();
+
+        // Start exploring choices from the first array element.
+        backtrack(A, 0, currentSubset, result);
+
+        return result;
+    }
+
+    private void backtrack(
+        ArrayList&lt;Integer&gt; A,
+        int index,
+        ArrayList&lt;Integer&gt; currentSubset,
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result
+    ) {
+        // Save a copy once every element has been considered.
+        if (index == A.size()) {
+            result.add(new ArrayList&lt;&gt;(currentSubset));
+            return;
+        }
+
+        // Choice 1: include the current element.
+        currentSubset.add(A.get(index));
+
+        // Explore subsets that include this element.
+        backtrack(A, index + 1, currentSubset, result);
+
+        // Undo the include choice before exploring the exclude branch.
+        currentSubset.remove(currentSubset.size() - 1);
+
+        // Choice 2: exclude the current element.
+        backtrack(A, index + 1, currentSubset, result);
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Understanding the important lines</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="mb-2 font-semibold text-slate-100">1. Base condition</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (index == A.size()) {
+    result.add(new ArrayList&lt;&gt;(currentSubset));
+    return;
+}</code></pre>
+                            <p class="mt-2">When <code>index</code> reaches the array's length, all elements have been considered. Save the current subset and return. The empty subset is also generated naturally when every element is excluded.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-2 font-semibold text-slate-100">2. Include the current element</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>currentSubset.add(A.get(index));
+backtrack(A, index + 1, currentSubset, result);</code></pre>
+                            <p class="mt-2">Add the element at the current index and explore all subsets that include this choice.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-2 font-semibold text-slate-100">3. Backtrack</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>currentSubset.remove(currentSubset.size() - 1);</code></pre>
+                            <p class="mt-2">After exploring the include choice, remove the element so the next recursive call starts with the correct subset.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-2 font-semibold text-slate-100">4. Exclude the current element</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>backtrack(A, index + 1, currentSubset, result);</code></pre>
+                            <p class="mt-2">Move to the next index without adding the current element. This explores all subsets that exclude it.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Why is this approach correct?</h3>
+                    <p>
+                        Every element has exactly two choices: include or exclude. The recursion explores both
+                        choices at every index, so every possible combination is generated. Because the index always
+                        moves forward, no element can be selected more than once. Since the input elements are
+                        distinct, each subset is generated exactly once.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Input: <code class="text-indigo-300">A = [1, 2, 3]</code>. The recursion explores the include branch first, then the exclude branch.</p>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <ol class="list-inside list-decimal space-y-1 text-slate-300">
+                            <li>Index 0, current subset <code>[]</code>: include <code>1</code>.</li>
+                            <li>Index 1, current subset <code>[1]</code>: include <code>2</code>.</li>
+                            <li>Index 2, current subset <code>[1, 2]</code>: include <code>3</code>.</li>
+                            <li>Index 3, current subset <code>[1, 2, 3]</code>: reach the base case, save the subset, and return.</li>
+                        </ol>
+                        <p class="mt-3">After reaching <code>[1, 2, 3]</code>, the recursion returns and removes <code>3</code>. It then explores <code>[1, 2]</code> without <code>3</code>, backtracks further, and continues through the remaining include/exclude choices.</p>
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Recursive execution table</h3>
+                    <div class="mb-5 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Step</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Index</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Current subset</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2">0</td><td class="border border-slate-700 px-4 py-2"><code>[]</code></td><td class="border border-slate-700 px-4 py-2">Include 1</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2">Include 2</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[1, 2]</code></td><td class="border border-slate-700 px-4 py-2">Include 3</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[1, 2, 3]</code></td><td class="border border-slate-700 px-4 py-2">Save subset</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[1, 2]</code></td><td class="border border-slate-700 px-4 py-2">Save after excluding 3</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2">Exclude 2, then explore 3</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[1, 3]</code></td><td class="border border-slate-700 px-4 py-2">Save subset</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">8</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[1]</code></td><td class="border border-slate-700 px-4 py-2">Save after excluding 3</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">9</td><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2"><code>[]</code></td><td class="border border-slate-700 px-4 py-2">Exclude 1 and explore remaining choices</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">10</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[2, 3]</code></td><td class="border border-slate-700 px-4 py-2">Save subset</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">11</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[2]</code></td><td class="border border-slate-700 px-4 py-2">Save after excluding 3</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">12</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[3]</code></td><td class="border border-slate-700 px-4 py-2">Save subset</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">13</td><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>[]</code></td><td class="border border-slate-700 px-4 py-2">Save empty subset</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">Each leaf of the recursion tree corresponds to one complete subset.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Output</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[
+  [1, 2, 3],
+  [1, 2],
+  [1, 3],
+  [1],
+  [2, 3],
+  [2],
+  [3],
+  []
+]</code></pre>
+                    <p class="mt-3">The output order differs from the earlier example, but that is allowed.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Both approaches have the same asymptotic complexity.</p>
+                    <div class="mb-5 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Approach</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Time complexity</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Auxiliary space</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Output space</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">Bit manipulation</td><td class="border border-slate-700 px-4 py-2">\(O(N \times 2^N)\)</td><td class="border border-slate-700 px-4 py-2">\(O(N)\)</td><td class="border border-slate-700 px-4 py-2">\(O(N \times 2^N)\)</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">Backtracking</td><td class="border border-slate-700 px-4 py-2">\(O(N \times 2^N)\)</td><td class="border border-slate-700 px-4 py-2">\(O(N)\)</td><td class="border border-slate-700 px-4 py-2">\(O(N \times 2^N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is backtracking \(O(N \times 2^N)\)?</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>There are \(2^N\) possible subsets.</li>
+                        <li>Saving a subset requires copying up to \(N\) elements.</li>
+                        <li>Therefore, the total time spent generating and storing subsets is \(O(N \times 2^N)\).</li>
+                    </ul>
+                    <p class="mb-4">
+                        The recursion depth is at most \(N\), and <code>currentSubset</code> can contain at most
+                        <code>N</code> elements. Thus, auxiliary space is \(O(N)\), excluding the output.
+                    </p>
+                    <p>The output itself requires \(O(N \times 2^N)\) space. This is unavoidable because the problem asks us to return every subset.</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Input</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[5]</code></td><td class="border border-slate-700 px-4 py-2">Generates <code>[]</code> and <code>[5]</code></td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2"><code>[1, 2]</code></td><td class="border border-slate-700 px-4 py-2">Generates all four subsets</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>[-2, 0]</code></td><td class="border border-slate-700 px-4 py-2">Handles negative and zero values normally</td></tr>
+                                <tr class="bg-slate-800"><td class="border border-slate-700 px-4 py-2">Array of 16 distinct integers</td><td class="border border-slate-700 px-4 py-2">Generates \(2^{16} = 65{,}536\) subsets</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        The input cannot be empty under the given constraints. However, if an empty array were allowed,
+                        this implementation would correctly return a list containing just the empty subset:
+                        <code>[[]]</code>.
+                    </p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems reinforce the same recursion and backtracking patterns.</p>
+                    <ol class="space-y-5">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">1. 78. Subsets <span class="ml-1 text-sm font-medium text-indigo-300">Medium</span></h3>
+                            <p class="my-2 text-slate-300">The closest match: generate every subset of an array containing distinct elements.</p>
+                            <a href="https://leetcode.com/problems/subsets/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">2. 77. Combinations <span class="ml-1 text-sm font-medium text-indigo-300">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Generate combinations of a fixed size using recursive choices.</p>
+                            <a href="https://leetcode.com/problems/combinations/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">3. 90. Subsets II <span class="ml-1 text-sm font-medium text-indigo-300">Medium</span></h3>
+                            <p class="my-2 text-slate-300">Generate unique subsets when duplicate input values are allowed.</p>
+                            <a href="https://leetcode.com/problems/subsets-ii/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">4. 17. Letter Combinations of a Phone Number</h3>
+                            <p class="my-2 text-slate-300">Practise exploring multiple choices at each recursive step.</p>
+                            <a href="https://leetcode.com/problems/letter-combinations-of-a-phone-number/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-4"><strong class="text-slate-100">Key pattern:</strong> Recursion + Backtracking, using the include/exclude technique.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Adding <code>currentSubset</code> directly to <code>result</code>: Always save <code>new ArrayList&lt;&gt;(currentSubset)</code> so each result is an independent copy.</li>
+                        <li>Forgetting the base case: Stop when <code>index == A.size()</code>.</li>
+                        <li>Forgetting to backtrack: Remove the last element before exploring the exclude branch.</li>
+                        <li>Not advancing the index: Every recursive call must use <code>index + 1</code> to process the next element.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                    <div class="space-y-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p><strong class="text-slate-100">Q: Why are there \(2^N\) subsets?</strong></p>
+                            <p class="mt-1 text-slate-300">Every element has two independent choices: include or exclude.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p><strong class="text-slate-100">Q: Can this be solved iteratively?</strong></p>
+                            <p class="mt-1 text-slate-300">Yes. Start with <code>[[]]</code>; for every element, add it to copies of all existing subsets.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p><strong class="text-slate-100">Q: What if the array contains duplicates?</strong></p>
+                            <p class="mt-1 text-slate-300">Sort the array and skip duplicate values at the same recursion depth to prevent duplicate subsets.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p><strong class="text-slate-100">Q: Why is backtracking useful?</strong></p>
+                            <p class="mt-1 text-slate-300">It lets us explore a choice, undo it, and explore another choice without creating a separate working list for every recursive call.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">For interview preparation, focus on the include/exclude backtracking approach. It is easy to explain and applies to many problems involving subsets, combinations, and decision trees.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Recommended approach: Backtracking</li>
+                        <li>Time complexity: \(O(N \times 2^N)\)</li>
+                        <li>Auxiliary space: \(O(N)\), excluding the output</li>
+                        <li>Output space: \(O(N \times 2^N)\)</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Remember: At every index, include the element, explore recursively, undo the choice, and then
+                        explore without the element. When you reach the end of the array, save the subset.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
