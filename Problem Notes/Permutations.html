@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Java algorithm notes for generating permutations with backtracking.">
+  <title>Permutations — Backtracking (Java)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    pre { tab-size: 4; }
+    .math-block, .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 100%; }
+    th, td { border: 1px solid #334155; padding: .65rem .8rem; text-align: left; }
+    thead th { background: #1e293b; color: #e2e8f0; }
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, .45); }
+    @media print {
+      body { background: white !important; color: #0f172a !important; }
+      main { box-shadow: none !important; border: 0 !important; }
+      pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-900 px-0 py-0 text-slate-200 sm:px-5 sm:py-8">
+  <main class="mx-auto max-w-5xl rounded-none border border-slate-700 bg-slate-800 px-5 py-7 shadow-2xl shadow-black/30 sm:rounded-2xl sm:px-10 sm:py-10">
+    <header class="mb-8 border-b border-slate-700 pb-6">
+      <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-indigo-300">Algorithm Notes · Java</p>
+      <h1 class="text-3xl font-bold leading-tight text-white sm:text-4xl">Permutations — Backtracking</h1>
+      <p class="mt-4 max-w-3xl text-lg leading-relaxed text-slate-300">Generate every arrangement of a collection of unique elements by choosing one unused element at a time, exploring recursively, and undoing each choice.</p>
+    </header>
+
+    <section aria-labelledby="problem-understanding">
+      <h2 id="problem-understanding" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">1. Problem Understanding</h2>
+      <p class="mb-4 text-slate-300">You are given an integer array <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">A</code> containing <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">N</code> unique elements. Return every possible arrangement of those elements. A permutation contains all the original elements exactly once.</p>
+      <p class="mb-3 font-semibold text-slate-100">Example: <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">A = [1, 2, 3]</code></p>
+      <div class="mb-5 rounded-lg border border-slate-700 bg-slate-900/80 p-4">
+        <pre class="overflow-x-auto text-sm leading-relaxed text-indigo-100"><code>[
+  [1, 2, 3],
+  [1, 3, 2],
+  [2, 1, 3],
+  [2, 3, 1],
+  [3, 1, 2],
+  [3, 2, 1]
+]</code></pre>
+      </div>
+      <p class="mb-4 text-slate-300">There are \(N!\) permutations of \(N\) unique elements. For \(N = 3\), \[3! = 3 \times 2 \times 1 = 6\].</p>
+
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Constraints and important conditions</h3>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>\(1 \leq N \leq 9\).</li>
+        <li>All elements are unique.</li>
+        <li>Each permutation must contain every element exactly once.</li>
+        <li>The output can be returned in any order.</li>
+        <li>Built-in permutation-generating functions are not allowed.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Special cases</h3>
+      <ul class="list-disc space-y-2 pl-6 text-slate-300">
+        <li>A one-element array such as <code>[5]</code> returns <code>[[5]]</code>.</li>
+        <li>No element may be repeated within one permutation.</li>
+        <li>The input elements must not be lost or permanently changed during the process.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="brute-force" class="mt-10">
+      <h2 id="brute-force" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">2. Brute Force Approach</h2>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Intuition</h3>
+      <p class="mb-4 text-slate-300">Generate every possible ordering and collect those arrangements as permutations. For <code>[1, 2, 3]</code>, fix <code>1</code> first and arrange the remaining elements, then fix <code>2</code>, and finally fix <code>3</code>. Recursion with swapping makes this systematic, but it still explores all \(N!\) permutations.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Java solution — using swapping</h3>
+      <div class="mb-4 rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <pre class="overflow-x-auto text-sm leading-relaxed text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; permute(ArrayList&lt;Integer&gt; A) {
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        generate(A, 0, result);
+
+        return result;
+    }
+
+    private void generate(
+        ArrayList&lt;Integer&gt; A,
+        int index,
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result
+    ) {
+        // All positions have been fixed, so save this permutation.
+        if (index == A.size()) {
+            result.add(new ArrayList&lt;&gt;(A));
+            return;
+        }
+
+        // Try every remaining element in the current position.
+        for (int i = index; i &lt; A.size(); i++) {
+            Collections.swap(A, index, i);
+            generate(A, index + 1, result);
+
+            // Restore the array before exploring the next choice.
+            Collections.swap(A, index, i);
+        }
+    }
+}</code></pre>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Dry run</h3>
+      <p class="mb-3 text-slate-300">For <code>A = [1, 2, 3]</code>:</p>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li>Fix <code>1</code> at index <code>0</code>: fixing <code>2</code> and then <code>3</code> produces <code>[1, 2, 3]</code>; fixing <code>3</code> and then <code>2</code> produces <code>[1, 3, 2]</code>.</li>
+        <li>Fix <code>2</code> at index <code>0</code>: the remaining choices produce <code>[2, 1, 3]</code> and <code>[2, 3, 1]</code>.</li>
+        <li>Fix <code>3</code> at index <code>0</code>: the remaining choices produce <code>[3, 1, 2]</code> and <code>[3, 2, 1]</code>.</li>
+      </ol>
+      <p class="mb-4 text-slate-300">The result contains all six permutations.</p>
+      <div class="rounded-lg border border-slate-700 bg-slate-900/70 p-4">
+        <h3 class="mb-2 font-semibold text-amber-200">Limitation</h3>
+        <p class="text-slate-300">Swapping temporarily modifies the input, so each swap must be undone after recursion. The index-based swapping logic can also be less intuitive for beginners.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="backtracking" class="mt-10">
+      <h2 id="backtracking" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">3. Optimized Approach — Backtracking with a <code>used</code> Array</h2>
+      <p class="mb-4 text-slate-300">Instead of rearranging the input, maintain a separate list named <code>current</code> and build a permutation one element at a time. A boolean array named <code>used</code> tracks which input positions have already been selected.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Backtracking tree for <code>A = [1, 2, 3]</code></h3>
+      <div class="mb-5 rounded-lg border border-slate-700 bg-slate-900/80 p-4 text-sm leading-7 text-slate-200">
+        <pre class="overflow-x-auto"><code>[]
+├── [1]
+│   ├── [1, 2] → [1, 2, 3]
+│   └── [1, 3] → [1, 3, 2]
+├── [2]
+│   ├── [2, 1] → [2, 1, 3]
+│   └── [2, 3] → [2, 3, 1]
+└── [3]
+    ├── [3, 1] → [3, 1, 2]
+    └── [3, 2] → [3, 2, 1]</code></pre>
+      </div>
+      <p class="mb-5 text-slate-300">Choose one unused element at each level.</p>
+
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">How does backtracking work?</h3>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li><strong class="text-slate-100">Choose:</strong> Select an unused element and add it to <code>current</code>.</li>
+        <li><strong class="text-slate-100">Explore:</strong> Recursively choose the next element.</li>
+        <li><strong class="text-slate-100">Undo:</strong> Remove the last element and mark it unused so another possibility can be explored.</li>
+      </ol>
+      <p class="mb-4 text-slate-300">The undo step is essential because an element can be used in a different permutation after its current branch has finished.</p>
+
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Optimized Java solution</h3>
+      <p class="mb-3 text-slate-300">This solution uses the <code>Solution</code> class and <code>permute</code> method signature.</p>
+      <div class="mb-5 rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <pre class="overflow-x-auto text-sm leading-relaxed text-slate-200"><code>import java.util.ArrayList;
+
+public class Solution {
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; permute(ArrayList&lt;Integer&gt; A) {
+
+        // Stores all the generated permutations.
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result =
+            new ArrayList&lt;ArrayList&lt;Integer&gt;&gt;();
+
+        // Stores the permutation currently being constructed.
+        ArrayList&lt;Integer&gt; current = new ArrayList&lt;Integer&gt;();
+
+        // used[i] is true if A[i] is already in current.
+        boolean[] used = new boolean[A.size()];
+
+        // Start generating permutations.
+        backtrack(A, result, current, used);
+
+        return result;
+    }
+
+    private void backtrack(
+        ArrayList&lt;Integer&gt; A,
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result,
+        ArrayList&lt;Integer&gt; current,
+        boolean[] used
+    ) {
+
+        // If current contains all elements, save a complete permutation.
+        if (current.size() == A.size()) {
+            // Store a copy because current changes during backtracking.
+            result.add(new ArrayList&lt;Integer&gt;(current));
+            return;
+        }
+
+        // Try every element as the next element in the permutation.
+        for (int i = 0; i &lt; A.size(); i++) {
+
+            // Skip elements that are already selected.
+            if (used[i]) {
+                continue;
+            }
+
+            // Choose the element.
+            used[i] = true;
+            current.add(A.get(i));
+
+            // Recursively construct the remaining positions.
+            backtrack(A, result, current, used);
+
+            // Undo the choice to explore other possibilities.
+            current.remove(current.size() - 1);
+            used[i] = false;
+        }
+    }
+}</code></pre>
+      </div>
+
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Explanation of important variables</h3>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Variables used by the backtracking solution</caption>
+          <thead><tr><th scope="col">Variable</th><th scope="col">Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>A</code></td><td>Original input array</td></tr>
+            <tr><td><code>result</code></td><td>Stores all complete permutations</td></tr>
+            <tr><td><code>current</code></td><td>Stores the permutation being built</td></tr>
+            <tr><td><code>used</code></td><td>Tracks which input elements are already selected</td></tr>
+            <tr><td><code>i</code></td><td>Index of the element currently being considered</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Why use <code>new ArrayList&lt;&gt;(current)</code>?</h3>
+      <p class="mb-4 text-slate-300">When <code>current</code> becomes <code>[1, 2, 3]</code>, add a copy to <code>result</code>. If the original list reference were added instead, every result entry would refer to the same list. As backtracking removes and adds elements, previously stored results would change too. Copying preserves each completed permutation independently.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Why remove the last element?</h3>
+      <p class="text-slate-300">After exploring <code>[1, 2, 3]</code>, remove <code>3</code> to return to <code>[1, 2]</code>. The algorithm can then explore other choices at that position. This lets elements appear in different permutations without repeating them within a single permutation.</p>
+    </section>
+
+    <section aria-labelledby="dry-run" class="mt-10">
+      <h2 id="dry-run" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">4. Dry Run of the Optimized Solution</h2>
+      <p class="mb-3 text-slate-300">Input:</p>
+      <div class="mb-5 rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <pre class="text-sm text-indigo-100"><code>A = [1, 2, 3]</code></pre>
+      </div>
+      <p class="mb-3 text-slate-300">Initially:</p>
+      <div class="mb-5 rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <pre class="text-sm leading-relaxed text-indigo-100"><code>current = []
+used    = [false, false, false]
+result  = []</code></pre>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Step-by-step execution</h3>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">First branch of the backtracking dry run</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">Action</th><th scope="col">current</th><th scope="col">used</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Choose <code>1</code></td><td><code>[1]</code></td><td><code>[T,F,F]</code></td></tr>
+            <tr><td>2</td><td>Choose <code>2</code></td><td><code>[1,2]</code></td><td><code>[T,T,F]</code></td></tr>
+            <tr><td>3</td><td>Choose <code>3</code></td><td><code>[1,2,3]</code></td><td><code>[T,T,T]</code></td></tr>
+            <tr><td>4</td><td>Save permutation</td><td><code>[1,2,3]</code></td><td><code>[T,T,T]</code></td></tr>
+            <tr><td>5</td><td>Undo <code>3</code></td><td><code>[1,2]</code></td><td><code>[T,T,F]</code></td></tr>
+            <tr><td>6</td><td>Undo <code>2</code></td><td><code>[1]</code></td><td><code>[T,F,F]</code></td></tr>
+            <tr><td>7</td><td>Choose <code>3</code>, then <code>2</code></td><td><code>[1,3,2]</code></td><td><code>[T,T,T]</code></td></tr>
+            <tr><td>8</td><td>Save permutation</td><td><code>[1,3,2]</code></td><td><code>[T,T,T]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-5 text-slate-300"><code>T</code> means <code>true</code> and <code>F</code> means <code>false</code>. The algorithm continues by choosing <code>2</code> and <code>3</code> as the first element, generating the remaining four permutations.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Final output</h3>
+      <div class="rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <pre class="overflow-x-auto text-sm leading-relaxed text-indigo-100"><code>[
+  [1, 2, 3],
+  [1, 3, 2],
+  [2, 1, 3],
+  [2, 3, 1],
+  [3, 1, 2],
+  [3, 2, 1]
+]</code></pre>
+      </div>
+      <p class="mt-4 text-slate-300">The exact order is not important; all six distinct permutations must be present.</p>
+    </section>
+
+    <section aria-labelledby="complexity" class="mt-10">
+      <h2 id="complexity" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">5. Complexity Analysis</h2>
+      <p class="mb-4 text-slate-300">There are \(N!\) possible permutations, and each complete permutation contains \(N\) elements.</p>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Time and space complexity by approach</caption>
+          <thead><tr><th scope="col">Approach</th><th scope="col">Time complexity</th><th scope="col">Auxiliary space</th><th scope="col">Output space</th></tr></thead>
+          <tbody>
+            <tr><td>Brute force with swapping</td><td>\(O(N \times N!)\)</td><td>\(O(N)\)</td><td>\(O(N \times N!)\)</td></tr>
+            <tr><td>Backtracking with <code>used</code></td><td>\(O(N \times N!)\)</td><td>\(O(N)\)</td><td>\(O(N \times N!)\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Why is the optimized solution \(O(N \times N!)\)?</h3>
+      <ul class="mb-4 list-disc space-y-2 pl-6 text-slate-300">
+        <li>The algorithm generates \(N!\) permutations.</li>
+        <li>Copying each completed permutation takes \(O(N)\).</li>
+        <li>Therefore, storing all permutations requires \(O(N \times N!)\) time.</li>
+      </ul>
+      <p class="mb-4 text-slate-300">The recursive calls and loops also explore the permutation tree. More precisely, total traversal cost is \(O(N \times N!)\), so the complexity remains the same order.</p>
+      <p class="mb-4 text-slate-300"><strong class="text-slate-100">Auxiliary space:</strong> The <code>current</code> list, <code>used</code> array, and recursion stack each require up to \(O(N)\) space. Together, they remain \(O(N)\), excluding output.</p>
+      <p class="mb-4 text-slate-300"><strong class="text-slate-100">Output space:</strong> There are \(N!\) lists, each containing \(N\) integers, giving \(O(N \times N!)\) output space.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Why can't we reduce the time complexity significantly?</h3>
+      <p class="text-slate-300">The problem explicitly asks for every permutation. Since there are \(N!\) answers, the algorithm must generate and store them all. The output itself imposes a lower bound of \(\Omega(N \times N!)\) when each permutation is copied as a list.</p>
+    </section>
+
+    <section aria-labelledby="edge-cases" class="mt-10">
+      <h2 id="edge-cases" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">6. Edge Cases</h2>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Edge-case inputs and expected results</caption>
+          <thead><tr><th scope="col">Input</th><th scope="col">Expected result</th><th scope="col">Reason</th></tr></thead>
+          <tbody>
+            <tr><td><code>[5]</code></td><td><code>[[5]]</code></td><td>Only one possible arrangement</td></tr>
+            <tr><td><code>[1, 2]</code></td><td><code>[[1,2], [2,1]]</code></td><td>Two possible arrangements</td></tr>
+            <tr><td><code>[1, 2, 3]</code></td><td>Six permutations</td><td>Standard case</td></tr>
+            <tr><td><code>[-1, 0, 2]</code></td><td>Six permutations</td><td>Negative and zero values are valid</td></tr>
+            <tr><td>Array of 9 unique elements</td><td>\(9! = 362{,}880\) permutations</td><td>Maximum constraint</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-slate-300">The algorithm handles negative values and zero naturally because it uses element indices rather than treating values as flags. The problem guarantees \(N \geq 1\) and unique elements, so empty input and duplicate values are outside the stated constraints.</p>
+    </section>
+
+    <section aria-labelledby="similar-problems" class="mt-10">
+      <h2 id="similar-problems" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">7. Similar Problems on LeetCode</h2>
+      <p class="mb-5 text-slate-300">These problems reinforce backtracking and permutation generation.</p>
+      <ol class="list-decimal space-y-5 pl-6 text-slate-300">
+        <li>
+          <p class="font-semibold text-slate-100">Permutations — #46 <span class="ml-1 rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-indigo-200">Medium</span></p>
+          <p class="mt-1">Closest match to this problem. Generate all permutations of distinct integers.</p>
+          <a class="mt-2 inline-block font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/permutations/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <p class="font-semibold text-slate-100">Permutations II — #47 <span class="ml-1 rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-indigo-200">Medium</span></p>
+          <p class="mt-1">Extends the problem to arrays with duplicate values, where duplicate permutations must be avoided.</p>
+          <a class="mt-2 inline-block font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/permutations-ii/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <p class="font-semibold text-slate-100">Subsets — #78 <span class="ml-1 rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-indigo-200">Medium</span></p>
+          <p class="mt-1">Uses the same choose, explore, and undo pattern, but generates subsets instead of arrangements.</p>
+          <a class="mt-2 inline-block font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/subsets/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <p class="font-semibold text-slate-100">Combination Sum — #39 <span class="ml-1 rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-indigo-200">Medium</span></p>
+          <p class="mt-1">Practices recursive choices and backtracking, with additional conditions for the target sum and reuse of elements.</p>
+          <a class="mt-2 inline-block font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/combination-sum/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <p class="font-semibold text-slate-100">Letter Combinations of a Phone Number — #17 <span class="ml-1 rounded bg-slate-700 px-2 py-0.5 text-xs font-medium text-indigo-200">Medium</span></p>
+          <p class="mt-1">Builds every possible combination by making one choice at each recursive level.</p>
+          <a class="mt-2 inline-block font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/letter-combinations-of-a-phone-number/">Solve on LeetCode</a>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="interview-notes" class="mt-10">
+      <h2 id="interview-notes" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">8. Interview Preparation Notes</h2>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Key concept to remember</h3>
+      <p class="mb-3 rounded-lg border-l-4 border-indigo-400 bg-indigo-950/60 px-4 py-3 font-semibold text-indigo-100">Backtracking = Choose → Explore → Undo.</p>
+      <p class="mb-3 text-slate-300">For permutations:</p>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Choose an element that has not been used.</li>
+        <li>Mark it as used and add it to the current list.</li>
+        <li>Recursively fill the next position.</li>
+        <li>Remove the selected element and mark it unused.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Common mistakes</h3>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li><strong class="text-slate-100">Forgetting to undo the choice:</strong> If <code>used[i]</code> is not reset to <code>false</code>, some valid permutations will never be generated.</li>
+        <li><strong class="text-slate-100">Forgetting to remove the last element:</strong> The next recursive branch may start with an incorrect <code>current</code> list.</li>
+        <li><strong class="text-slate-100">Saving the original list reference:</strong> Use <code>new ArrayList&lt;&gt;(current)</code> so each result stays unchanged.</li>
+        <li><strong class="text-slate-100">Using the wrong base condition:</strong> A permutation is complete when <code>current.size() == A.size()</code>.</li>
+        <li><strong class="text-slate-100">Using values instead of indices to track usage:</strong> The boolean array tracks each input position and works even when values are negative or zero.</li>
+      </ol>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Likely interviewer follow-up questions</h3>
+      <div class="space-y-4 text-slate-300">
+        <div><p class="font-semibold text-slate-100">Q1. Why do we need a <code>used</code> array?</p><p class="mt-1">It prevents selecting the same input element more than once in a single permutation.</p></div>
+        <div><p class="font-semibold text-slate-100">Q2. Why is the number of permutations \(N!\)?</p><p class="mt-1">There are \(N\) choices for the first position, \(N-1\) for the second, and so on, giving \(N \times (N-1) \times \cdots \times 1 = N!\).</p></div>
+        <div><p class="font-semibold text-slate-100">Q3. How would you handle duplicate input elements?</p><p class="mt-1">Sort the array and skip a duplicate when the previous identical element has not been used in the current recursive path. This prevents generating duplicate permutations.</p></div>
+        <div><p class="font-semibold text-slate-100">Q4. Can we solve this without a <code>used</code> array?</p><p class="mt-1">Yes. The swapping approach fixes one position at a time and swaps elements into it. It also generates permutations in \(O(N \times N!)\) time.</p></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="recommendation" class="mt-10">
+      <h2 id="recommendation" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">9. Final Recommendation</h2>
+      <p class="mb-4 text-slate-300">For this problem, the backtracking solution with a <code>used</code> array is recommended because its logic is easy to understand, explain, and debug in an interview.</p>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Time complexity: \(O(N \times N!)\).</li>
+        <li>Auxiliary space: \(O(N)\).</li>
+        <li>Output space: \(O(N \times N!)\).</li>
+      </ul>
+      <p class="mb-4 text-slate-300">The key intuition is that each recursive call chooses one unused element for the next position. Once all positions are filled, save a copy of the permutation, undo the last choice, and explore the next possibility.</p>
+      <p class="rounded-lg border-l-4 border-indigo-400 bg-indigo-950/60 px-4 py-3 text-slate-100"><strong class="text-indigo-200">Interview memory trick:</strong> Choose an element, mark it, recurse, unchoose it.</p>
+    </section>
+  </main>
+</body>
+</html>
