@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>K-th Symbol — Java Solutions</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    pre { tab-size: 4; }
+    .math-block, .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 100%; }
+    th, td { border: 1px solid #334155; padding: .65rem .8rem; text-align: left; }
+    thead th { background: #1e293b; color: #e2e8f0; }
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, .45); }
+    @media print {
+      body { background: white !important; color: #0f172a !important; }
+      main { box-shadow: none !important; border: 0 !important; }
+      pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-900 px-0 py-0 text-slate-200 sm:px-5 sm:py-8">
+  <main class="mx-auto max-w-5xl rounded-none border border-slate-700 bg-slate-800 px-5 py-7 shadow-2xl shadow-black/30 sm:rounded-2xl sm:px-10 sm:py-10">
+    <header class="mb-8 border-b border-slate-700 pb-6">
+      <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-indigo-300">Algorithm Notes · Java</p>
+      <h1 class="text-3xl font-bold leading-tight text-white sm:text-4xl">K-th Symbol</h1>
+      <p class="mt-4 max-w-3xl text-lg leading-relaxed text-slate-300">We can solve the K-th Symbol problem using recursive parent traversal, then recognize why bit manipulation gives a faster solution. The recursive approach is sometimes called backtracking here, but it does not explore alternative choices.</p>
+      <p class="mt-3 text-slate-300">The examples use the required method signature:</p>
+      <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public int solve(int A, long B)</code></pre>
+    </header>
+
+    <section aria-labelledby="problem-understanding">
+      <h2 id="problem-understanding" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">1. Problem Understanding</h2>
+      <p class="mb-4 text-slate-300">Row 1 contains only <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">0</code>. For each subsequent row, replace every symbol as follows:</p>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li><code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">0</code> becomes <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">01</code>.</li>
+        <li><code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">1</code> becomes <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">10</code>.</li>
+      </ul>
+      <p class="mb-3 text-slate-300">Return the symbol at zero-based index <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">B</code> in row <code class="rounded bg-slate-700 px-1.5 py-0.5 text-indigo-200">A</code>.</p>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">The first four rows of the generated symbol sequence</caption>
+          <thead><tr><th scope="col">Row</th><th scope="col">Sequence</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>0</code></td></tr>
+            <tr><td>2</td><td><code>01</code></td></tr>
+            <tr><td>3</td><td><code>0110</code></td></tr>
+            <tr><td>4</td><td><code>01101001</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-4">
+          <h3 class="mb-2 font-semibold text-indigo-200">Example 1</h3>
+          <p class="mb-2 text-slate-300">Input: <code>A = 3, B = 0</code></p>
+          <p class="mb-2 text-slate-300">Row 3 is <code>0110</code>. The symbol at index <code>0</code> is <code>0</code>.</p>
+          <p class="text-slate-100">Output: <strong>0</strong></p>
+        </div>
+        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-4">
+          <h3 class="mb-2 font-semibold text-indigo-200">Example 2</h3>
+          <p class="mb-2 text-slate-300">Input: <code>A = 4, B = 4</code></p>
+          <p class="mb-2 text-slate-300">Row 4 is <code>01101001</code>. The symbol at index <code>4</code> is <code>1</code>.</p>
+          <p class="text-slate-100">Output: <strong>1</strong></p>
+        </div>
+      </div>
+      <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">Important constraints</h3>
+      <ul class="mb-4 list-disc space-y-2 pl-6 text-slate-300">
+        <li>\(1 \le A \le 10^5\)</li>
+        <li>\(0 \le B \le \min(2^{A-1}-1, 10^{18})\)</li>
+      </ul>
+      <p class="text-slate-300">Since <code>B</code> can be as large as \(10^{18}\), generating the entire row is not practical. We need an approach that works without constructing the sequence.</p>
+    </section>
+
+    <section aria-labelledby="brute-force" class="mt-10">
+      <h2 id="brute-force" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">2. Brute Force Approach</h2>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Idea</h3>
+      <p class="mb-4 text-slate-300">Generate each row until reaching row <code>A</code>. For every symbol in the previous row, append <code>01</code> if it is <code>0</code>, or <code>10</code> if it is <code>1</code>. Then return the symbol at index <code>B</code>.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Java code — Brute Force</h3>
+      <pre class="mb-5 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public int solve(int A, long B) {
+        String row = "0";
+
+        // Build each row until the requested row is reached.
+        for (int i = 2; i &lt;= A; i++) {
+            StringBuilder nextRow = new StringBuilder();
+
+            for (int j = 0; j &lt; row.length(); j++) {
+                char symbol = row.charAt(j);
+
+                // Apply the replacement rule for the current symbol.
+                if (symbol == '0') {
+                    nextRow.append("01");
+                } else {
+                    nextRow.append("10");
+                }
+            }
+
+            row = nextRow.toString();
+        }
+
+        // Convert the requested character from '0' or '1' to an integer.
+        return row.charAt((int) B) - '0';
+    }
+}</code></pre>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Dry run</h3>
+      <p class="mb-3 text-slate-300">For <code>A = 3, B = 2</code>:</p>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Brute force dry run for A equals 3 and B equals 2</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">Row</th></tr></thead>
+          <tbody>
+            <tr><td>Initial</td><td><code>0</code></td></tr>
+            <tr><td>Generate row 2</td><td><code>01</code></td></tr>
+            <tr><td>Generate row 3</td><td><code>0110</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-5 text-slate-300">Index <code>2</code> contains <code>1</code>, so the answer is <code>1</code>.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Complexity</h3>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Time: \(O(2^A)\), due to generating exponentially growing rows.</li>
+        <li>Auxiliary space: \(O(2^A)\), to store the generated rows.</li>
+      </ul>
+      <p class="rounded-lg border-l-4 border-amber-400 bg-amber-950/30 px-4 py-3 text-slate-200">This approach is unsuitable for the given constraints.</p>
+    </section>
+
+    <section aria-labelledby="recursive-approach" class="mt-10">
+      <h2 id="recursive-approach" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">3. Backtracking Approach</h2>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">First, understand the idea</h3>
+      <p class="mb-4 text-slate-300">Backtracking commonly means exploring choices, undoing a choice, and exploring another possibility. This problem has no choices to explore, so the more accurate description is recursive parent traversal. We can move backward to the parent symbol, then determine the current symbol while returning from recursion.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Key observation</h3>
+      <p class="mb-3 text-slate-300">Every symbol in a row comes from a symbol in the previous row. The parent and children are:</p>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Parent symbols and their children at even and odd indexes</caption>
+          <thead><tr><th scope="col">Parent symbol</th><th scope="col">Child at even index</th><th scope="col">Child at odd index</th></tr></thead>
+          <tbody>
+            <tr><td><code>0</code></td><td><code>0</code></td><td><code>1</code></td></tr>
+            <tr><td><code>1</code></td><td><code>1</code></td><td><code>0</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>The parent index for <code>B</code> is <code>B / 2</code>.</li>
+        <li>If <code>B</code> is even, the current symbol equals its parent's symbol.</li>
+        <li>If <code>B</code> is odd, the current symbol is the opposite of its parent's symbol.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Step-by-step algorithm</h3>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li>If we reach row <code>1</code>, return <code>0</code>, because the first row contains only <code>0</code>.</li>
+        <li>Find the parent index using <code>B / 2</code>.</li>
+        <li>Recursively find the parent's symbol in row <code>A - 1</code>.</li>
+        <li>If <code>B</code> is even, return the parent's symbol.</li>
+        <li>If <code>B</code> is odd, flip the parent's symbol using <code>1 - parent</code>.</li>
+      </ol>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Java code — Recursive parent traversal</h3>
+      <pre class="mb-5 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public int solve(int A, long B) {
+        // Begin tracing the requested symbol back to row 1.
+        return backtrack(A, B);
+    }
+
+    private int backtrack(int row, long index) {
+        // The first row contains only symbol 0.
+        if (row == 1) {
+            return 0;
+        }
+
+        // Find the parent's symbol in the previous row.
+        int parent = backtrack(row - 1, index / 2);
+
+        // Even indexes preserve the parent symbol.
+        if (index % 2 == 0) {
+            return parent;
+        }
+
+        // Odd indexes contain the opposite of the parent symbol.
+        return 1 - parent;
+    }
+}</code></pre>
+      <div class="mb-5 rounded-lg border border-amber-700/70 bg-amber-950/30 p-4">
+        <h3 class="mb-2 font-semibold text-amber-200">Important constraint warning</h3>
+        <p class="text-slate-300">This recursive solution has a call-stack depth of up to <code>A</code>. Since <code>A</code> can reach \(10^5\), it may cause a <code>StackOverflowError</code> in Java. Use it to understand the recursion, but prefer the iterative or bit-manipulation solution for the actual constraints.</p>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Dry run of the recursive approach</h3>
+      <p class="mb-3 text-slate-300">Consider <code>A = 4, B = 4</code>. The recursive calls move toward the first row:</p>
+      <div class="table-wrap mb-5 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Recursive calls for A equals 4 and B equals 4</caption>
+          <thead><tr><th scope="col">Call</th><th scope="col">Row</th><th scope="col">Index</th><th scope="col">Action</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>4</td><td>4</td><td>Parent is row 3, index 2</td></tr>
+            <tr><td>2</td><td>3</td><td>2</td><td>Parent is row 2, index 1</td></tr>
+            <tr><td>3</td><td>2</td><td>1</td><td>Parent is row 1, index 0</td></tr>
+            <tr><td>4</td><td>1</td><td>0</td><td>Base case returns <code>0</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-3 text-slate-300">Now the recursive calls return:</p>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Recursive return values for A equals 4 and B equals 4</caption>
+          <thead><tr><th scope="col">Returning call</th><th scope="col">Index parity</th><th scope="col">Parent symbol</th><th scope="col">Current symbol</th></tr></thead>
+          <tbody>
+            <tr><td>Row 2, index 1</td><td>Odd</td><td>0</td><td><code>1</code></td></tr>
+            <tr><td>Row 3, index 2</td><td>Even</td><td>1</td><td><code>1</code></td></tr>
+            <tr><td>Row 4, index 4</td><td>Even</td><td>1</td><td><code>1</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-5 text-slate-300">Final output: <code>1</code>. Each odd index flips the symbol, while each even index preserves it.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Complexity analysis</h3>
+      <ul class="list-disc space-y-2 pl-6 text-slate-300">
+        <li>Time: \(O(A)\), because each recursive call moves back one row.</li>
+        <li>Auxiliary space: \(O(A)\), because the recursive call stack can grow to depth \(A\).</li>
+      </ul>
+      <p class="mt-4 text-slate-300">This is much better than generating the rows, but the recursion depth makes it risky for the maximum constraint.</p>
+    </section>
+
+    <section aria-labelledby="optimized-approach" class="mt-10">
+      <h2 id="optimized-approach" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">4. Optimized Approach — Bit Manipulation</h2>
+      <p class="mb-4 text-slate-300">We can eliminate recursion by recognizing a mathematical pattern.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Key observation</h3>
+      <p class="mb-3 text-slate-300">Every time we move from a symbol to its parent, the symbol flips if the current index is odd. Repeatedly dividing <code>B</code> by <code>2</code> reveals its bits. Each set bit (<code>1</code>) corresponds to one flip.</p>
+      <div class="math-block mb-4 rounded-lg border border-indigo-500/40 bg-indigo-950/40 px-4 py-5 text-center text-lg text-indigo-100">
+        \[\boxed{\text{Answer}=\operatorname{popcount}(B)\bmod 2}\]
+      </div>
+      <p class="mb-3 text-slate-300">Here, <code>popcount(B)</code> means the number of <code>1</code> bits in the binary representation of <code>B</code>.</p>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>An even number of set bits gives <code>0</code>.</li>
+        <li>An odd number of set bits gives <code>1</code>.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Example</h3>
+      <p class="mb-3 text-slate-300">Suppose <code>B = 5</code>. Its binary representation is <code>101</code>.</p>
+      <ul class="mb-4 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Number of set bits = <code>2</code>.</li>
+        <li><code>2 % 2 = 0</code>, so the answer is <code>0</code>.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Java code — Optimized solution</h3>
+      <pre class="mb-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public int solve(int A, long B) {
+        // Count the 1 bits in the binary representation of B.
+        int setBits = Long.bitCount(B);
+
+        // The symbol is 1 for an odd number of flips, otherwise 0.
+        return setBits % 2;
+    }
+}</code></pre>
+      <p class="mb-3 text-slate-300">Java's <code>Long.bitCount()</code> counts the set bits in a <code>long</code> and safely handles <code>B</code> values up to \(10^{18}\).</p>
+      <p class="text-slate-300">The row number <code>A</code> is not needed in the calculation because the symbol is determined by index <code>B</code>. The problem guarantees that <code>B</code> is valid for row <code>A</code>.</p>
+    </section>
+
+    <section aria-labelledby="optimized-dry-run" class="mt-10">
+      <h2 id="optimized-dry-run" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">5. Dry Run of the Optimized Solution</h2>
+      <p class="mb-3 text-slate-300">Consider <code>A = 4, B = 4</code>.</p>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Optimized solution dry run for A equals 4 and B equals 4</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">Operation</th><th scope="col">Value</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Given index</td><td><code>B = 4</code></td></tr>
+            <tr><td>2</td><td>Binary representation</td><td><code>100</code></td></tr>
+            <tr><td>3</td><td>Count set bits</td><td><code>1</code></td></tr>
+            <tr><td>4</td><td>Calculate <code>1 % 2</code></td><td><code>1</code></td></tr>
+            <tr><td>5</td><td>Return answer</td><td><code>1</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-5 text-slate-300">Output: <code>1</code>. This matches row 4, <code>01101001</code>, where index <code>4</code> contains <code>1</code>.</p>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Another example: <code>A = 4, B = 3</code></h3>
+      <p class="text-slate-300">The binary representation of <code>3</code> is <code>11</code>. It has two set bits, and <code>2 % 2 = 0</code>, so the output is <code>0</code>.</p>
+    </section>
+
+    <section aria-labelledby="complexity-comparison" class="mt-10">
+      <h2 id="complexity-comparison" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">6. Complexity Comparison</h2>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Time and space complexity comparison of the four approaches</caption>
+          <thead><tr><th scope="col">Approach</th><th scope="col">Time complexity</th><th scope="col">Auxiliary space</th><th scope="col">Suitable for constraints?</th></tr></thead>
+          <tbody>
+            <tr><td>Brute force — generate rows</td><td>\(O(2^A)\)</td><td>\(O(2^A)\)</td><td>No</td></tr>
+            <tr><td>Recursive parent traversal</td><td>\(O(A)\)</td><td>\(O(A)\)</td><td>Risky due to stack depth</td></tr>
+            <tr><td>Iterative parent traversal</td><td>\(O(A)\)</td><td>\(O(1)\)</td><td>Yes</td></tr>
+            <tr><td>Bit manipulation using <code>Long.bitCount()</code></td><td>\(O(1)\)</td><td>\(O(1)\)</td><td>Best choice</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-slate-300">The bit-counting solution has constant complexity because Java's <code>long</code> has a fixed width of 64 bits. Counting its set bits takes bounded work regardless of the value of <code>B</code>.</p>
+    </section>
+
+    <section aria-labelledby="edge-cases" class="mt-10">
+      <h2 id="edge-cases" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">7. Edge Cases</h2>
+      <div class="table-wrap mb-4 rounded-lg border border-slate-700">
+        <table>
+          <caption class="sr-only">Edge cases and expected outputs</caption>
+          <thead><tr><th scope="col">Input</th><th scope="col">Expected output</th><th scope="col">Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>A = 1, B = 0</code></td><td><code>0</code></td><td>First row contains only <code>0</code>.</td></tr>
+            <tr><td><code>A = 2, B = 1</code></td><td><code>1</code></td><td>Binary <code>1</code> has one set bit.</td></tr>
+            <tr><td><code>A = 3, B = 3</code></td><td><code>0</code></td><td>Binary <code>11</code> has two set bits.</td></tr>
+            <tr><td><code>A = 4, B = 4</code></td><td><code>1</code></td><td>Binary <code>100</code> has one set bit.</td></tr>
+            <tr><td><code>B = 0</code></td><td><code>0</code></td><td>Zero has no set bits.</td></tr>
+            <tr><td><code>B = 10^18</code></td><td>Depends on parity</td><td>Fits safely in a Java <code>long</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-slate-300">The optimized solution handles all valid indices without generating rows or using recursion.</p>
+    </section>
+
+    <section aria-labelledby="similar-problems" class="mt-10">
+      <h2 id="similar-problems" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">8. Similar Problems on LeetCode</h2>
+      <p class="mb-4 text-slate-300">These problems can help strengthen the recursion and bit-manipulation patterns.</p>
+      <ol class="list-decimal space-y-4 pl-6 text-slate-300">
+        <li>
+          <strong class="text-slate-100">K-th Symbol in Grammar — #779</strong>
+          <p class="mt-1">Medium · The closest match. It uses the same row-generation rules and parent-symbol relationship.</p>
+          <a class="mt-1 inline-block font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/k-th-symbol-in-grammar/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <strong class="text-slate-100">Number of 1 Bits — #191</strong>
+          <p class="mt-1">Easy · Practices counting set bits, which is the core of the optimized solution.</p>
+          <a class="mt-1 inline-block font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/number-of-1-bits/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <strong class="text-slate-100">Counting Bits — #338</strong>
+          <p class="mt-1">Easy · Builds familiarity with set-bit counting and dynamic programming.</p>
+          <a class="mt-1 inline-block font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/counting-bits/">Solve on LeetCode</a>
+        </li>
+        <li>
+          <strong class="text-slate-100">Single Number — #136</strong>
+          <p class="mt-1">Easy · Helps build familiarity with XOR and other bitwise operations.</p>
+          <a class="mt-1 inline-block font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/single-number/">Solve on LeetCode</a>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="interview-notes" class="mt-10">
+      <h2 id="interview-notes" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">9. Interview Preparation Notes</h2>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Key concepts</h3>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Recursion: solve a smaller version of the same problem.</li>
+        <li>Parent traversal: move from index <code>B</code> to index <code>B / 2</code>.</li>
+        <li>Bit manipulation: each set bit represents a symbol flip.</li>
+        <li>Parity: only whether the number of flips is odd or even matters.</li>
+      </ul>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Common mistakes</h3>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li>Generating the entire row despite its exponential size.</li>
+        <li>Using <code>int</code> for <code>B</code> instead of <code>long</code>.</li>
+        <li>Confusing the one-based row number with the zero-based symbol index.</li>
+        <li>Using deep recursion when the constraints permit up to \(10^5\) levels.</li>
+        <li>Forgetting to take the set-bit count modulo <code>2</code>.</li>
+      </ol>
+      <h3 class="mb-2 text-lg font-semibold text-indigo-200">Likely interviewer follow-ups</h3>
+      <div class="space-y-4 text-slate-300">
+        <div>
+          <h4 class="font-semibold text-slate-100">Q1. Can we use recursion?</h4>
+          <p>Yes. Find the parent's symbol at index <code>B / 2</code>, then flip it if <code>B</code> is odd. However, deep recursion can overflow the Java stack.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-slate-100">Q2. Why does the number of set bits matter?</h4>
+          <p>Every set bit represents an odd-index step, which flips the symbol. The final value depends on whether the total number of flips is odd or even.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-slate-100">Q3. Can we solve it iteratively without <code>Long.bitCount()</code>?</h4>
+          <p>Yes. Repeatedly check <code>B &amp; 1</code>, toggle a result when the bit is <code>1</code>, and shift <code>B</code> right until it becomes zero. This takes \(O(\log B)\) time and \(O(1)\) space.</p>
+          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public int solve(int A, long B) {
+        int result = 0;
+
+        // Process each bit; a set bit means one symbol flip.
+        while (B &gt; 0) {
+            if ((B &amp; 1) == 1) {
+                result ^= 1;
+            }
+            B &gt;&gt;= 1;
+        }
+
+        // Return the parity of the total number of flips.
+        return result;
+    }
+}</code></pre>
+        </div>
+        <div>
+          <h4 class="font-semibold text-slate-100">Q4. Is this a classic backtracking problem?</h4>
+          <p>Not exactly. Classic backtracking explores alternative choices and reverses state changes. Here, there are no alternatives to explore, so recursive parent traversal and bit manipulation are more accurate descriptions.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="final-recommendation" class="mt-10">
+      <h2 id="final-recommendation" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-white">10. Final Recommendation</h2>
+      <p class="mb-3 text-slate-300">For learning, understand the three approaches in this order:</p>
+      <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+        <li>Brute force: understand how the rows are generated.</li>
+        <li>Recursive parent traversal: understand why even indices preserve the parent's symbol and odd indices flip it.</li>
+        <li>Bit manipulation: recognize that the number of flips equals the number of set bits.</li>
+      </ol>
+      <p class="mb-3 font-semibold text-slate-100">For an interview, implement the optimized solution:</p>
+      <pre class="mb-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100"><code>public class Solution {
+    public int solve(int A, long B) {
+        // The symbol is the parity of the set-bit count in B.
+        return Long.bitCount(B) % 2;
+    }
+}</code></pre>
+      <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+        <li>Time complexity: \(O(1)\)</li>
+        <li>Auxiliary space: \(O(1)\)</li>
+      </ul>
+      <p class="rounded-lg border-l-4 border-indigo-400 bg-indigo-950/60 px-4 py-3 text-slate-100"><strong class="text-indigo-200">Remember:</strong> Each <code>1</code> bit in <code>B</code> represents a flip. An odd number of flips gives <code>1</code>; an even number gives <code>0</code>.</p>
+    </section>
+  </main>
+</body>
+</html>
