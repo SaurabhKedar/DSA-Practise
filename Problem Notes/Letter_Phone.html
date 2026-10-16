@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Letter Phone — Java Backtracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Letter Phone</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Generate all letter combinations for a digit string using the telephone keypad mapping and backtracking.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Choose a letter for the current digit, recursively explore the next digit, and collect a result when every digit has been processed.
+                </div>
+                <p class="mt-4 text-slate-300">
+                    This note uses immutable Java <code class="text-indigo-300">String</code> values for the current combination.
+                    Each recursive call receives <code class="text-indigo-300">current + ch</code>, so no manual character removal is needed.
+                </p>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        Given a digit string <code class="text-indigo-300">A</code>, return all possible letter combinations based on the telephone keypad mapping.
+                    </p>
+                    <p class="mb-3">The special rules are:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Digit <code>0</code> maps to <code>"0"</code>.</li>
+                        <li>Digit <code>1</code> maps to <code>"1"</code>.</li>
+                        <li>Digits <code>2</code> through <code>9</code> map to their corresponding letters.</li>
+                        <li>The output must be in lexicographical order.</li>
+                    </ul>
+                    <p class="mb-3">For example, with <code class="text-indigo-300">A = "23"</code>:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>2</code> maps to <code>a</code>, <code>b</code>, <code>c</code>.</li>
+                        <li><code>3</code> maps to <code>d</code>, <code>e</code>, <code>f</code>.</li>
+                    </ul>
+                    <p class="mb-3">The output is:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"]</code></pre>
+                    <p class="mb-3">For input <code class="text-indigo-300">"012"</code>, the output is:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>["01a", "01b", "01c"]</code></pre>
+                    <p class="mb-4">The input length satisfies \(1 \le |A| \le 10\).</p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">
+                        A simple approach is to generate every possible string of length <code>N</code> using digits
+                        <code>0</code> through <code>9</code>, check each candidate against the telephone mapping, and keep only valid strings.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Steps</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Generate all strings of length <code>N</code>.</li>
+                        <li>Check each position against the corresponding digit's mapping.</li>
+                        <li>Store valid strings.</li>
+                        <li>Sort the results lexicographically.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public String[] letterCombinations(String A) {
+        List&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+        generateAll(A, 0, "", result);
+        Collections.sort(result);
+
+        return result.toArray(new String[0]);
+    }
+
+    private void generateAll(
+            String A, int index, String current,
+            List&lt;String&gt; result) {
+
+        // A complete candidate string has been generated.
+        if (index == A.length()) {
+            if (isValid(A, current)) {
+                result.add(current);
+            }
+            return;
+        }
+
+        // Try all ten digits at the current position.
+        for (char ch = '0'; ch &lt;= '9'; ch++) {
+            generateAll(A, index + 1, current + ch, result);
+        }
+    }
+
+    private boolean isValid(String A, String candidate) {
+        String[] mapping = {
+            "0", "1", "abc", "def", "ghi",
+            "jkl", "mno", "pqrs", "tuv", "wxyz"
+        };
+
+        for (int i = 0; i &lt; A.length(); i++) {
+            int digit = A.charAt(i) - '0';
+
+            if (!mapping[digit].contains(
+                    String.valueOf(candidate.charAt(i)))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N \cdot 10^N)\) for generating and validating candidates, excluding the additional sorting cost.</li>
+                        <li>Auxiliary space: \(O(N^2)\) for the active recursion path and its intermediate immutable strings, excluding stored results.</li>
+                    </ul>
+                    <p class="mt-3">This approach is inefficient because it generates many strings that cannot possibly be valid.</p>
+                </section>
+
+                <section id="optimized-backtracking">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Backtracking Using <code>String</code></h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Instead of generating every possible string and checking it afterward, generate only valid combinations.
+                        For input <code class="text-indigo-300">"23"</code>, choose <code>a</code> from digit <code>2</code>,
+                        then choose <code>d</code>, <code>e</code>, or <code>f</code> from digit <code>3</code> to form
+                        <code>ad</code>, <code>ae</code>, and <code>af</code>. Then return to digit <code>2</code> and repeat with
+                        <code>b</code> and <code>c</code>.
+                    </p>
+                    <p class="mb-5">
+                        The recursive call receives <code class="text-indigo-300">current + ch</code>. Since
+                        <code>String</code> is immutable, the original <code>current</code> remains unchanged.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;String&gt; letterCombinations(String A) {
+        ArrayList&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+        // Map each digit to its corresponding letters.
+        String[] mapping = {
+            "0", "1", "abc", "def", "ghi",
+            "jkl", "mno", "pqrs", "tuv", "wxyz"
+        };
+
+        // Start generating combinations from index 0.
+        backtrack(A, 0, "", result, mapping);
+
+        // This mapping and traversal order already produce lexicographical order.
+        return result;
+    }
+
+    private void backtrack(
+            String A,
+            int index,
+            String current,
+            ArrayList&lt;String&gt; result,
+            String[] mapping) {
+
+        // If all digits have been processed, save one complete combination.
+        if (index == A.length()) {
+            result.add(current);
+            return;
+        }
+
+        // Find the letters corresponding to the current digit.
+        int digit = A.charAt(index) - '0';
+        String letters = mapping[digit];
+
+        // Try every possible letter for this digit.
+        for (int i = 0; i &lt; letters.length(); i++) {
+            char ch = letters.charAt(i);
+
+            // Each recursive call receives a new String value.
+            backtrack(
+                A,
+                index + 1,
+                current + ch,
+                result,
+                mapping
+            );
+        }
+    }
+}</code></pre>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Why don't we need <code>deleteCharAt()</code>?</h3>
+                    <p class="mb-4">
+                        With a mutable <code>StringBuilder</code>, the same object is changed and shared between recursive calls,
+                        so the change must be undone before exploring the next choice:
+                    </p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>current.append(ch);
+backtrack(A, index + 1, current, result, mapping);
+current.deleteCharAt(current.length() - 1);</code></pre>
+                    <p class="mb-4">With an immutable <code>String</code>, pass a new value into the next call:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>backtrack(A, index + 1, current + ch, result, mapping);</code></pre>
+                    <p class="mb-4">
+                        Here, <code>current + ch</code> creates a new string. The parent call's <code>current</code> is unaffected
+                        when the recursive call returns.
+                    </p>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Example strings created from the unchanged prefix a</caption>
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Current prefix</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Recursive call</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">New string</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"a"</code></td><td class="border border-slate-700 px-4 py-2"><code>current + 'd'</code></td><td class="border border-slate-700 px-4 py-2"><code>"ad"</code></td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>"a"</code></td><td class="border border-slate-700 px-4 py-2"><code>current + 'e'</code></td><td class="border border-slate-700 px-4 py-2"><code>"ae"</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"a"</code></td><td class="border border-slate-700 px-4 py-2"><code>current + 'f'</code></td><td class="border border-slate-700 px-4 py-2"><code>"af"</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        <strong class="text-slate-100">Interview takeaway:</strong>
+                        You still perform backtracking in the logical sense by exploring alternative choices. You do not need to manually undo a string modification when using immutable <code>String</code> objects.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Input: <code class="text-indigo-300">A = "23"</code>.</p>
+                    <div class="mb-5 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Trace of recursive choices for the input 23</caption>
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Step</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Current digit</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Chosen letter</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">New string passed to recursion</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Result so far</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2">1</td><td class="border border-slate-700 px-4 py-2"><code>2</code></td><td class="border border-slate-700 px-4 py-2"><code>a</code></td><td class="border border-slate-700 px-4 py-2"><code>"a"</code></td><td class="border border-slate-700 px-4 py-2"><code>[]</code></td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2">2</td><td class="border border-slate-700 px-4 py-2"><code>3</code></td><td class="border border-slate-700 px-4 py-2"><code>d</code></td><td class="border border-slate-700 px-4 py-2"><code>"ad"</code></td><td class="border border-slate-700 px-4 py-2"><code>[ad]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">3</td><td class="border border-slate-700 px-4 py-2"><code>3</code></td><td class="border border-slate-700 px-4 py-2"><code>e</code></td><td class="border border-slate-700 px-4 py-2"><code>"ae"</code></td><td class="border border-slate-700 px-4 py-2"><code>[ad, ae]</code></td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2">4</td><td class="border border-slate-700 px-4 py-2"><code>3</code></td><td class="border border-slate-700 px-4 py-2"><code>f</code></td><td class="border border-slate-700 px-4 py-2"><code>"af"</code></td><td class="border border-slate-700 px-4 py-2"><code>[ad, ae, af]</code></td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">5</td><td class="border border-slate-700 px-4 py-2"><code>2</code></td><td class="border border-slate-700 px-4 py-2"><code>b</code></td><td class="border border-slate-700 px-4 py-2"><code>"b"</code></td><td class="border border-slate-700 px-4 py-2">Previous results</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2">6</td><td class="border border-slate-700 px-4 py-2"><code>3</code></td><td class="border border-slate-700 px-4 py-2"><code>d</code>, <code>e</code>, <code>f</code></td><td class="border border-slate-700 px-4 py-2"><code>"bd"</code>, <code>"be"</code>, <code>"bf"</code></td><td class="border border-slate-700 px-4 py-2">Six results</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2">7</td><td class="border border-slate-700 px-4 py-2"><code>2</code></td><td class="border border-slate-700 px-4 py-2"><code>c</code></td><td class="border border-slate-700 px-4 py-2"><code>"c"</code></td><td class="border border-slate-700 px-4 py-2">Previous results</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2">8</td><td class="border border-slate-700 px-4 py-2"><code>3</code></td><td class="border border-slate-700 px-4 py-2"><code>d</code>, <code>e</code>, <code>f</code></td><td class="border border-slate-700 px-4 py-2"><code>"cd"</code>, <code>"ce"</code>, <code>"cf"</code></td><td class="border border-slate-700 px-4 py-2">Nine results</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4">
+                        When <code>index == A.length()</code>, the combination is added to the result and that recursive call returns.
+                    </p>
+                    <p class="mb-3">Final output:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"]</code></pre>
+                    <p>No call modifies the parent's string, so no cleanup operation is necessary.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let <code>N</code> be the input length and <code>K</code> the total number of generated combinations.</p>
+                    <div class="mb-5 grid gap-5 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-3 text-lg font-semibold text-slate-100">Brute force</h3>
+                            <ul class="list-inside list-disc space-y-2 text-slate-300">
+                                <li>Time: \(O(N \cdot 10^N)\) to generate and validate candidates, plus sorting the valid results.</li>
+                                <li>Auxiliary space: \(O(N^2)\) for the active recursion path and intermediate immutable strings, excluding the output list.</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-3 text-lg font-semibold text-slate-100">Optimized backtracking using <code>String</code></h3>
+                            <ul class="list-inside list-disc space-y-2 text-slate-300">
+                                <li>Time: \(O(NK)\) for inputs with branching choices across the generated combinations. In the general case, repeated string concatenation is bounded by \(O(N^2K)\), including inputs with long runs of digits <code>0</code> and <code>1</code>.</li>
+                                <li>Auxiliary space: \(O(N^2)\) in the worst case for the active recursive path and its intermediate immutable strings, excluding the output list.</li>
+                                <li>Output space: \(O(NK)\) to store all combinations.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="mb-4">
+                        String concatenation copies the prefix used for each recursive call. When every digit has multiple choices,
+                        the recursion tree has exponentially many combinations and the total work is commonly expressed as
+                        \(O(NK)\). With digits that each have only one choice, such as all <code>0</code>s and <code>1</code>s,
+                        the single path still copies prefixes of increasing length, which takes \(O(N^2)\).
+                    </p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Comparison</h3>
+                    <div class="mb-4 overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Comparison of brute force and backtracking with String</caption>
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Feature</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Brute force</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Backtracking with <code>String</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><th scope="row" class="border border-slate-700 px-4 py-2 font-medium">Generates invalid candidates</th><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr class="bg-slate-900"><th scope="row" class="border border-slate-700 px-4 py-2 font-medium">Checks mappings afterward</th><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">No</td></tr>
+                                <tr><th scope="row" class="border border-slate-700 px-4 py-2 font-medium">Uses recursion</th><td class="border border-slate-700 px-4 py-2">Yes</td><td class="border border-slate-700 px-4 py-2">Yes</td></tr>
+                                <tr class="bg-slate-900"><th scope="row" class="border border-slate-700 px-4 py-2 font-medium">Manual character removal</th><td class="border border-slate-700 px-4 py-2">Not required</td><td class="border border-slate-700 px-4 py-2">Not required</td></tr>
+                                <tr><th scope="row" class="border border-slate-700 px-4 py-2 font-medium">Recommended</th><td class="border border-slate-700 px-4 py-2">No</td><td class="border border-slate-700 px-4 py-2">Yes</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        With <code>StringBuilder</code>, the active combination can be maintained in \(O(N)\) auxiliary space,
+                        and append/delete operations avoid repeatedly constructing intermediate strings. The <code>String</code>
+                        version is simpler to reason about, while <code>StringBuilder</code> is more memory-efficient during recursion.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-slate-700 text-left text-sm">
+                            <caption class="sr-only">Example inputs and expected behavior</caption>
+                            <thead class="bg-slate-700 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Input</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Output</th>
+                                    <th scope="col" class="border border-slate-700 px-4 py-2">Explanation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"0"</code></td><td class="border border-slate-700 px-4 py-2"><code>["0"]</code></td><td class="border border-slate-700 px-4 py-2">Zero maps to itself.</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>"1"</code></td><td class="border border-slate-700 px-4 py-2"><code>["1"]</code></td><td class="border border-slate-700 px-4 py-2">One maps to itself.</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"2"</code></td><td class="border border-slate-700 px-4 py-2"><code>["a", "b", "c"]</code></td><td class="border border-slate-700 px-4 py-2">Three choices.</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>"01"</code></td><td class="border border-slate-700 px-4 py-2"><code>["01"]</code></td><td class="border border-slate-700 px-4 py-2">Both digits have one choice.</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"012"</code></td><td class="border border-slate-700 px-4 py-2"><code>["01a", "01b", "01c"]</code></td><td class="border border-slate-700 px-4 py-2">Only the last digit branches.</td></tr>
+                                <tr class="bg-slate-900"><td class="border border-slate-700 px-4 py-2"><code>"79"</code></td><td class="border border-slate-700 px-4 py-2">16 combinations</td><td class="border border-slate-700 px-4 py-2">Four choices for each digit.</td></tr>
+                                <tr><td class="border border-slate-700 px-4 py-2"><code>"9999999999"</code></td><td class="border border-slate-700 px-4 py-2">1,048,576 combinations</td><td class="border border-slate-700 px-4 py-2">Maximum input length, with four choices per digit.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">The implementation handles these cases because every digit has a valid mapping, including <code>0</code> and <code>1</code>.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/letter-combinations-of-a-phone-number/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">17. Letter Combinations of a Phone Number</a> — Medium. The closest match; it uses the same keypad mapping and backtracking pattern.</li>
+                        <li><a href="https://leetcode.com/problems/subsets/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">78. Subsets</a> — Medium. Practices recursive choice-making and collecting results.</li>
+                        <li><a href="https://leetcode.com/problems/permutations/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">46. Permutations</a> — Medium. Practices choosing, exploring, and undoing choices.</li>
+                        <li><a href="https://leetcode.com/problems/generate-parentheses/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">22. Generate Parentheses</a> — Medium. Uses backtracking while avoiding invalid paths.</li>
+                        <li><a href="https://leetcode.com/problems/combinations/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">77. Combinations</a> — Medium. Practices building combinations through recursion.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-preparation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key pattern</h3>
+                    <p class="mb-4">
+                        Backtracking = Choose → Explore → Undo. With a mutable structure such as <code>StringBuilder</code>,
+                        explicitly undo changes. With immutable strings, each recursive call gets a newly constructed value, so the undo step is unnecessary.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Forgetting that <code>0</code> and <code>1</code> map to themselves.</li>
+                        <li>Using the wrong digit index when looking up the mapping.</li>
+                        <li>Adding the result before all digits have been processed.</li>
+                        <li>Sorting unnecessarily when traversal already guarantees lexicographical order.</li>
+                        <li>Underestimating the memory cost of repeated string concatenation.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="mb-1 font-semibold text-slate-100">Q1. Is <code>String</code> better than <code>StringBuilder</code> here?</h4>
+                            <p><code>String</code> is simpler and eliminates explicit character removal. <code>StringBuilder</code> generally uses less auxiliary memory and avoids repeated string construction.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 font-semibold text-slate-100">Q2. Does using <code>String</code> mean we are no longer using backtracking?</h4>
+                            <p>No. We are still exploring different recursive choices. We simply do not need to undo mutations because strings are immutable.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 font-semibold text-slate-100">Q3. Why does the result come out sorted?</h4>
+                            <p>Each digit's mapping is traversed in alphabetical order, and the recursive traversal processes earlier positions before later ones. This produces lexicographical ordering.</p>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 font-semibold text-slate-100">Q4. What determines the number of combinations?</h4>
+                            <p>Multiply the number of available choices for every digit. For <code>"23"</code>, there are \(3 \times 3 = 9\) combinations.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        For your current learning stage, the <code>String</code>-based backtracking solution is a good choice because the code is easy to understand and does not require explicit cleanup.
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(NK)\) for inputs with branching choices; \(O(N^2K)\) is a general upper bound when accounting for repeated immutable string concatenation.</li>
+                        <li>Auxiliary space: \(O(N^2)\) worst case for the active recursive path and intermediate strings.</li>
+                        <li>Output space: \(O(NK)\).</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Remember:</strong>
+                        Pass <code>current + ch</code> into the recursive call. Since strings are immutable, each path gets its own value, and <code>deleteCharAt()</code> is not needed.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
