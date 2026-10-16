@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Generate All Parentheses II — Java Backtracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Generate All Parentheses II</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    A complete guide to generating every well-formed parentheses combination with brute force and
+                    optimized backtracking in Java.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Add <code class="text-indigo-100">(</code> while opening parentheses remain, and add
+                    <code class="text-indigo-100">)</code> only when an opening parenthesis is available to match.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given an integer <code class="text-indigo-300">A</code>, representing the number of pairs
+                        of parentheses. Generate all possible combinations of well-formed parentheses and return them
+                        as a sorted <code class="text-indigo-300">String[]</code>.
+                    </p>
+                    <p class="mb-3">A well-formed parentheses string follows two rules:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Every opening parenthesis <code>(</code> must have a matching closing parenthesis <code>)</code>.</li>
+                        <li>At no point can the number of closing parentheses exceed the number of opening parentheses.</li>
+                    </ul>
+                    <p class="mb-4">
+                        For example, if <code>A = 3</code>, every valid string must contain exactly 3 opening and 3 closing
+                        parentheses, making its length <code>6</code>.
+                    </p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Examples</h3>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Example 1</h4>
+                            <p class="mb-2">Input: <code>A = 3</code></p>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>["((()))", "(()())", "(())()", "()(())", "()()()"]</code></pre>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Example 2</h4>
+                            <p class="mb-2">Input: <code>A = 1</code></p>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>["()"]</code></pre>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Constraints</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>1 &lt;= A &lt;= 10</code></li>
+                        <li>The output must contain every valid combination.</li>
+                        <li>The output must be sorted lexicographically.</li>
+                    </ul>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <p class="mb-4">
+                        The simplest approach is to generate every possible string of length <code>2 * A</code> using
+                        <code>(</code> and <code>)</code>, then check which strings are valid.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Steps</h3>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Generate all strings of length <code>2 * A</code>.</li>
+                        <li>Check each string by maintaining a balance counter.</li>
+                        <li>Increase the balance for <code>(</code> and decrease it for <code>)</code>.</li>
+                        <li>If the balance ever becomes negative, the string is invalid.</li>
+                        <li>If the final balance is zero, the string is valid.</li>
+                        <li>Sort the valid strings and return them.</li>
+                    </ol>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Brute-force Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public String[] generateParenthesis(int A) {
+        List&lt;String&gt; all = new ArrayList&lt;&gt;();
+        List&lt;String&gt; valid = new ArrayList&lt;&gt;();
+
+        // Generate every possible string of length 2 * A.
+        generateAll("", 2 * A, all);
+
+        // Keep only well-formed strings.
+        for (String s : all) {
+            if (isValid(s)) {
+                valid.add(s);
+            }
+        }
+
+        // Sort the valid combinations.
+        Collections.sort(valid);
+
+        return valid.toArray(new String[0]);
+    }
+
+    private void generateAll(String current, int length,
+                             List&lt;String&gt; all) {
+        if (current.length() == length) {
+            all.add(current);
+            return;
+        }
+
+        generateAll(current + "(", length, all);
+        generateAll(current + ")", length, all);
+    }
+
+    private boolean isValid(String s) {
+        int balance = 0;
+
+        for (char ch : s.toCharArray()) {
+            if (ch == '(') {
+                balance++;
+            } else {
+                balance--;
+            }
+
+            // A closing parenthesis cannot be unmatched.
+            if (balance &lt; 0) {
+                return false;
+            }
+        }
+
+        return balance == 0;
+    }
+}</code></pre>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is brute force inefficient?</h3>
+                    <p class="mb-4">
+                        There are \(2^{2A} = 4^A\) possible strings. Most of them are invalid, so we spend time
+                        generating and checking combinations that can never be answers.
+                    </p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Time</h4>
+                            <p>\(O(A \cdot 4^A)\), plus sorting the valid results.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Auxiliary space</h4>
+                            <p>\(O(A)\) for recursion, excluding stored strings.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 sm:col-span-2">
+                            <h4 class="mb-1 font-semibold text-slate-100">Intermediate space</h4>
+                            <p>\(O(A \cdot 4^A)\) for storing all possible strings.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 rounded-xl border border-amber-800 bg-amber-950 p-4 text-amber-100">
+                        <strong>Limitation:</strong> This solution is straightforward but inefficient for larger values of
+                        <code>A</code>, because it generates and checks strings that cannot be answers.
+                    </p>
+                </section>
+
+                <section id="backtracking">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Backtracking</h2>
+                    <p class="mb-4">
+                        Instead of generating every possible string and checking it afterward, build only strings that
+                        can become valid parentheses combinations. This technique is called backtracking with pruning.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Maintain three important things:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>open</code>: Number of opening parentheses added so far.</li>
+                        <li><code>close</code>: Number of closing parentheses added so far.</li>
+                        <li><code>current</code>: The string being built.</li>
+                    </ul>
+                    <p class="mb-3">Follow two rules:</p>
+                    <div class="mb-4 grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Rule 1: Add an opening parenthesis</h4>
+                            <p>If <code>open &lt; A</code>, add <code>(</code> because not all available opening parentheses have been used.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Rule 2: Add a closing parenthesis</h4>
+                            <p>If <code>close &lt; open</code>, add <code>)</code> because there is an unmatched opening parenthesis available to close.</p>
+                        </div>
+                    </div>
+                    <p class="mb-4">
+                        When <code>open == A</code> and <code>close == A</code>, we have constructed a complete valid
+                        string, so add it to the result.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java code</h3>
+                    <p class="mb-3 text-slate-300">This uses the implementation with <code>String current</code> and <code>current + "("</code> / <code>current + ")"</code>.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public String[] generateParenthesis(int A) {
+        List&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+        // Start with no opening or closing parentheses.
+        backtrack(A, 0, 0, "", result);
+
+        // Convert the list to the required String[] output.
+        return result.toArray(new String[0]);
+    }
+
+    private void backtrack(int A, int open, int close,
+                           String current, List&lt;String&gt; result) {
+
+        // Both opening and closing parentheses are complete.
+        if (open == A &amp;&amp; close == A) {
+            result.add(current);
+            return;
+        }
+
+        // Option 1: Add '(' if opening parentheses remain.
+        if (open &lt; A) {
+            backtrack(A, open + 1, close, current + "(", result);
+        }
+
+        // Option 2: Add ')' only if an opening parenthesis
+        // is available to be matched.
+        if (close &lt; open) {
+            backtrack(A, open, close + 1, current + ")", result);
+        }
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Explanation of the important code</h3>
+                    <ol class="mb-4 list-inside list-decimal space-y-4 text-slate-300">
+                        <li>
+                            <strong class="text-slate-100">Starting the recursion</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>backtrack(A, 0, 0, "", result);</code></pre>
+                            <p class="mt-2">Initially, we have no opening parentheses, no closing parentheses, and an empty string.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Base condition</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (open == A &amp;&amp; close == A) {
+    result.add(current);
+    return;
+}</code></pre>
+                            <p class="mt-2">Once both counts equal <code>A</code>, the current string is complete and valid. Save it and stop exploring that path.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Adding <code>(</code></strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (open &lt; A) {
+    backtrack(A, open + 1, close, current + "(", result);
+}</code></pre>
+                            <p class="mt-2">Add an opening parenthesis only if some remain. The recursive call receives an updated count and a new string.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Adding <code>)</code></strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (close &lt; open) {
+    backtrack(A, open, close + 1, current + ")", result);
+}</code></pre>
+                            <p class="mt-2">Add a closing parenthesis only when the number of closing parentheses is less than the number of opening parentheses. This prevents invalid strings from being generated.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Returning the result</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>return result.toArray(new String[0]);</code></pre>
+                            <p class="mt-2">The problem requires <code>String[]</code>, so convert the <code>List&lt;String&gt;</code> into a string array.</p>
+                        </li>
+                    </ol>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Why don't we need sorting?</strong>
+                        We always try <code>(</code> before <code>)</code>. This explores combinations in lexicographical
+                        order, so the output is already sorted.
+                    </div>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Let's take <code>A = 2</code>.</p>
+                    <p class="mb-2 font-semibold text-slate-100">Expected output</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>["(())", "()()"]</code></pre>
+                    <p class="mb-2">We begin with:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>backtrack(2, 0, 0, "", result)</code></pre>
+                    <p class="mb-3">The recursion proceeds as follows:</p>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <caption class="sr-only">Step-by-step recursion for A equals 2</caption>
+                            <thead class="bg-slate-950 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">current</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">open</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">close</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900 text-slate-300">
+                                <tr><td class="px-4 py-2">1</td><td class="px-4 py-2"><code>""</code></td><td class="px-4 py-2">0</td><td class="px-4 py-2">0</td><td class="px-4 py-2">Add <code>(</code></td></tr>
+                                <tr><td class="px-4 py-2">2</td><td class="px-4 py-2"><code>"("</code></td><td class="px-4 py-2">1</td><td class="px-4 py-2">0</td><td class="px-4 py-2">Add <code>(</code></td></tr>
+                                <tr><td class="px-4 py-2">3</td><td class="px-4 py-2"><code>"(("</code></td><td class="px-4 py-2">2</td><td class="px-4 py-2">0</td><td class="px-4 py-2">Add <code>)</code></td></tr>
+                                <tr><td class="px-4 py-2">4</td><td class="px-4 py-2"><code>"(()"</code></td><td class="px-4 py-2">2</td><td class="px-4 py-2">1</td><td class="px-4 py-2">Add <code>)</code></td></tr>
+                                <tr><td class="px-4 py-2">5</td><td class="px-4 py-2"><code>"(())"</code></td><td class="px-4 py-2">2</td><td class="px-4 py-2">2</td><td class="px-4 py-2">Save answer</td></tr>
+                                <tr><td class="px-4 py-2">6</td><td class="px-4 py-2"><code>"("</code></td><td class="px-4 py-2">1</td><td class="px-4 py-2">0</td><td class="px-4 py-2">Backtrack; try <code>)</code></td></tr>
+                                <tr><td class="px-4 py-2">7</td><td class="px-4 py-2"><code>"()"</code></td><td class="px-4 py-2">1</td><td class="px-4 py-2">1</td><td class="px-4 py-2">Add <code>(</code></td></tr>
+                                <tr><td class="px-4 py-2">8</td><td class="px-4 py-2"><code>"()("</code></td><td class="px-4 py-2">2</td><td class="px-4 py-2">1</td><td class="px-4 py-2">Add <code>)</code></td></tr>
+                                <tr><td class="px-4 py-2">9</td><td class="px-4 py-2"><code>"()()"</code></td><td class="px-4 py-2">2</td><td class="px-4 py-2">2</td><td class="px-4 py-2">Save answer</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 mb-2 font-semibold text-slate-100">Final output</p>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>["(())", "()()"]</code></pre>
+
+                    <h3 class="mb-2 mt-6 text-lg font-semibold text-slate-100">Understanding backtracking in your code</h3>
+                    <p class="mb-3">Your code uses immutable <code>String</code> objects:</p>
+                    <pre class="mb-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>current + "("</code></pre>
+                    <p>
+                        This creates a new string for the recursive call. The original <code>current</code> remains
+                        unchanged, so you do not need to remove the last character manually when returning from recursion.
+                    </p>
+                    <p class="mt-3">
+                        For example, from <code>"("</code>, the algorithm explores <code>"(("</code> and later explores
+                        <code>"()"</code>. The original <code>"("</code> is preserved.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">
+                        The number of valid parentheses combinations is given by the Catalan number:
+                    </p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg">
+                        \[C_A = \frac{1}{A+1}\binom{2A}{A}\]
+                    </div>
+                    <p class="mb-4">
+                        For example, when <code>A = 3</code>, there are 5 valid combinations. When <code>A = 10</code>,
+                        there are 16,796.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
+                            <caption class="sr-only">Complexity comparison of brute force and backtracking</caption>
+                            <thead class="bg-slate-950 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Output space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900 text-slate-300">
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100">Brute force</th>
+                                    <td class="px-4 py-3">\(O(A \cdot 4^A)\), excluding sorting</td>
+                                    <td class="px-4 py-3">\(O(A)\)</td>
+                                    <td class="px-4 py-3">\(O(A \cdot 4^A)\) for all generated strings</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100">Backtracking</th>
+                                    <td class="px-4 py-3">\(O(A \cdot C_A)\)</td>
+                                    <td class="px-4 py-3">\(O(A^2)\) for recursive strings in this implementation</td>
+                                    <td class="px-4 py-3">\(O(A \cdot C_A)\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Why does your implementation use \(O(A^2)\) auxiliary space?</h3>
+                    <p class="mb-4">
+                        The recursion can reach a depth of <code>2A</code>. At each level,
+                        <code>current + "("</code> or <code>current + ")"</code> creates a new string, and the parent
+                        call retains its own string while the recursive call executes. The combined string storage
+                        along the active recursion path can therefore reach \(O(A^2)\).
+                    </p>
+                    <p class="mb-4">
+                        If we instead use a mutable <code>StringBuilder</code> and undo each character after a recursive
+                        call, the auxiliary space can be reduced to \(O(A)\), excluding the output.
+                    </p>
+                    <p>
+                        The optimized algorithm is output-sensitive: it generates only valid combinations, and
+                        producing all \(C_A\) strings of length \(2A\) already requires \(O(A \cdot C_A)\) time.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <caption class="sr-only">Edge cases and expected outputs</caption>
+                            <thead class="bg-slate-950 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Input</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected output</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Explanation</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900 text-slate-300">
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>A = 1</code></th>
+                                    <td class="px-4 py-3"><code>["()"]</code></td>
+                                    <td class="px-4 py-3">Minimum allowed input</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>A = 2</code></th>
+                                    <td class="px-4 py-3"><code>["(())", "()()"]</code></td>
+                                    <td class="px-4 py-3">Two valid combinations</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>A = 3</code></th>
+                                    <td class="px-4 py-3">Five valid combinations</td>
+                                    <td class="px-4 py-3">Checks ordering and generation</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>A = 10</code></th>
+                                    <td class="px-4 py-3">16,796 combinations</td>
+                                    <td class="px-4 py-3">Maximum constraint</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        The algorithm handles these cases because it never allows more than <code>A</code> opening
+                        parentheses or more closing parentheses than opening parentheses.
+                    </p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-4">These problems reinforce backtracking and parentheses-related patterns.</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li>
+                            <a href="https://leetcode.com/problems/generate-parentheses/">LeetCode 22 — Generate Parentheses</a>
+                            — Medium. The same problem and the best practice exercise for this pattern.
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/valid-parentheses/">LeetCode 20 — Valid Parentheses</a>
+                            — Easy. Learn how to determine whether brackets are properly matched using a stack.
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/remove-invalid-parentheses/">LeetCode 301 — Remove Invalid Parentheses</a>
+                            — Hard. Extends parentheses validity to removing the minimum number of invalid characters.
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/longest-valid-parentheses/">LeetCode 32 — Longest Valid Parentheses</a>
+                            — Hard. Uses parentheses matching to find the longest valid substring.
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-3">Backtracking = choose, explore, and return.</p>
+                    <p class="mb-3">For this problem, remember the two conditions:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>if (open &lt; A) {
+    // Add '('
+}
+
+if (close &lt; open) {
+    // Add ')'
+}</code></pre>
+                    <p class="mb-5">These conditions ensure we explore only valid paths.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Using <code>close &lt; A</code> instead of <code>close &lt; open</code> when adding <code>)</code>.</li>
+                        <li>Forgetting to check the base condition when both counts reach <code>A</code>.</li>
+                        <li>Generating every possible string and filtering invalid ones.</li>
+                        <li>Thinking the original <code>current</code> changes after a recursive call. Since <code>String</code> is immutable, it does not.</li>
+                        <li>Sorting unnecessarily when opening parentheses are explored before closing parentheses.</li>
+                    </ul>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q1. Why is this a backtracking problem?</h4>
+                            <p class="mt-1">Because we explore different choices at each step and recursively build every valid combination.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q2. Why do we use <code>close &lt; open</code>?</h4>
+                            <p class="mt-1">To ensure every closing parenthesis has an opening parenthesis available to match.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q3. Why is the output already sorted?</h4>
+                            <p class="mt-1">Because we explore <code>(</code> before <code>)</code> and follow the same ordering recursively.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q4. Can we reduce auxiliary space?</h4>
+                            <p class="mt-1">Yes. A mutable <code>StringBuilder</code> with append-and-undo operations avoids retaining a separate string at every recursive level.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        Use your recursive backtracking solution for the interview. It is simple, readable, and correctly
+                        matches the required method signature.
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Pattern: Backtracking with pruning.</li>
+                        <li>Time complexity: \(O(A \cdot C_A)\).</li>
+                        <li>Auxiliary space for your <code>String</code> implementation: \(O(A^2)\).</li>
+                        <li>Output space: \(O(A \cdot C_A)\).</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">The intuition to remember:</strong>
+                        Add <code>(</code> while opening parentheses remain, add <code>)</code> only when an opening
+                        parenthesis is available to match, and save the string once both counts equal
+                        <code>A</code>.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
