@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Print All Maze Paths — Java</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .math-display {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Recursion &amp; Backtracking</p>
+      <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Print All Maze Paths</h1>
+      <p class="mt-3 text-lg text-slate-300">Java — brute force and the provided recursive approach</p>
+      <p class="mt-5 max-w-3xl leading-7 text-slate-300">
+        This problem is a classic recursion and backtracking problem. We will use the provided code as the optimized approach and explain how it works, why it produces lexicographically sorted paths, and how it compares with the brute-force solution.
+      </p>
+    </header>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">1. Problem Understanding</h2>
+      <p class="leading-7 text-slate-300">
+        We are given two integers, <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">A</code> and
+        <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">B</code>, representing the number of rows and columns in a rectangular grid.
+      </p>
+      <p class="mt-3 leading-7 text-slate-300">
+        Return all possible paths from the top-left cell \((0, 0)\) to the bottom-right cell \((A - 1, B - 1)\).
+      </p>
+      <p class="mt-4 font-medium text-slate-200">Allowed movements:</p>
+      <ul class="mt-2 list-disc space-y-1 pl-6 text-slate-300">
+        <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">D</code> — move one cell down.</li>
+        <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">R</code> — move one cell right.</li>
+      </ul>
+      <p class="mt-3 leading-7 text-slate-300">The returned paths must be in lexicographical order.</p>
+      <div class="mt-5 rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-5">
+        <h3 class="font-semibold text-indigo-200">Constraints</h3>
+        <ul class="mt-2 list-disc space-y-1 pl-6 text-slate-300">
+          <li>\(1 \le A, B \le 8\)</li>
+          <li>The output is an <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">ArrayList&lt;String&gt;</code>.</li>
+          <li>Every valid path must reach the destination without leaving the grid.</li>
+        </ul>
+      </div>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Example: \(A = 3, B = 2\)</h3>
+      <p class="mt-2 leading-7 text-slate-300">
+        The grid has three rows and two columns. We need two downward moves and one rightward move to reach the destination.
+      </p>
+      <ul class="mt-3 list-disc space-y-1 pl-6 text-slate-300">
+        <li><code class="text-indigo-200">DDR</code> — down, down, right.</li>
+        <li><code class="text-indigo-200">DRD</code> — down, right, down.</li>
+        <li><code class="text-indigo-200">RDD</code> — right, down, down.</li>
+      </ul>
+      <p class="mt-3 text-slate-300">Output:</p>
+      <pre class="mt-2 rounded-xl border border-slate-700 bg-slate-950/80 p-4 text-sm text-emerald-200"><code>[DDR, DRD, RDD]</code></pre>
+      <p class="mt-3 leading-7 text-slate-300">Since <code class="text-indigo-200">D</code> comes before <code class="text-indigo-200">R</code> alphabetically, the paths are returned in lexicographical order.</p>
+      <p class="mt-4 text-slate-300">Another example: for \(A = 1, B = 2\), the output is <code class="text-emerald-200">[R]</code>. There is only one possible move: right.</p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">2. Brute Force Approach</h2>
+      <h3 class="text-lg font-semibold text-indigo-200">Intuition</h3>
+      <p class="mt-2 leading-7 text-slate-300">The simplest approach is to explore every possible sequence of moves. At each cell:</p>
+      <ol class="mt-3 list-decimal space-y-2 pl-6 leading-7 text-slate-300">
+        <li>Try moving down by increasing the row.</li>
+        <li>Try moving right by increasing the column.</li>
+        <li>If the current position goes beyond the destination row or column, stop that recursive call.</li>
+        <li>When we reach the destination, save the current path.</li>
+      </ol>
+      <p class="mt-3 leading-7 text-slate-300">Because we explore <code class="text-indigo-200">D</code> before <code class="text-indigo-200">R</code>, the paths are generated in lexicographical order.</p>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Java code — brute force</h3>
+      <pre class="mt-3 rounded-xl border border-slate-700 bg-slate-950/90 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;String&gt; PrintAllPaths(int A, int B) {
+        ArrayList&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+        // Start at the top-left cell with an empty path.
+        findPaths("", result, 0, 0, A - 1, B - 1);
+
+        return result;
+    }
+
+    private void findPaths(
+            String current,
+            ArrayList&lt;String&gt; result,
+            int currRow,
+            int currCol,
+            int destRow,
+            int destCol) {
+
+        // Stop if we move beyond the destination boundaries.
+        if (currRow &gt; destRow || currCol &gt; destCol) {
+            return;
+        }
+
+        // Save the path when we reach the destination.
+        if (currRow == destRow &amp;&amp; currCol == destCol) {
+            result.add(current);
+            return;
+        }
+
+        // Try moving Down.
+        findPaths(current + "D", result,
+                  currRow + 1, currCol, destRow, destCol);
+
+        // Try moving Right.
+        findPaths(current + "R", result,
+                  currRow, currCol + 1, destRow, destCol);
+    }
+}</code></pre>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Brute-force dry run</h3>
+      <p class="mt-2 text-slate-300">For \(A = 3, B = 2\), the destination is \((2, 1)\).</p>
+      <ol class="mt-3 list-decimal space-y-2 pl-6 leading-7 text-slate-300">
+        <li>Start at \((0, 0)\) with <code>""</code>.</li>
+        <li>Choose <code>D</code>, reaching \((1, 0)\) with <code>"D"</code>.</li>
+        <li>Choose <code>D</code>, reaching \((2, 0)\) with <code>"DD"</code>.</li>
+        <li>Choose <code>R</code>, reaching \((2, 1)\) with <code>"DDR"</code>. Save it.</li>
+        <li>Backtrack to <code>"D"</code> and choose <code>R</code>, reaching \((1, 1)\) with <code>"DR"</code>.</li>
+        <li>Choose <code>D</code>, reaching \((2, 1)\) with <code>"DRD"</code>. Save it.</li>
+        <li>Return to the start and choose <code>R</code>. Continue down twice to obtain <code>"RDD"</code>. Save it.</li>
+      </ol>
+      <p class="mt-3 text-slate-300">Final result:</p>
+      <pre class="mt-2 rounded-xl border border-slate-700 bg-slate-950/80 p-4 text-sm text-emerald-200"><code>[DDR, DRD, RDD]</code></pre>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Complexity analysis</h3>
+      <p class="mt-2 leading-7 text-slate-300">Let \(P\) be the number of valid paths and \(L = A + B - 2\) be the number of moves per path.</p>
+      <ul class="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-300">
+        <li><strong class="text-slate-100">Time:</strong> \(O(P \cdot L)\) for generating and storing all paths, plus a constant-factor overhead from invalid boundary calls.</li>
+        <li><strong class="text-slate-100">Auxiliary space:</strong> Up to \(O(L^2)\) for the active recursion and intermediate immutable strings in this implementation.</li>
+        <li><strong class="text-slate-100">Output space:</strong> \(O(P \cdot L)\) for storing all paths.</li>
+      </ul>
+      <p class="mt-3 leading-7 text-slate-300">The limitation is that string concatenation creates new strings repeatedly. The provided approach uses the same general recursion strategy but makes the code more direct by passing the destination coordinates and checking the boundaries.</p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">3. Optimized Approach — Your Code</h2>
+      <p class="leading-7 text-slate-300">
+        This approach uses recursion and explores both possible moves, <code class="text-indigo-200">D</code> and <code class="text-indigo-200">R</code>, while checking whether the current position has gone beyond the destination.
+      </p>
+      <div class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 leading-7 text-slate-300">
+        <strong class="text-amber-200">Complexity note:</strong> This is a clean backtracking solution, but it does not improve the asymptotic time complexity over brute force. It still uses immutable strings and concatenation. Its advantages are straightforward boundary handling and automatic lexicographical ordering without a separate sorting step.
+      </div>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Your optimized code — adapted to the platform template</h3>
+      <pre class="mt-3 rounded-xl border border-slate-700 bg-slate-950/90 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;String&gt; PrintAllPaths(int A, int B) {
+        ArrayList&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+        // Start with an empty path at cell (0, 0).
+        backtrack("", result, 0, 0, A - 1, B - 1);
+
+        return result;
+    }
+
+    private void backtrack(
+            String current,
+            ArrayList&lt;String&gt; result,
+            int currRow,
+            int currCol,
+            int destRow,
+            int destCol) {
+
+        // Stop if we move outside the grid boundaries.
+        if (currRow &gt; destRow || currCol &gt; destCol) {
+            return;
+        }
+
+        // If we reach the destination, save the complete path.
+        if (currRow == destRow &amp;&amp; currCol == destCol) {
+            result.add(current);
+            return;
+        }
+
+        // Option 1: Move Down.
+        String newStr = current + "D";
+        backtrack(newStr, result,
+                  currRow + 1, currCol, destRow, destCol);
+
+        // Option 2: Move Right.
+        newStr = current + "R";
+        backtrack(newStr, result,
+                  currRow, currCol + 1, destRow, destCol);
+    }
+}</code></pre>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Understanding the important parts</h3>
+      <ol class="mt-4 space-y-5">
+        <li>
+          <h4 class="font-semibold text-indigo-200">1. Initialize the result and start recursion</h4>
+          <pre class="mt-2 rounded-lg border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-200"><code>ArrayList&lt;String&gt; result = new ArrayList&lt;&gt;();
+
+backtrack("", result, 0, 0, A - 1, B - 1);</code></pre>
+          <ul class="mt-2 list-disc space-y-1 pl-6 leading-7 text-slate-300">
+            <li><code>result</code> stores all completed paths.</li>
+            <li><code>""</code> means no moves have been made yet.</li>
+            <li>\((0, 0)\) is the starting cell.</li>
+            <li>\((A - 1, B - 1)\) is the destination.</li>
+          </ul>
+        </li>
+        <li>
+          <h4 class="font-semibold text-indigo-200">2. Stop invalid paths</h4>
+          <pre class="mt-2 rounded-lg border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-200"><code>if (currRow &gt; destRow || currCol &gt; destCol) {
+    return;
+}</code></pre>
+          <p class="mt-2 leading-7 text-slate-300">If the row exceeds the destination row or the column exceeds the destination column, the path is invalid. For example, in a \(3 \times 2\) grid, the valid row indices are \(0, 1, 2\). Reaching row \(3\) means we have gone outside the grid.</p>
+        </li>
+        <li>
+          <h4 class="font-semibold text-indigo-200">3. Save a complete path</h4>
+          <pre class="mt-2 rounded-lg border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-200"><code>if (currRow == destRow &amp;&amp; currCol == destCol) {
+    result.add(current);
+    return;
+}</code></pre>
+          <p class="mt-2 leading-7 text-slate-300">When both coordinates match the destination, save the complete path and return without exploring further.</p>
+        </li>
+        <li>
+          <h4 class="font-semibold text-indigo-200">4. Explore downward</h4>
+          <pre class="mt-2 rounded-lg border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-200"><code>String newStr = current + "D";
+
+backtrack(newStr, result,
+          currRow + 1, currCol, destRow, destCol);</code></pre>
+          <p class="mt-2 leading-7 text-slate-300">Append <code>D</code>, increase the row by one, and recursively explore that path.</p>
+        </li>
+        <li>
+          <h4 class="font-semibold text-indigo-200">5. Explore rightward</h4>
+          <pre class="mt-2 rounded-lg border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-200"><code>newStr = current + "R";
+
+backtrack(newStr, result,
+          currRow, currCol + 1, destRow, destCol);</code></pre>
+          <p class="mt-2 leading-7 text-slate-300">Append <code>R</code>, increase the column by one, and explore the next path.</p>
+          <p class="mt-2 leading-7 text-slate-300">Notice that <code>newStr</code> is reassigned to <code>current + "R"</code>, not appended to the previous <code>newStr</code>. This ensures that the rightward branch starts from the original path.</p>
+        </li>
+      </ol>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Why is the output sorted?</h3>
+      <p class="mt-2 leading-7 text-slate-300">
+        The recursive calls always explore <code class="text-indigo-200">D</code> before <code class="text-indigo-200">R</code>. Since <code class="text-indigo-200">D</code> comes before <code class="text-indigo-200">R</code> alphabetically, all paths beginning with <code>D</code> are generated before paths beginning with <code>R</code>. The same rule applies recursively at every position. Therefore, we do not need <code>Collections.sort(result)</code>.
+      </p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">4. Dry Run of Your Code</h2>
+      <p class="leading-7 text-slate-300">Input: \(A = 3, B = 2\). Destination: \((2, 1)\).</p>
+      <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700">
+        <table class="min-w-[36rem] text-sm sm:text-base">
+          <thead class="bg-slate-800/90">
+            <tr><th>Current cell</th><th>Current path</th><th>Next action</th></tr>
+          </thead>
+          <tbody class="bg-slate-900/30 text-slate-300">
+            <tr><td><code>(0,0)</code></td><td><code>""</code></td><td>Try <code>D</code></td></tr>
+            <tr><td><code>(1,0)</code></td><td><code>D</code></td><td>Try <code>D</code></td></tr>
+            <tr><td><code>(2,0)</code></td><td><code>DD</code></td><td>Try <code>D</code>, which goes out of bounds</td></tr>
+            <tr><td><code>(2,0)</code></td><td><code>DD</code></td><td>Try <code>R</code></td></tr>
+            <tr><td><code>(2,1)</code></td><td><code>DDR</code></td><td>Save <code>DDR</code></td></tr>
+            <tr><td><code>(1,0)</code></td><td><code>D</code></td><td>Try <code>R</code></td></tr>
+            <tr><td><code>(1,1)</code></td><td><code>DR</code></td><td>Try <code>D</code></td></tr>
+            <tr><td><code>(2,1)</code></td><td><code>DRD</code></td><td>Save <code>DRD</code></td></tr>
+            <tr><td><code>(0,0)</code></td><td><code>""</code></td><td>Try <code>R</code></td></tr>
+            <tr><td><code>(0,1)</code></td><td><code>R</code></td><td>Try <code>D</code></td></tr>
+            <tr><td><code>(1,1)</code></td><td><code>RD</code></td><td>Try <code>D</code></td></tr>
+            <tr><td><code>(2,1)</code></td><td><code>RDD</code></td><td>Save <code>RDD</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 text-slate-300">Final output:</p>
+      <pre class="mt-2 rounded-xl border border-slate-700 bg-slate-950/80 p-4 text-sm text-emerald-200"><code>[DDR, DRD, RDD]</code></pre>
+      <p class="mt-3 leading-7 text-slate-300">The table shows the important calls; each completed or invalid branch returns to its caller, which then explores the next available move.</p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">5. Complexity Analysis</h2>
+      <p class="leading-7 text-slate-300">Let \(L = A + B - 2\) be the length of every complete path, and let \(P\) be the number of valid paths:</p>
+      <div class="math-display my-4 rounded-xl border border-slate-700 bg-slate-900/60 p-4 text-center text-lg text-indigo-100">
+        \[P = \binom{A + B - 2}{A - 1}\]
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-slate-700">
+        <table class="min-w-[30rem] text-sm sm:text-base">
+          <thead class="bg-slate-800/90">
+            <tr><th>Complexity</th><th>Your code</th></tr>
+          </thead>
+          <tbody class="bg-slate-900/30 text-slate-300">
+            <tr><td>Time</td><td>\(O(P \cdot L)\)</td></tr>
+            <tr><td>Auxiliary space</td><td>\(O(L^2)\)</td></tr>
+            <tr><td>Output space</td><td>\(O(P \cdot L)\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="mt-4 list-disc space-y-2 pl-6 leading-7 text-slate-300">
+        <li><strong class="text-slate-100">Time:</strong> We must generate and store every valid path. Since each path has \(L\) moves, generating the output takes \(O(P \cdot L)\) time. String concatenation also copies characters, contributing to this bound.</li>
+        <li><strong class="text-slate-100">Auxiliary space:</strong> The recursion depth is \(O(L)\), but each recursive frame can retain a string of length up to \(O(L)\). Therefore, the worst-case auxiliary space for this implementation is \(O(L^2)\).</li>
+        <li><strong class="text-slate-100">Output space:</strong> Storing all \(P\) paths, each of length \(L\), requires \(O(P \cdot L)\) space.</li>
+      </ul>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Comparison of the approaches</h3>
+      <div class="mt-3 overflow-x-auto rounded-xl border border-slate-700">
+        <table class="min-w-[40rem] text-sm sm:text-base">
+          <thead class="bg-slate-800/90">
+            <tr><th>Feature</th><th>Brute force</th><th>Your approach</th></tr>
+          </thead>
+          <tbody class="bg-slate-900/30 text-slate-300">
+            <tr><td>Technique</td><td>Recursion</td><td>Recursion with boundary pruning</td></tr>
+            <tr><td>Movement order</td><td><code>D</code>, then <code>R</code></td><td><code>D</code>, then <code>R</code></td></tr>
+            <tr><td>Separate sorting</td><td>Not required</td><td>Not required</td></tr>
+            <tr><td>String construction</td><td>Concatenation</td><td>Concatenation</td></tr>
+            <tr><td>Asymptotic time</td><td>\(O(P \cdot L)\)</td><td>\(O(P \cdot L)\)</td></tr>
+            <tr><td>Auxiliary space</td><td>\(O(L^2)\)</td><td>\(O(L^2)\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 leading-7 text-slate-300">Both approaches have the same asymptotic complexity. Your code provides a convenient way to handle invalid moves using a single boundary check.</p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">6. Edge Cases</h2>
+      <div class="overflow-x-auto rounded-xl border border-slate-700">
+        <table class="min-w-[38rem] text-sm sm:text-base">
+          <thead class="bg-slate-800/90">
+            <tr><th>Input</th><th>Expected output</th><th>Explanation</th></tr>
+          </thead>
+          <tbody class="bg-slate-900/30 text-slate-300">
+            <tr><td><code>A = 1, B = 1</code></td><td><code>[""]</code></td><td>Start and destination are the same cell</td></tr>
+            <tr><td><code>A = 1, B = 2</code></td><td><code>["R"]</code></td><td>Only rightward movement is possible</td></tr>
+            <tr><td><code>A = 2, B = 1</code></td><td><code>["D"]</code></td><td>Only downward movement is possible</td></tr>
+            <tr><td><code>A = 2, B = 2</code></td><td><code>["DR", "RD"]</code></td><td>Two valid paths</td></tr>
+            <tr><td><code>A = 3, B = 2</code></td><td><code>["DDR", "DRD", "RDD"]</code></td><td>Three valid paths</td></tr>
+            <tr><td><code>A = 8, B = 8</code></td><td>3,432 paths</td><td>Maximum permitted grid size</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 leading-7 text-slate-300">For \(A = 1, B = 1\), the empty string is valid because no movement is needed. The base case handles this correctly.</p>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">7. Similar LeetCode Problems</h2>
+      <p class="leading-7 text-slate-300">These problems help reinforce the same recursion and grid-path concepts.</p>
+      <ol class="mt-4 space-y-5">
+        <li class="rounded-xl border border-slate-700 bg-slate-900/35 p-4">
+          <h3 class="font-semibold text-white">1. All Paths From Source to Target — #797 <span class="ml-2 rounded-full bg-indigo-400/15 px-2.5 py-1 text-xs font-medium text-indigo-200">Medium</span></h3>
+          <p class="mt-2 leading-7 text-slate-300">Uses backtracking to collect all paths in a directed acyclic graph.</p>
+          <a class="mt-2 inline-block font-medium text-indigo-300 underline decoration-indigo-400/50 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/all-paths-from-source-to-target/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Open problem</a>
+        </li>
+        <li class="rounded-xl border border-slate-700 bg-slate-900/35 p-4">
+          <h3 class="font-semibold text-white">2. Unique Paths — #62 <span class="ml-2 rounded-full bg-indigo-400/15 px-2.5 py-1 text-xs font-medium text-indigo-200">Medium</span></h3>
+          <p class="mt-2 leading-7 text-slate-300">Uses the same down/right grid movement, but asks for the number of paths instead of listing them.</p>
+          <a class="mt-2 inline-block font-medium text-indigo-300 underline decoration-indigo-400/50 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/unique-paths/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Open problem</a>
+        </li>
+        <li class="rounded-xl border border-slate-700 bg-slate-900/35 p-4">
+          <h3 class="font-semibold text-white">3. Unique Paths II — #63 <span class="ml-2 rounded-full bg-indigo-400/15 px-2.5 py-1 text-xs font-medium text-indigo-200">Medium</span></h3>
+          <p class="mt-2 leading-7 text-slate-300">Extends grid traversal by introducing obstacles.</p>
+          <a class="mt-2 inline-block font-medium text-indigo-300 underline decoration-indigo-400/50 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/unique-paths-ii/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Open problem</a>
+        </li>
+        <li class="rounded-xl border border-slate-700 bg-slate-900/35 p-4">
+          <h3 class="font-semibold text-white">4. Unique Paths III — #980 <span class="ml-2 rounded-full bg-rose-400/15 px-2.5 py-1 text-xs font-medium text-rose-200">Hard</span></h3>
+          <p class="mt-2 leading-7 text-slate-300">Uses backtracking in a grid with the additional condition of visiting every empty square exactly once.</p>
+          <a class="mt-2 inline-block font-medium text-indigo-300 underline decoration-indigo-400/50 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/unique-paths-iii/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Open problem</a>
+        </li>
+      </ol>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">8. Interview Preparation Notes</h2>
+      <h3 class="text-lg font-semibold text-indigo-200">Key concept</h3>
+      <p class="mt-2 leading-7 text-slate-300">Remember recursion, backtracking, and boundary checks. The method explores two choices at every step:</p>
+      <ul class="mt-3 list-disc space-y-1 pl-6 text-slate-300">
+        <li>Move down and continue.</li>
+        <li>Move right and continue.</li>
+      </ul>
+      <p class="mt-3 leading-7 text-slate-300">If a path reaches the destination, save it. If it goes beyond the destination boundaries, stop that branch.</p>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Common mistakes</h3>
+      <ol class="mt-3 list-decimal space-y-2 pl-6 leading-7 text-slate-300">
+        <li>Using <code>currRow &gt;= destRow</code> as the invalid condition instead of <code>currRow &gt; destRow</code>. Reaching the destination row is valid.</li>
+        <li>Forgetting to check both row and column in the destination condition.</li>
+        <li>Exploring <code>R</code> before <code>D</code> and assuming the output will still be lexicographically sorted.</li>
+        <li>Assuming this implementation is asymptotically faster than all other recursive solutions. It still uses string concatenation, which has a cost.</li>
+      </ol>
+
+      <h3 class="mt-6 text-lg font-semibold text-white">Possible follow-up questions</h3>
+      <div class="mt-3 space-y-4">
+        <div>
+          <p class="font-semibold text-indigo-200">Q1. Why don't we need to sort the result?</p>
+          <p class="mt-1 leading-7 text-slate-300">Because <code>D</code> is explored before <code>R</code> at every recursive step.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-indigo-200">Q2. Why does the number of paths grow quickly?</p>
+          <p class="mt-1 leading-7 text-slate-300">Each path consists of \(A - 1\) downward moves and \(B - 1\) rightward moves. The number of ways to arrange these moves is a binomial coefficient.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-indigo-200">Q3. Can we reduce auxiliary space?</p>
+          <p class="mt-1 leading-7 text-slate-300">Yes. Using a shared <code>StringBuilder</code> and undoing each move after recursion reduces auxiliary space to \(O(L)\), while preserving the same \(O(P \cdot L)\) time complexity.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-indigo-200">Q4. Is this dynamic programming?</p>
+          <p class="mt-1 leading-7 text-slate-300">No. This solution enumerates every path using recursion and backtracking. Dynamic programming is more useful when we need to count paths or compute an optimal path without listing every possible path.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-heading mb-5 pb-3 text-2xl font-bold text-white">9. Final Recommendation</h2>
+      <p class="leading-7 text-slate-300">For this problem, the provided code is a correct and readable recursive solution that satisfies the platform requirements and produces paths in lexicographical order.</p>
+      <ul class="mt-4 list-disc space-y-2 pl-6 leading-7 text-slate-300">
+        <li><strong class="text-slate-100">Recommended for learning:</strong> Use your version first because its logic is simple.</li>
+        <li><strong class="text-slate-100">Recommended for optimizing auxiliary space:</strong> Use a shared <code>StringBuilder</code> with append/undo operations.</li>
+        <li><strong class="text-slate-100">Time complexity:</strong> \(O(P \cdot (A + B - 2))\).</li>
+        <li><strong class="text-slate-100">Auxiliary space for your code:</strong> \(O((A + B - 2)^2)\).</li>
+        <li><strong class="text-slate-100">Output space:</strong> \(O(P \cdot (A + B - 2))\).</li>
+      </ul>
+      <p class="mt-5 rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-5 leading-7 text-indigo-100">
+        <strong>Key takeaway:</strong> Explore Down first, then Right; save a path when you reach the destination, and stop when you move beyond the grid.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
