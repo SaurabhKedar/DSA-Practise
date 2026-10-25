@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Inorder Traversal of a Binary Tree — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Inorder Traversal of a Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Inorder traversal visits the left subtree, then the current node, then the right subtree.
+                    The iterative version uses an explicit stack and is recommended when a tree may be highly skewed.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Left → Root → Right
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        Given the root node <code>A</code> of a binary tree, return an
+                        <code>ArrayList&lt;Integer&gt;</code> containing the node values in inorder traversal.
+                    </p>
+                    <p class="mb-4">For every node:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Traverse its left subtree.</li>
+                        <li>Visit the current node and add its value to the result.</li>
+                        <li>Traverse its right subtree.</li>
+                    </ol>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example tree</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>1
+ \
+  2
+ /
+3</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">
+                            Node 2 is the right child of node 1, and node 3 is the left child of node 2.
+                            The inorder result is <code>[1, 3, 2]</code>.
+                        </p>
+                    </div>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Tree shape matters:</strong>
+                        If node 2 were instead the left child of node 1, with node 3 as the left child of node 2,
+                        the result would be <code>[3, 2, 1]</code>. The same node values can produce a different
+                        traversal when their parent-child relationships change.
+                    </div>
+                    <p class="mt-4">
+                        The tree can contain up to \(10^5\) nodes, so the target running time is \(O(N)\).
+                    </p>
+                </section>
+
+                <section id="recursive-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Recursive Approach</h2>
+                    <p class="mb-4">
+                        There is no need for an inefficient \(O(N^2)\) solution here. The simplest correct approach
+                        is recursive traversal, which visits every node exactly once.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the current node is <code>null</code>, return.</li>
+                        <li>Recursively traverse the left child.</li>
+                        <li>Add the current node's value to the result list.</li>
+                        <li>Recursively traverse the right child.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Recursive</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+
+/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; inorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Start traversal from the root.
+        inorder(A, result);
+
+        return result;
+    }
+
+    private void inorder(TreeNode node, ArrayList&lt;Integer&gt; result) {
+        // Base case: there is no node to process.
+        if (node == null) {
+            return;
+        }
+
+        // Visit the left subtree first.
+        inorder(node.left, result);
+
+        // Then visit the current node.
+        result.add(node.val);
+
+        // Finally visit the right subtree.
+        inorder(node.right, result);
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Recursive dry run</h3>
+                    <p class="mb-3">Use the example tree shown above.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">Start at node 1; its left child is empty, so visit 1.</td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">Move to node 1's right child, node 2; traverse its left child, node 3.</td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">Node 3 has no left child; visit node 3.</td><td class="px-4 py-3"><code>[1, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">Return to node 2 and visit it.</td><td class="px-4 py-3"><code>[1, 3, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">Node 2 has no right child, so traversal is complete.</td><td class="px-4 py-3"><code>[1, 3, 2]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="iterative-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Iterative Inorder Traversal</h2>
+                    <p class="mb-4">
+                        Although recursion is simple, a highly skewed tree with up to \(10^5\) nodes can cause a Java
+                        <code>StackOverflowError</code> due to deep recursive calls. An iterative solution uses an
+                        explicit stack to manage traversal state.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        We must visit the left subtree before the current node, but we cannot visit the current node
+                        until there is no unvisited left child. Push nodes onto a stack while moving left. When there
+                        are no more left children, pop the most recent node, record its value, and then explore its
+                        right subtree.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Create an empty result list and stack.</li>
+                        <li>Start with <code>current = A</code>.</li>
+                        <li>While <code>current</code> is not <code>null</code> or the stack is not empty:
+                            <ul class="ml-6 mt-2 list-inside list-disc space-y-1">
+                                <li>Push <code>current</code> and move to its left child while possible.</li>
+                                <li>Pop a node and add its value to the result.</li>
+                                <li>Move to that node's right child.</li>
+                            </ul>
+                        </li>
+                        <li>Return the result.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Iterative (recommended)</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.Stack;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; inorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+        Stack&lt;TreeNode&gt; stack = new Stack&lt;&gt;();
+
+        TreeNode current = A;
+
+        // Continue while there are nodes to visit.
+        while (current != null || !stack.isEmpty()) {
+
+            // Keep going left, saving nodes for later.
+            while (current != null) {
+                stack.push(current);
+                current = current.left;
+            }
+
+            // The left subtree is processed, so visit this node.
+            current = stack.pop();
+            result.add(current.val);
+
+            // Continue with the node's right subtree.
+            current = current.right;
+        }
+
+        return result;
+    }
+}</code></pre>
+                </section>
+
+                <section id="iterative-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Iterative Solution</h2>
+                    <p class="mb-3">Use the example tree with root 1, right child 2, and left child 3 under node 2.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Current action</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Stack (bottom → top)</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">Push 1; move left (<code>null</code>).</td><td class="px-4 py-3"><code>[1]</code></td><td class="px-4 py-3"><code>[]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">Pop 1; record it; move right to 2.</td><td class="px-4 py-3"><code>[]</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">Push 2; move left to 3.</td><td class="px-4 py-3"><code>[2]</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">Push 3; move left (<code>null</code>).</td><td class="px-4 py-3"><code>[2, 3]</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">Pop 3; record it.</td><td class="px-4 py-3"><code>[2]</code></td><td class="px-4 py-3"><code>[1, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">Pop 2; record it. Its right child is empty.</td><td class="px-4 py-3"><code>[]</code></td><td class="px-4 py-3"><code>[1, 3, 2]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 font-semibold text-indigo-200">Final output: <code>[1, 3, 2]</code></p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) the height of the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">Recursive</td><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\) call stack</td></tr>
+                                <tr><td class="px-4 py-3">Iterative with stack</td><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\) explicit stack</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="mt-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Time:</strong> Each node is visited and processed exactly once, so the total time is \(O(N)\).</li>
+                        <li><strong class="text-slate-100">Auxiliary space:</strong> The stack stores nodes along the current path, up to the tree height \(H\). In a balanced tree, \(H=O(\log N)\); in a skewed tree, \(H=O(N)\).</li>
+                        <li><strong class="text-slate-100">Output space:</strong> The result list contains all \(N\) node values and requires \(O(N)\) space, regardless of approach.</li>
+                    </ul>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">Single node</td><td class="px-4 py-3">Return that node's value.</td></tr>
+                                <tr><td class="px-4 py-3">Left-skewed tree</td><td class="px-4 py-3">Return values from the deepest left node upward.</td></tr>
+                                <tr><td class="px-4 py-3">Right-skewed tree</td><td class="px-4 py-3">Return values from the root to the rightmost node.</td></tr>
+                                <tr><td class="px-4 py-3">Duplicate values</td><td class="px-4 py-3">Include every occurrence.</td></tr>
+                                <tr><td class="px-4 py-3">Negative values</td><td class="px-4 py-3">Return them in the correct traversal order.</td></tr>
+                                <tr><td class="px-4 py-3">Maximum \(10^5\) nodes</td><td class="px-4 py-3">The iterative solution avoids deep recursive calls.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce binary tree traversal:</p>
+                    <ol class="list-inside list-decimal space-y-2 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/binary-tree-inorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 94 — Binary Tree Inorder Traversal</a> — Easy. The exact same problem.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-preorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 144 — Binary Tree Preorder Traversal</a> — Easy. Practice root-left-right traversal.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-postorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 145 — Binary Tree Postorder Traversal</a> — Easy. Practice left-right-root traversal.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 102 — Binary Tree Level Order Traversal</a> — Medium. Uses BFS and a queue instead of DFS.</li>
+                        <li><a href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 230 — Kth Smallest Element in a BST</a> — Medium. Uses the fact that inorder traversal of a binary search tree produces sorted values.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-preparation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-4">
+                        <strong class="text-slate-100">Pattern to remember:</strong>
+                        DFS (Depth-First Search), specifically inorder traversal.
+                    </p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">The three standard traversal orders</h3>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Traversal</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Order</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">Preorder</td><td class="px-4 py-3">Root → Left → Right</td></tr>
+                                <tr><td class="px-4 py-3">Inorder</td><td class="px-4 py-3">Left → Root → Right</td></tr>
+                                <tr><td class="px-4 py-3">Postorder</td><td class="px-4 py-3">Left → Right → Root</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-2 mt-6 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Adding the root before traversing left — that becomes preorder.</li>
+                        <li>Forgetting the <code>null</code> base case in recursion.</li>
+                        <li>In the iterative approach, stopping when <code>current == null</code> without checking whether the stack still contains nodes.</li>
+                        <li>Assuming inorder traversal always produces sorted values. This is true for a binary search tree, not for every binary tree.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q1. Why is inorder traversal useful for a BST?</p>
+                            <p class="mt-1">Because it visits BST values in non-decreasing order.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q2. Why use an explicit stack instead of recursion?</p>
+                            <p class="mt-1">It avoids relying on Java's limited call stack and is safer for highly skewed trees.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q3. Can inorder traversal be performed without a stack or recursion?</p>
+                            <p class="mt-1">Yes. Morris traversal achieves \(O(N)\) time and \(O(1)\) auxiliary space by temporarily modifying and restoring tree links.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">For interviews, learn both approaches:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Recursive:</strong> Best for understanding the traversal order and writing the simplest solution.</li>
+                        <li><strong class="text-slate-100">Iterative:</strong> Recommended for the constraint of up to \(10^5\) nodes, since it avoids recursion-depth failures.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Final recommended complexity:</strong>
+                        \(O(N)\) time, \(O(H)\) auxiliary space, plus \(O(N)\) space for the returned list.
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        Remember: Inorder = Left → Root → Right.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
