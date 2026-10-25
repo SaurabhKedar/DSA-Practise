@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Deserialize Binary Tree — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Deserialize Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Reconstruct a binary tree from its level-order array representation using Breadth-First Search (BFS)
+                    and a queue.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Process parents in level order, read their left and right child values, attach valid children, and enqueue them.
+                    The value <code>-1</code> represents a missing child.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        We are given an array representing a binary tree in level-order format, where <code>-1</code>
+                        means a missing (<code>null</code>) child. Reconstruct the tree and return its root.
+                    </p>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example input</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-slate-200"><code>A = [1, 2, 3, 4, 5, -1, -1, -1, -1, -1, -1]</code></pre>
+                        <h3 class="mb-3 mt-5 font-semibold text-slate-100">Tree represented by the array</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+                    </div>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>1</code> is the root.</li>
+                        <li><code>2</code> and <code>3</code> are the left and right children of <code>1</code>.</li>
+                        <li><code>4</code> and <code>5</code> are the left and right children of <code>2</code>.</li>
+                        <li><code>-1</code> indicates that a child does not exist.</li>
+                    </ul>
+                    <p class="rounded-lg border border-amber-800 bg-amber-950/50 p-4 text-amber-100">
+                        <strong>Important:</strong> <code>-1</code> is a marker, not a node that should be created.
+                    </p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <p class="mb-4">
+                        A simple way to reconstruct the tree is to process the array from left to right and search for
+                        the parent of every value. Repeatedly searching for parents can take \(O(N^2)\) time.
+                    </p>
+                    <p class="text-slate-300">
+                        A better solution uses a queue, which lets us process parents in exactly the same order as
+                        level-order traversal.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Queue (BFS)</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        When reconstructing a tree from level order, create nodes in the same order in which their
+                        parents appear. A queue remembers which parents still need their children assigned.
+                    </p>
+                    <p class="mb-5">
+                        For the example array, create node <code>1</code> and put it in the queue. Remove it, read
+                        <code>2</code> and <code>3</code> as its children, and add those children to the queue. Next,
+                        process node <code>2</code>, assigning children <code>4</code> and <code>5</code>.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution</h3>
+                    <p class="mb-3 text-slate-300">Use the exact method signature required by the platform.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+    public TreeNode solve(ArrayList&lt;Integer&gt; A) {
+
+        // Handle an empty tree or a null root.
+        if (A == null || A.size() == 0 || A.get(0) == -1) {
+            return null;
+        }
+
+        // The first element is the root.
+        TreeNode root = new TreeNode(A.get(0));
+
+        // Queue stores nodes whose children we must process.
+        Queue&lt;TreeNode&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(root);
+
+        // Index of the next value to read from the array.
+        int i = 1;
+        int n = A.size();
+
+        while (!queue.isEmpty() &amp;&amp; i &lt; n) {
+
+            // Get the next parent in level order.
+            TreeNode parent = queue.poll();
+
+            // Process the left child.
+            int leftValue = A.get(i);
+            i++;
+
+            if (leftValue != -1) {
+                TreeNode leftChild = new TreeNode(leftValue);
+                parent.left = leftChild;
+                queue.offer(leftChild);
+            }
+
+            // Process the right child, if an entry exists.
+            if (i &lt; n) {
+                int rightValue = A.get(i);
+                i++;
+
+                if (rightValue != -1) {
+                    TreeNode rightChild = new TreeNode(rightValue);
+                    parent.right = rightChild;
+                    queue.offer(rightChild);
+                }
+            }
+        }
+
+        return root;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">How the code works</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Create the root:</strong> The first element becomes the root node.</li>
+                        <li><strong class="text-slate-100">Initialize the queue:</strong> Add the root because its children have not been processed.</li>
+                        <li><strong class="text-slate-100">Remove a parent:</strong> Take the front node from the queue.</li>
+                        <li><strong class="text-slate-100">Process the left child:</strong> Read the next array element. If it is not <code>-1</code>, create and attach the left child, then enqueue it.</li>
+                        <li><strong class="text-slate-100">Process the right child:</strong> Repeat the same process for the right child.</li>
+                        <li><strong class="text-slate-100">Repeat:</strong> Continue until there are no parents left to process or the array is exhausted.</li>
+                        <li><strong class="text-slate-100">Return the root:</strong> The complete tree is now reconstructed.</li>
+                    </ol>
+                    <p class="rounded-lg border border-slate-700 bg-slate-900 p-4 text-slate-300">
+                        The check <code>i &lt; n</code> before reading the right child prevents accessing an index beyond
+                        the array boundary if the input ends after a left-child entry.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Input:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>A = [1, 2, 3, 4, 5, -1, -1, -1, -1, -1, -1]</code></pre>
+                    <p class="mb-4 text-slate-300">Initially, create root <code>1</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[600px] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Parent processed</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Left value</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Right value</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Queue after processing</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>[2, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>4</code></td><td class="px-4 py-3"><code>5</code></td><td class="px-4 py-3"><code>[3, 4, 5]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>[4, 5]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>4</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>[5]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>5</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3"><code>[]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4 mt-4 text-slate-300"><code>-1</code> means no child is created or added to the queue.</p>
+                    <p class="mb-3 font-semibold text-slate-100">Final tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+                    <p class="text-slate-300">
+                        The method returns root node <code>1</code>, whose left subtree contains <code>2</code>,
+                        <code>4</code>, and <code>5</code>, and whose right child is <code>3</code>.
+                    </p>
+                </section>
+
+                <section id="comparison">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Brute-Force vs. Optimized Approach</h2>
+                    <p class="mb-4 text-slate-300">
+                        A naive approach would repeatedly scan the array to find the next parent and determine its
+                        children. This can cause unnecessary repeated work. The queue-based approach avoids repeated
+                        searching by processing each parent once, in level-order sequence.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[500px] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">Repeated parent searching</td><td class="px-4 py-3">\(O(N^2)\) in a naive implementation</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                                <tr><td class="px-4 py-3">Queue-based BFS</td><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        The queue-based method is recommended. Each array element is read at most once, and each actual
+                        node is enqueued and dequeued at most once.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Complexity Analysis</h2>
+                    <p class="mb-4 text-slate-300">Let \(N\) be the number of elements in the array.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Time:</strong> \(O(N)\) — every array element is processed at most once, and each tree node is processed once.</li>
+                        <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N)\) — in the worst case, the queue can contain a large number of nodes.</li>
+                        <li><strong class="text-slate-100">Total tree storage:</strong> \(O(N)\) — the newly constructed binary tree contains at most \(N\) nodes.</li>
+                    </ul>
+                    <p class="text-sm text-slate-400">The auxiliary-space figure counts the queue, excluding the returned tree itself.</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Single node:</strong> <code>[10]</code> returns a tree with root <code>10</code> and no children.</li>
+                        <li><strong class="text-slate-100">Missing left child:</strong> <code>[1, -1, 2]</code> creates root <code>1</code> with only a right child <code>2</code>.</li>
+                        <li><strong class="text-slate-100">Missing right child:</strong> <code>[1, 2, -1]</code> creates root <code>1</code> with only a left child <code>2</code>.</li>
+                        <li><strong class="text-slate-100">All children missing:</strong> <code>[1, -1, -1]</code> returns a single-node tree.</li>
+                        <li><strong class="text-slate-100">Negative values other than <code>-1</code>:</strong> These are valid node values if permitted by the constraints. Only <code>-1</code> is treated as null.</li>
+                        <li><strong class="text-slate-100">Maximum input size:</strong> The algorithm runs in linear time, making it suitable for \(N \le 10^5\).</li>
+                    </ul>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Similar LeetCode Problems</h2>
+                    <p class="mb-4 text-slate-300">These problems reinforce binary-tree construction and level-order traversal:</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 102 — Binary Tree Level Order Traversal</a> — Medium. Practice BFS using a queue.</li>
+                        <li><a href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 297 — Serialize and Deserialize Binary Tree</a> — Hard. Directly related to converting trees to and from serialized representations.</li>
+                        <li><a href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 105 — Construct Binary Tree from Preorder and Inorder Traversal</a> — Medium. Practice reconstructing a tree from traversal sequences.</li>
+                        <li><a href="https://leetcode.com/problems/complete-binary-tree-inserter/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 919 — Complete Binary Tree Inserter</a> — Medium. Practice using BFS and a queue to manage tree nodes.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+                    <p class="mb-4 rounded-lg border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Pattern to remember:</strong> Queue-based Breadth-First Search (BFS).
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-6 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Creating a node when the array value is <code>-1</code>.</li>
+                        <li>Forgetting to enqueue newly created child nodes.</li>
+                        <li>Reading beyond the array's last index.</li>
+                        <li>Assuming that each node has two actual children instead of treating <code>-1</code> as a missing child.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Possible interviewer follow-ups</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q1. Why use a queue instead of a stack?</h4>
+                            <p>A queue processes nodes in first-in, first-out order, matching level-order traversal. A stack would naturally process them in a different order.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q2. Can we solve this recursively?</h4>
+                            <p>Yes, but a recursive solution needs to preserve the level-order parent-processing order. A queue expresses that requirement more naturally.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q3. What is the time complexity?</h4>
+                            <p>\(O(N)\), because every array element is consumed at most once.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q4. Why don't we enqueue <code>-1</code>?</h4>
+                            <p>Because <code>-1</code> represents a missing child, not a real node. Enqueuing it would require processing a nonexistent parent.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+                    <p class="mb-4 text-slate-300">
+                        Implement the queue-based BFS solution in an interview. It is straightforward, efficient, and
+                        directly matches the level-order representation.
+                    </p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li><strong class="text-slate-100">Time:</strong> \(O(N)\)</li>
+                        <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N)\)</li>
+                    </ul>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Memory trick:</strong>
+                        Create a parent, read its left and right values, attach valid children, and enqueue those children.
+                        Repeat until the array is processed.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
