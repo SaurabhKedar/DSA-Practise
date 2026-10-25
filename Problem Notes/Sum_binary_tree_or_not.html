@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Sum Binary Tree — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Sum Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The best approach is postorder depth-first search with recursion. Every non-leaf node must equal
+                    the sum of all values in its left and right subtrees.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Return each subtree's sum to its parent and propagate an invalid-state marker as soon as a subtree fails.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-3">A binary tree is a Sum Binary Tree if:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Every leaf node is considered valid automatically.</li>
+                        <li>Every non-leaf node's value equals the sum of all nodes in its left subtree and right subtree.</li>
+                        <li>An empty subtree has a sum of <code>0</code>.</li>
+                        <li>Return <code>1</code> if the entire tree satisfies the condition; otherwise, return <code>0</code>.</li>
+                    </ul>
+                    <p class="mb-3">For example, consider this tree:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        26
+       /  \
+     10    3
+    / \     \
+   4   6     3</code></pre>
+                    <p class="mb-3">Check each non-leaf node:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Node <code>10</code>: \(4+6=10\) — valid.</li>
+                        <li>Node <code>3</code>: \(0+3=3\) — valid because its right child is <code>3</code> and its left subtree is empty.</li>
+                        <li>Root <code>26</code>: the left subtree sum is \(10+4+6=20\), and the right subtree sum is \(3+3=6\). Therefore, \(20+6=26\) — valid.</li>
+                    </ul>
+                    <p class="mb-4">The answer is <code>1</code>.</p>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Important:</strong>
+                        Use the sum of the entire subtrees, not just the immediate children.
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">For every non-leaf node:</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Calculate the sum of its entire left subtree.</li>
+                        <li>Calculate the sum of its entire right subtree.</li>
+                        <li>Check whether their sum equals the current node's value.</li>
+                        <li>Recursively check the left and right subtrees.</li>
+                    </ol>
+                    <p class="mb-4">If any node fails, the tree is not a Sum Binary Tree.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    // Calculates the sum of all nodes in a subtree.
+    private long getSum(TreeNode node) {
+        if (node == null) {
+            return 0L;
+        }
+
+        return node.val
+                + getSum(node.left)
+                + getSum(node.right);
+    }
+
+    // Checks whether the subtree rooted at node is a Sum Tree.
+    private boolean isSumTree(TreeNode node) {
+        // An empty tree or leaf node is valid.
+        if (node == null || (node.left == null &amp;&amp; node.right == null)) {
+            return true;
+        }
+
+        // Calculate the sums of both subtrees.
+        long leftSum = getSum(node.left);
+        long rightSum = getSum(node.right);
+
+        // Current node must equal the sum of both subtrees.
+        if (node.val != leftSum + rightSum) {
+            return false;
+        }
+
+        // Both subtrees must also satisfy the Sum Tree property.
+        return isSumTree(node.left) &amp;&amp; isSumTree(node.right);
+    }
+
+    public int solve(TreeNode A) {
+        return isSumTree(A) ? 1 : 0;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Brute-force dry run</h3>
+                    <p class="mb-4">For the first example:</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Left subtree sum</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Right subtree sum</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Check</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">10</td><td class="px-4 py-3">4</td><td class="px-4 py-3">6</td><td class="px-4 py-3">\(4+6=10\) ✓</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">0</td><td class="px-4 py-3">3</td><td class="px-4 py-3">\(0+3=3\) ✓</td></tr>
+                                <tr><td class="px-4 py-3">26</td><td class="px-4 py-3">20</td><td class="px-4 py-3">6</td><td class="px-4 py-3">\(20+6=26\) ✓</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-5">Every node passes, so <code>solve(A)</code> returns <code>1</code>.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time: \(O(n^2)\) in the worst case. We repeatedly calculate subtree sums, and a skewed tree can require scanning most of the tree for many nodes.</li>
+                        <li>Auxiliary space: \(O(h)\), where \(h\) is the tree height, due to recursion. In the worst case, this is \(O(n)\).</li>
+                    </ul>
+                    <p class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-300">
+                        <strong class="text-slate-100">Limitation:</strong>
+                        Many nodes are visited repeatedly. We can avoid this by calculating each subtree's sum only once.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Postorder DFS</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Instead of calculating subtree sums separately, calculate them while checking whether each subtree is valid.
+                        For every node, return its total subtree sum to its parent, but immediately report failure if the subtree is not a Sum Tree.
+                    </p>
+                    <p class="mb-4">
+                        Postorder traversal visits the left subtree, then the right subtree, and finally processes the current node.
+                        This ensures that both subtree sums are available when we check the current node.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>If the node is <code>null</code>, return <code>0</code>.</li>
+                        <li>If the node is a leaf, return its value because a leaf is always valid.</li>
+                        <li>Recursively process the left and right subtrees.</li>
+                        <li>If either subtree returns <code>-1</code>, propagate <code>-1</code> because that subtree is invalid.</li>
+                        <li>Check whether <code>node.val == leftSum + rightSum</code>.</li>
+                        <li>If the check fails, return <code>-1</code>.</li>
+                        <li>Otherwise, return the total sum of the current subtree: <code>node.val + leftSum + rightSum</code>.</li>
+                        <li>In <code>solve()</code>, return <code>1</code> if the helper returns a nonnegative value; otherwise, return <code>0</code>.</li>
+                    </ol>
+                    <p class="mb-5 text-slate-300">
+                        We use <code>-1</code> as an invalid-tree marker because all node values are nonnegative, so a valid subtree sum cannot be negative.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+                    <p class="mb-4 text-slate-300">This is the recommended solution for the platform's required <code>Solution</code> class and <code>solve(TreeNode A)</code> signature.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    // Returns the subtree sum if valid, otherwise -1.
+    private long checkSumTree(TreeNode node) {
+
+        // An empty subtree has sum 0.
+        if (node == null) {
+            return 0L;
+        }
+
+        // Every leaf node is automatically a Sum Tree.
+        if (node.left == null &amp;&amp; node.right == null) {
+            return node.val;
+        }
+
+        // Get the sums of the left and right subtrees.
+        long leftSum = checkSumTree(node.left);
+        long rightSum = checkSumTree(node.right);
+
+        // If either subtree is invalid, the current tree is invalid.
+        if (leftSum == -1L || rightSum == -1L) {
+            return -1L;
+        }
+
+        // Current node must equal the sum of both subtrees.
+        if (node.val != leftSum + rightSum) {
+            return -1L;
+        }
+
+        // Return the sum of the entire subtree for the parent.
+        return node.val + leftSum + rightSum;
+    }
+
+    public int solve(TreeNode A) {
+        return checkSumTree(A) == -1L ? 0 : 1;
+    }
+}</code></pre>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why this approach works</h3>
+                    <p class="mb-3 text-slate-300">
+                        Each node is processed only after its children have been processed. Therefore, the helper already knows whether each child subtree is valid and what its total sum is.
+                    </p>
+                    <p class="text-slate-300">
+                        If a child subtree is invalid, the failure propagates upward. If both children are valid and their sums equal the current node's value,
+                        the current subtree is valid, and its total sum is returned. This checks every node exactly once.
+                    </p>
+                </section>
+
+                <section id="optimized-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Consider the first example. The recursive function processes children before their parent.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        26
+       /  \
+     10    3
+    / \     \
+   4   6     3</code></pre>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[46rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Left sum</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Right sum</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Validation</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Returned sum</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Leaf, automatically valid</td><td class="px-4 py-3">4</td></tr>
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Leaf, automatically valid</td><td class="px-4 py-3">6</td></tr>
+                                <tr><td class="px-4 py-3">10</td><td class="px-4 py-3">4</td><td class="px-4 py-3">6</td><td class="px-4 py-3">\(4+6=10\)</td><td class="px-4 py-3">20</td></tr>
+                                <tr><td class="px-4 py-3">3 (right child)</td><td class="px-4 py-3">0</td><td class="px-4 py-3">3</td><td class="px-4 py-3">\(0+3=3\)</td><td class="px-4 py-3">6</td></tr>
+                                <tr><td class="px-4 py-3">26</td><td class="px-4 py-3">20</td><td class="px-4 py-3">6</td><td class="px-4 py-3">\(20+6=26\)</td><td class="px-4 py-3">52</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3 text-slate-300">
+                        Notice the difference between the node's value and the subtree sum returned to its parent.
+                        For node <code>10</code>, the value is <code>10</code>, but its entire subtree sum is <code>10 + 4 + 6 = 20</code>.
+                        The parent needs <code>20</code>, not <code>10</code>.
+                    </p>
+                    <p class="mb-6">The root is valid, so <code>solve(A)</code> returns <code>1</code>.</p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run for the second example</h3>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        26
+       /  \
+     10    3
+    / \     \
+   4   6     4</code></pre>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li>Node <code>10</code> returns subtree sum <code>20</code>.</li>
+                        <li>Node <code>3</code> fails because its child sum is <code>4</code>, so \(0+4 \ne 3\).</li>
+                        <li>The invalid result <code>-1</code> propagates to the root.</li>
+                        <li><code>solve(A)</code> returns <code>0</code>.</li>
+                    </ul>
+                    <p class="mt-4 text-slate-300">In this example, the right subtree already fails, so the entire tree must be invalid.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(n\) be the number of nodes and \(h\) be the height of the tree.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[30rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">Brute force</td><td class="px-4 py-3">\(O(n^2)\) worst case</td><td class="px-4 py-3">\(O(h)\)</td></tr>
+                                <tr><td class="px-4 py-3">Optimized postorder DFS</td><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(h)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is the optimized time \(O(n)\)?</h3>
+                    <p class="mb-4 text-slate-300">
+                        Each node is visited once, and each visit performs constant-time checks and arithmetic. Therefore, the total work is proportional to the number of nodes.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is the space \(O(h)\)?</h3>
+                    <p class="mb-4 text-slate-300">
+                        The recursive call stack can hold up to \(h\) calls at once. A balanced tree has height approximately \(O(\log n)\),
+                        while a highly skewed tree can have height \(O(n)\).
+                    </p>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/50 p-4 text-amber-100">
+                        <strong>Practical note:</strong>
+                        The constraints permit up to 100,000 nodes. A deeply skewed tree may cause a Java <code>StackOverflowError</code>
+                        with a recursive implementation. If the platform's hidden tests include extremely deep trees, an iterative postorder traversal can avoid that risk.
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Important Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected result</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">Single node: <code>5</code></td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">A leaf is always valid.</td></tr>
+                                <tr><td class="px-4 py-3">Root <code>5</code>, left child <code>5</code></td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">\(5=5+0\).</td></tr>
+                                <tr><td class="px-4 py-3">Root <code>5</code>, left child <code>4</code></td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">\(5\ne4+0\).</td></tr>
+                                <tr><td class="px-4 py-3">Root <code>0</code> with two leaf children <code>0</code>, <code>0</code></td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">\(0=0+0\).</td></tr>
+                                <tr><td class="px-4 py-3">A valid left subtree and invalid right subtree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Every subtree must be valid.</td></tr>
+                                <tr><td class="px-4 py-3">Deeply skewed tree</td><td class="px-4 py-3">Depends on node values</td><td class="px-4 py-3">All non-leaf nodes must satisfy the sum condition.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-5 text-slate-300">These problems reinforce subtree calculations, tree recursion, and postorder traversal.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-2 text-lg font-semibold text-slate-100">508. Most Frequent Subtree Sum <span class="text-sm font-medium text-slate-400">— Medium</span></h3>
+                            <p class="mb-4 text-slate-300">Calculate the sum of every subtree using postorder DFS.</p>
+                            <a href="https://leetcode.com/problems/most-frequent-subtree-sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-2 text-lg font-semibold text-slate-100">112. Path Sum <span class="text-sm font-medium text-slate-400">— Easy</span></h3>
+                            <p class="mb-4 text-slate-300">Practice recursive tree traversal and accumulating sums along paths.</p>
+                            <a href="https://leetcode.com/problems/path-sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-2 text-lg font-semibold text-slate-100">543. Diameter of Binary Tree <span class="text-sm font-medium text-slate-400">— Easy</span></h3>
+                            <p class="mb-4 text-slate-300">Learn how recursive calls return subtree information to their parents.</p>
+                            <a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-5">
+                            <h3 class="mb-2 text-lg font-semibold text-slate-100">404. Sum of Left Leaves <span class="text-sm font-medium text-slate-400">— Easy</span></h3>
+                            <p class="mb-4 text-slate-300">Practice tree recursion and handling leaf nodes separately.</p>
+                            <a href="https://leetcode.com/problems/sum-of-left-leaves/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                    </div>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-4 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Postorder DFS + subtree sum + invalid-state propagation.
+                        The same pattern is useful whenever a parent needs information computed from its children.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-6 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Checking only the immediate children instead of the entire subtrees.</li>
+                        <li>Forgetting that a leaf node is automatically valid.</li>
+                        <li>Returning only <code>node.val</code> instead of the entire subtree sum.</li>
+                        <li>Checking the current node without verifying that both child subtrees are valid.</li>
+                        <li>Using <code>-1</code> as an error marker without ensuring valid results cannot equal <code>-1</code>.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <dl class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="mb-1 font-semibold text-slate-100">Q1. Why do we use postorder traversal?</dt>
+                            <dd class="text-slate-300">Because we need both subtree sums before validating the parent node.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="mb-1 font-semibold text-slate-100">Q2. Why can't we simply compare the root with its two children?</dt>
+                            <dd class="text-slate-300">Because the required sum includes every node in each subtree, not just the direct children.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="mb-1 font-semibold text-slate-100">Q3. Why does the helper return the subtree sum instead of a boolean?</dt>
+                            <dd class="text-slate-300">The parent needs the child's total subtree sum to validate its own value. Returning the sum lets us validate and calculate in one traversal.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="mb-1 font-semibold text-slate-100">Q4. Can this be solved in \(O(n)\) time?</dt>
+                            <dd class="text-slate-300">Yes. Postorder DFS visits every node once and computes each subtree sum as it returns.</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the optimized postorder DFS solution in an interview.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time: \(O(n)\)</li>
+                        <li>Auxiliary space: \(O(h)\)</li>
+                        <li>Pattern: Postorder DFS with subtree information returned to the parent.</li>
+                    </ul>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Remember this simple rule: validate both children, compare the current node with their subtree sums,
+                        and return the total subtree sum upward.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
