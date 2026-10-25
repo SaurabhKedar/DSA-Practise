@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Level Order Traversal — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Level Order Traversal of a Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The recommended approach is Breadth-First Search (BFS) using a queue. Process nodes level by level,
+                    from left to right, and store each level in a separate <code>ArrayList&lt;Integer&gt;</code>.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended pattern:</strong>
+                    Capture the queue size, process exactly that many nodes, collect their values, and repeat for the next level.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        Given the root of a binary tree, return a 2D list in which each inner list contains the node values
+                        at one level. Visit nodes from left to right. The root is at level 0, its children are at level 1,
+                        and so on.
+                    </p>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example tree</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>        3
+       / \
+      9  20
+         / \
+        15  7</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">Three levels of the example tree.</p>
+                        <p class="mt-2 text-sm text-slate-400">
+                            <a href="https://www.iaealmuhendis.com/en/blog/solve-binary-tree-level-order?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Related binary tree level-order example</a>
+                        </p>
+                    </div>
+                    <p class="mb-2">The expected output is:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[
+    [3],
+    [9, 20],
+    [15, 7]
+]</code></pre>
+                    <p class="text-slate-300">
+                        This is not a standard preorder, inorder, or postorder traversal. It is a level-by-level traversal.
+                    </p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">
+                        One possible approach is to calculate the height of the tree and then traverse it once for each
+                        level, collecting only the nodes that belong to that level.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">How it works</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Find the height of the tree.</li>
+                        <li>For each level from 0 to height − 1, traverse the tree.</li>
+                        <li>Collect only the nodes at the current level.</li>
+                        <li>Add each collected list to the result.</li>
+                    </ol>
+                    <p class="mb-4">
+                        This works, but revisits many nodes for every level, making it inefficient for a large or skewed tree.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java implementation</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; solve(TreeNode A) {
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        // Return an empty result when the tree has no root.
+        if (A == null) {
+            return result;
+        }
+
+        int height = getHeight(A);
+
+        // Collect nodes separately for every level.
+        for (int level = 0; level &lt; height; level++) {
+            ArrayList&lt;Integer&gt; currentLevel = new ArrayList&lt;&gt;();
+            collectLevel(A, level, currentLevel);
+            result.add(currentLevel);
+        }
+
+        return result;
+    }
+
+    private int getHeight(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+
+        return 1 + Math.max(
+            getHeight(node.left),
+            getHeight(node.right)
+        );
+    }
+
+    private void collectLevel(
+        TreeNode node,
+        int level,
+        ArrayList&lt;Integer&gt; currentLevel
+    ) {
+        if (node == null) {
+            return;
+        }
+
+        if (level == 0) {
+            currentLevel.add(node.val);
+            return;
+        }
+
+        collectLevel(node.left, level - 1, currentLevel);
+        collectLevel(node.right, level - 1, currentLevel);
+    }
+}</code></pre>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time complexity</h3>
+                            <p>\(O(NH)\), where \(N\) is the number of nodes and \(H\) is the tree height. In the worst case, a skewed tree can take \(O(N^2)\) time.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Auxiliary space</h3>
+                            <p>\(O(H)\) for recursion, excluding the output. The output itself requires \(O(N)\) space.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-slate-300">This approach is useful for understanding levels, but BFS is better for this problem.</p>
+                </section>
+
+                <section id="optimized-bfs">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BFS Using a Queue</h2>
+                    <p class="mb-4">The best approach is Level Order Traversal using BFS.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        A queue follows FIFO (First In, First Out). This allows nodes to be processed in the same order
+                        in which they are discovered. Record the queue's size before processing a level; that size tells
+                        us exactly how many nodes belong to the current level.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm step by step</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Create an empty result list.</li>
+                        <li>If the root is <code>null</code>, return the empty result.</li>
+                        <li>Insert the root into a queue.</li>
+                        <li>While the queue is not empty:
+                            <ul class="ml-6 mt-2 list-inside list-disc space-y-1 text-slate-400">
+                                <li>Store the current queue size in <code>size</code>.</li>
+                                <li>Create a new list for the current level.</li>
+                                <li>Remove exactly <code>size</code> nodes from the queue.</li>
+                                <li>Add each removed node's value to the current-level list.</li>
+                                <li>Add its left and right children to the queue if they exist.</li>
+                                <li>Add the completed level list to the result.</li>
+                            </ul>
+                        </li>
+                        <li>Return the result.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+                    <p class="mb-3 text-slate-300">
+                        This solution preserves your platform's required <code>TreeNode</code> class and <code>solve()</code> method signature.
+                    </p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; solve(TreeNode A) {
+
+        // Stores the final level-by-level traversal.
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        // Handle an empty tree.
+        if (A == null) {
+            return result;
+        }
+
+        // Queue processes nodes in FIFO order.
+        Queue&lt;TreeNode&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(A);
+
+        while (!queue.isEmpty()) {
+
+            // Number of nodes belonging to this level.
+            int size = queue.size();
+
+            // Stores values of the current level.
+            ArrayList&lt;Integer&gt; currentLevel = new ArrayList&lt;&gt;();
+
+            // Process only the nodes present at this level.
+            for (int i = 0; i &lt; size; i++) {
+                TreeNode current = queue.poll();
+
+                // Add the current node's value.
+                currentLevel.add(current.val);
+
+                // Add children for processing at the next level.
+                if (current.left != null) {
+                    queue.offer(current.left);
+                }
+
+                if (current.right != null) {
+                    queue.offer(current.right);
+                }
+            }
+
+            // Add the completed level to the answer.
+            result.add(currentLevel);
+        }
+
+        return result;
+    }
+}</code></pre>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider the example tree:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>        3
+       / \
+      9  20
+         / \
+        15  7</code></pre>
+                    <p class="mb-4">Initially, the queue contains <code>[3]</code>.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Queue before processing</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Nodes processed</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Current level</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">1</td><td class="p-3"><code>[3]</code></td><td class="p-3"><code>3</code></td><td class="p-3"><code>[3]</code></td><td class="p-3"><code>[[3]]</code></td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3"><code>[9, 20]</code></td><td class="p-3"><code>9, 20</code></td><td class="p-3"><code>[9, 20]</code></td><td class="p-3"><code>[[3], [9, 20]]</code></td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3"><code>[15, 7]</code></td><td class="p-3"><code>15, 7</code></td><td class="p-3"><code>[15, 7]</code></td><td class="p-3"><code>[[3], [9, 20], [15, 7]]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4">The queue becomes empty after processing the final level, so the loop stops.</p>
+                    <p class="mb-2">Final output:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[
+    [3],
+    [9, 20],
+    [15, 7]
+]</code></pre>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950/60 p-4">
+                        <h3 class="mb-2 font-semibold text-indigo-100">Why is <code>int size = queue.size()</code> important?</h3>
+                        <p class="mb-3 text-slate-300">
+                            Suppose the queue contains <code>[9, 20]</code>. Save <code>size = 2</code> before processing either node.
+                        </p>
+                        <ul class="mb-3 list-inside list-disc space-y-1 text-slate-300">
+                            <li>Process <code>9</code> and add its children, if any.</li>
+                            <li>Process <code>20</code> and add its children, if any.</li>
+                            <li>Stop after exactly two nodes.</li>
+                        </ul>
+                        <p class="text-slate-300">
+                            Even if new children are added to the queue during the loop, they belong to the next level
+                            and must not be included in the current level.
+                        </p>
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        <strong class="text-slate-100">Interview tip:</strong>
+                        Never replace <code>i &lt; size</code> with <code>i &lt; queue.size()</code> in this algorithm.
+                        The queue size can change as children are added.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) the tree height.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[30rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Brute force, level-by-level DFS</td><td class="p-3">\(O(NH)\)</td><td class="p-3">\(O(H)\) recursion stack</td></tr>
+                                <tr><td class="p-3">Optimized BFS</td><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(W)\) queue, where \(W\) is maximum tree width</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Time:</strong> \(O(N)\) — every node is inserted into the queue and processed exactly once.</li>
+                        <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(W)\) — the queue holds nodes from the current or next level, where \(W\) is the maximum width of the tree. In the worst case, this is \(O(N)\).</li>
+                        <li><strong class="text-slate-100">Output space:</strong> \(O(N)\) — every node's value is stored in the returned result.</li>
+                    </ul>
+                    <p class="mt-4 text-slate-300">If output space is included, the total space complexity is \(O(N)\).</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Example</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Single node</td><td class="p-3"><code>1</code></td><td class="p-3"><code>[[1]]</code></td></tr>
+                                <tr><td class="p-3">Left-skewed tree</td><td class="p-3"><code>1 → 2 → 3</code></td><td class="p-3"><code>[[1], [2], [3]]</code></td></tr>
+                                <tr><td class="p-3">Right-skewed tree</td><td class="p-3"><code>1 → 2 → 3</code></td><td class="p-3"><code>[[1], [2], [3]]</code></td></tr>
+                                <tr><td class="p-3">Missing child</td><td class="p-3">Root <code>1</code>, right child <code>2</code></td><td class="p-3"><code>[[1], [2]]</code></td></tr>
+                                <tr><td class="p-3">Negative values</td><td class="p-3">Root <code>-1</code>, children <code>-2, 3</code></td><td class="p-3"><code>[[-1], [-2, 3]]</code></td></tr>
+                                <tr><td class="p-3">Duplicate values</td><td class="p-3">Root <code>1</code>, children <code>1, 1</code></td><td class="p-3"><code>[[1], [1, 1]]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The given constraints require at least one node, but the solution safely handles <code>null</code> as well.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems help reinforce BFS and tree traversal.</p>
+                    <ol class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">1. Binary Tree Level Order Traversal</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 102 · Medium</p>
+                            <p class="mb-3 text-slate-300">The closest match to this problem: return each level as a separate list.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">2. Binary Tree Zigzag Level Order Traversal</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 103 · Medium</p>
+                            <p class="mb-3 text-slate-300">Uses the same level-by-level BFS, but alternates the direction at each level.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">3. Binary Tree Level Order Traversal II</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 107 · Medium</p>
+                            <p class="mb-3 text-slate-300">Performs level order traversal but returns levels from bottom to top.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-level-order-traversal-ii/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">4. Binary Tree Right Side View</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 199 · Medium</p>
+                            <p class="mb-3 text-slate-300">Uses level order traversal to collect the rightmost node at every level.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-right-side-view/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">5. Maximum Depth of Binary Tree</h3>
+                            <p class="mb-2 text-sm text-slate-400">LeetCode 104 · Easy</p>
+                            <p class="mb-3 text-slate-300">Reinforces tree levels and depth, and can be solved with either BFS or DFS.</p>
+                            <a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4">
+                        <h3 class="mb-1 font-semibold text-indigo-100">Key concept to remember</h3>
+                        <p class="text-indigo-200">Pattern: BFS + Queue + Fixed Level Size</p>
+                        <p class="mt-2 text-slate-300">This is a standard tree-traversal pattern used in interviews.</p>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-6 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Forgetting to capture <code>queue.size()</code> before processing a level.</li>
+                        <li>Adding <code>null</code> children to the queue.</li>
+                        <li>Returning a flat list instead of a 2D list.</li>
+                        <li>Accidentally processing newly added children in the current level.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <dl class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="font-semibold text-slate-100">Q1. Why use a queue instead of a stack?</dt>
+                            <dd class="mt-1 text-slate-300">A queue follows FIFO, so nodes are processed in breadth-first order. A stack naturally supports depth-first traversal instead.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="font-semibold text-slate-100">Q2. Can we solve this using recursion?</dt>
+                            <dd class="mt-1 text-slate-300">Yes. DFS can collect nodes by their depth into separate lists. However, the queue-based BFS solution is more direct for level order traversal.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="font-semibold text-slate-100">Q3. What is the maximum queue space complexity?</dt>
+                            <dd class="mt-1 text-slate-300">\(O(N)\) in the worst case, when a level contains a number of nodes proportional to the total number of nodes.</dd>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <dt class="font-semibold text-slate-100">Q4. Does the algorithm work if the tree is unbalanced?</dt>
+                            <dd class="mt-1 text-slate-300">Yes. It processes each existing level and ignores missing children, so a balanced tree is not required.</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section id="recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        Use the BFS queue approach in your interview because it is straightforward, efficient, and easy to explain.
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(W)\), worst case \(O(N)\)</li>
+                        <li>Pattern: Breadth-First Search (BFS)</li>
+                    </ul>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-100">
+                        Remember this simple rule: capture the queue size, process exactly that many nodes, collect their values, and repeat for the next level.
+                    </p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
