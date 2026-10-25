@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Serialize Binary Tree — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Serialize Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The key concept is Level Order Traversal (BFS) using a queue, while recording every
+                    <code>null</code> child as <code>-1</code>.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Process real nodes in level order, enqueue both child positions, and write <code>-1</code> for each missing child.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        We are given the root of a binary tree. Convert the tree into an
+                        <code>ArrayList&lt;Integer&gt;</code> following these rules:
+                    </p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Visit nodes level by level, from left to right.</li>
+                        <li>Add each node's value to the result.</li>
+                        <li>If a node's left or right child is <code>null</code>, add <code>-1</code> for that child.</li>
+                        <li>Do not skip null children, because they are necessary to preserve the tree's structure.</li>
+                    </ul>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example tree</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">
+                            Its serialized representation is
+                            <code>[1, 2, 3, 4, 5, -1, -1, -1, -1, -1, -1]</code>.
+                        </p>
+                    </div>
+                    <p class="text-slate-300">
+                        There are six <code>-1</code> values because nodes 3, 4, and 5 each have two missing children:
+                        \(3 \times 2 = 6\) null children.
+                    </p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">
+                        A separate brute-force approach is unnecessary here because the problem itself requires visiting
+                        the tree level by level. We can use the simplest correct BFS approach directly.
+                    </p>
+                    <p class="text-slate-300">
+                        The important distinction is that we must add <code>-1</code> for null children, rather than ignoring
+                        them as we might in an ordinary level-order traversal.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BFS Using a Queue</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-5">
+                        Imagine processing the tree one node at a time in level order. For every actual node, record its
+                        value and put both children into the queue—even if a child is <code>null</code>.
+                    </p>
+                    <p class="mb-5">
+                        When a <code>null</code> entry comes out of the queue, add <code>-1</code> to the result.
+                        Do not add children for a null entry.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; solve(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Handle an empty tree (if permitted).
+        if (A == null) {
+            return result;
+        }
+
+        // LinkedList allows null entries, unlike ArrayDeque.
+        Queue&lt;TreeNode&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(A);
+
+        while (!queue.isEmpty()) {
+            TreeNode node = queue.poll();
+
+            if (node == null) {
+                // Represent a missing child with -1.
+                result.add(-1);
+            } else {
+                // Record the current node's value.
+                result.add(node.val);
+
+                // Add both children, including null children.
+                queue.offer(node.left);
+                queue.offer(node.right);
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm step by step</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Create an empty result list and a queue.</li>
+                        <li>Insert the root into the queue.</li>
+                        <li>Remove the front entry from the queue.</li>
+                        <li>If it is <code>null</code>, append <code>-1</code> to the result.</li>
+                        <li>Otherwise, append its value and enqueue its left and right children.</li>
+                        <li>Repeat until the queue becomes empty.</li>
+                        <li>Return the result.</li>
+                    </ol>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Important:</strong>
+                        We use <code>LinkedList</code> instead of <code>ArrayDeque</code> because Java's
+                        <code>ArrayDeque</code> does not permit <code>null</code> elements.
+                    </div>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider the example tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+                    <p class="mb-4">
+                        Initially, <code>queue = [1]</code> and <code>result = []</code>.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+                            <caption class="sr-only">Queue and result after each step of the breadth-first serialization</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Removed from queue</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Result after processing</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Queue after processing</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                                <tr>
+                                    <td class="px-4 py-3">1</td>
+                                    <td class="px-4 py-3"><code>1</code></td>
+                                    <td class="px-4 py-3"><code>[1]</code></td>
+                                    <td class="px-4 py-3"><code>[2, 3]</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2</td>
+                                    <td class="px-4 py-3"><code>2</code></td>
+                                    <td class="px-4 py-3"><code>[1, 2]</code></td>
+                                    <td class="px-4 py-3"><code>[3, 4, 5]</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">3</td>
+                                    <td class="px-4 py-3"><code>3</code></td>
+                                    <td class="px-4 py-3"><code>[1, 2, 3]</code></td>
+                                    <td class="px-4 py-3"><code>[4, 5, null, null]</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">4</td>
+                                    <td class="px-4 py-3"><code>4</code></td>
+                                    <td class="px-4 py-3"><code>[1, 2, 3, 4]</code></td>
+                                    <td class="px-4 py-3"><code>[5, null, null, null, null]</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">5</td>
+                                    <td class="px-4 py-3"><code>5</code></td>
+                                    <td class="px-4 py-3"><code>[1, 2, 3, 4, 5]</code></td>
+                                    <td class="px-4 py-3">Six <code>null</code> entries</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">6–11</td>
+                                    <td class="px-4 py-3"><code>null</code> (six times)</td>
+                                    <td class="px-4 py-3">Append <code>-1</code> six times</td>
+                                    <td class="px-4 py-3"><code>[]</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-2 mt-5">Final output:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[1, 2, 3, 4, 5, -1, -1, -1, -1, -1, -1]</code></pre>
+                    <p class="text-slate-300">
+                        The queue becomes empty because each real node contributes two child entries.
+                        Null entries are recorded, but they never produce further children.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of actual nodes in the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[560px] border-collapse text-left">
+                            <caption class="sr-only">Time and space complexity of the serialization algorithm</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Analysis</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100">Time</th>
+                                    <td class="px-4 py-3">\(O(N)\) — each real node is processed once, and each of its two child positions is recorded once.</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100">Auxiliary space</th>
+                                    <td class="px-4 py-3">\(O(N)\) — the queue can hold \(O(N)\) entries in the worst case.</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-semibold text-slate-100">Output space</th>
+                                    <td class="px-4 py-3">\(O(N)\) — the result contains \(N\) node values and \(N+1\) null markers, for \(2N+1\) entries.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        The overall time and space complexities are both \(O(N)\). There is no need for a more complicated
+                        optimization: every node and null-child position must be represented in the output.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Single node:</strong> A tree containing only <code>7</code> produces <code>[7, -1, -1]</code>.</li>
+                        <li><strong class="text-slate-100">Left-skewed tree:</strong> Missing right children are recorded as <code>-1</code> at every level.</li>
+                        <li><strong class="text-slate-100">Right-skewed tree:</strong> Missing left children are recorded as <code>-1</code> at every level.</li>
+                        <li><strong class="text-slate-100">Complete binary tree:</strong> All actual nodes are visited in level order, and the leaf nodes' missing children are recorded.</li>
+                        <li><strong class="text-slate-100">Empty tree:</strong> The implementation returns an empty list. The stated constraints require at least one node, so this case is outside the required input.</li>
+                    </ul>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce the same tree-traversal concepts:</p>
+                    <ol class="list-inside list-decimal space-y-2 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener noreferrer">102. Binary Tree Level Order Traversal</a> — Medium. Practice BFS with a queue.</li>
+                        <li><a href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" target="_blank" rel="noopener noreferrer">297. Serialize and Deserialize Binary Tree</a> — Hard. Directly related to representing tree structure, including null nodes.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-right-side-view/" target="_blank" rel="noopener noreferrer">199. Binary Tree Right Side View</a> — Medium. Uses level-order traversal to process tree levels.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal-ii/" target="_blank" rel="noopener noreferrer">107. Binary Tree Level Order Traversal II</a> — Medium. Practices BFS with a different output arrangement.</li>
+                        <li><a href="https://leetcode.com/problems/check-completeness-of-a-binary-tree/" target="_blank" rel="noopener noreferrer">958. Check Completeness of a Binary Tree</a> — Medium. Uses level-order traversal and null positions.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Pattern to remember:</strong>
+                        Binary Tree + BFS (Level Order Traversal) + Null Markers.
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Skipping null children instead of recording <code>-1</code>.</li>
+                        <li>Using <code>ArrayDeque</code> while trying to enqueue <code>null</code>.</li>
+                        <li>Accidentally adding children for a null entry, which would create an infinite expansion.</li>
+                        <li>Stopping at the last non-null node and forgetting its missing children.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interview follow-ups</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q1. Why is BFS appropriate?</h4>
+                            <p>Because the required output is level order, which a queue naturally produces.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q2. Why must null children be recorded?</h4>
+                            <p>Without null markers, different tree structures can produce the same sequence of actual node values.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q3. Can DFS solve this problem?</h4>
+                            <p>Yes, a preorder traversal with explicit null markers can serialize a tree, but it would not produce the required level-order representation.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q4. Why does the output contain \(2N+1\) elements?</h4>
+                            <p>A binary tree with \(N\) nodes has \(2N\) child positions. Exactly \(N-1\) positions contain actual children, leaving \(N+1\) null positions.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        Use the BFS queue solution in your interview. It directly follows the problem's required traversal
+                        order, handles missing children correctly, and runs in linear time.
+                    </p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(N)\)</li>
+                        <li>Output space: \(O(N)\)</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Remember:</strong>
+                        Remove one queue entry, record its value or <code>-1</code>, and enqueue two children only when the entry is a real node.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
