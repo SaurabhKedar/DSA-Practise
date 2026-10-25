@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Preorder Traversal of a Binary Tree — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Preorder Traversal of a Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Preorder traversal visits the current node first, then its left subtree, and finally its right subtree.
+                    The iterative depth-first search (DFS) version uses a stack and avoids depending on Java's recursion depth.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Root → Left → Right
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding" aria-labelledby="problem-heading">
+                    <h2 id="problem-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        Given the root node <code>A</code> of a binary tree, return an
+                        <code>ArrayList&lt;Integer&gt;</code> containing the values of all nodes in preorder traversal.
+                    </p>
+                    <p class="mb-3">For each node, follow this order:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Visit the current node and add its value.</li>
+                        <li>Traverse the left subtree.</li>
+                        <li>Traverse the right subtree.</li>
+                    </ol>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example tree</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>        1
+       / \
+      2   3
+         /
+        4</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">
+                            Visit the root, then the left subtree, then the right subtree. The preorder traversal is
+                            <code>[1, 2, 3, 4]</code>.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="recursive-approach" aria-labelledby="recursive-heading">
+                    <h2 id="recursive-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Basic Approach — Recursive DFS</h2>
+                    <p class="mb-4">
+                        There is no need to search for every node separately. Recursion directly follows the preorder
+                        definition and visits each node once. This approach is already optimal in time complexity.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Create an empty <code>ArrayList&lt;Integer&gt;</code>.</li>
+                        <li>If the current node is <code>null</code>, return.</li>
+                        <li>Add the current node's value to the list.</li>
+                        <li>Recursively traverse the left subtree, then the right subtree.</li>
+                        <li>Return the list.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Recursive</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+
+/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; preorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Start preorder traversal at the root.
+        preorder(A, result);
+
+        return result;
+    }
+
+    private void preorder(TreeNode node, ArrayList&lt;Integer&gt; result) {
+        // Base case: there is no node to visit.
+        if (node == null) {
+            return;
+        }
+
+        // Visit the root before either subtree.
+        result.add(node.val);
+
+        // Continue in preorder: left subtree, then right subtree.
+        preorder(node.left, result);
+        preorder(node.right, result);
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Recursive dry run</h3>
+                    <p class="mb-3">Use the example tree shown above.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">Visit root <code>1</code>.</td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">Visit left child <code>2</code>.</td><td class="px-4 py-3"><code>[1, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">The children of <code>2</code> are <code>null</code>; return to the root.</td><td class="px-4 py-3"><code>[1, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">Visit right child <code>3</code>.</td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">Visit left child <code>4</code> of <code>3</code>.</td><td class="px-4 py-3"><code>[1, 2, 3, 4]</code></td></tr>
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">The remaining children are <code>null</code>; traversal ends.</td><td class="px-4 py-3"><code>[1, 2, 3, 4]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 text-slate-300">Final output: <code>[1, 2, 3, 4]</code></p>
+                </section>
+
+                <section id="iterative-approach" aria-labelledby="iterative-heading">
+                    <h2 id="iterative-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Iterative DFS Using a Stack</h2>
+                    <p class="mb-4">
+                        Recursive traversal is time-optimal, but the tree may contain up to \(10^5\) nodes.
+                        A highly skewed tree can make recursion very deep and potentially cause a
+                        <code>StackOverflowError</code> in Java. An iterative traversal uses an explicit stack instead.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">
+                        A stack is Last In, First Out (LIFO). Push the root, repeatedly pop and visit a node,
+                        then push its right child before its left child. Since the left child is pushed last,
+                        it is on top and is processed first.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Iterative</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.Stack;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; preorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // An empty tree has no nodes to traverse.
+        if (A == null) {
+            return result;
+        }
+
+        Stack&lt;TreeNode&gt; stack = new Stack&lt;&gt;();
+        stack.push(A);
+
+        while (!stack.isEmpty()) {
+            // Pop and visit the next node in preorder.
+            TreeNode node = stack.pop();
+            result.add(node.val);
+
+            // Push right first so the left child is processed first.
+            if (node.right != null) {
+                stack.push(node.right);
+            }
+
+            if (node.left != null) {
+                stack.push(node.left);
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <p>
+                        Both solutions preserve the required method signature. For a tree with up to
+                        \(10^5\) nodes, the iterative approach avoids dependence on Java's recursion depth.
+                    </p>
+                </section>
+
+                <section id="iterative-dry-run" aria-labelledby="dry-run-heading">
+                    <h2 id="dry-run-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Iterative Solution</h2>
+                    <p class="mb-3">Using the same tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-sm text-slate-200"><code>        1
+       / \
+      2   3
+         /
+        4</code></pre>
+                    <p class="mb-3">Initially, <code>stack = [1]</code> and <code>result = []</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Popped node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Stack after pushing children</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>[3, 2]</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>[3]</code></td><td class="px-4 py-3"><code>[1, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>[4]</code></td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3"><code>4</code></td><td class="px-4 py-3"><code>[]</code></td><td class="px-4 py-3"><code>[1, 2, 3, 4]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3">The stack is empty, so traversal ends. Output: <code>[1, 2, 3, 4]</code>.</p>
+                </section>
+
+                <section id="complexity" aria-labelledby="complexity-heading">
+                    <h2 id="complexity-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(n\) be the number of nodes and \(h\) be the height of the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Recursive DFS</th><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(h)\) recursion stack</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Iterative DFS</th><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(n)\) stack in the worst case</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Why is the time \(O(n)\)?</h3>
+                            <p>Every node is visited exactly once, and each visit takes constant time.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Why does space complexity differ?</h3>
+                            <p>
+                                Recursive DFS uses a call stack whose depth depends on the tree height:
+                                \(O(\log n)\) for a balanced tree and \(O(n)\) for a skewed tree. Iterative DFS
+                                stores pending nodes in an explicit stack, requiring up to \(O(n)\) auxiliary space
+                                in the worst case. Both approaches also use \(O(n)\) space for the returned list,
+                                separate from auxiliary space.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="edge-cases" aria-labelledby="edge-cases-heading">
+                    <h2 id="edge-cases-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Example</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected output</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Single node</th><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Left-skewed tree</th><td class="px-4 py-3"><code>1 → 2 → 3</code> (left children)</td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Right-skewed tree</th><td class="px-4 py-3"><code>1 → 2 → 3</code> (right children)</td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Both children</th><td class="px-4 py-3">Root <code>1</code>, children <code>2</code> and <code>3</code></td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Negative values</th><td class="px-4 py-3">Root <code>-1</code>, children <code>-2</code>, <code>0</code></td><td class="px-4 py-3"><code>[-1, -2, 0]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Maximum nodes</th><td class="px-4 py-3">Up to \(10^5\) nodes</td><td class="px-4 py-3">Every node visited once</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        Although the constraints specify at least one node, both implementations also handle a
+                        <code>null</code> root by returning an empty list.
+                    </p>
+                </section>
+
+                <section id="similar-problems" aria-labelledby="similar-heading">
+                    <h2 id="similar-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce tree traversal patterns.</p>
+                    <ol class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">1. Binary Tree Preorder Traversal <span class="font-normal text-slate-400">— LeetCode 144 · Easy</span></h3>
+                            <p class="mb-2 text-slate-300">Practice recursive and iterative preorder traversal.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-preorder-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode <span aria-hidden="true">↗</span></a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">2. Binary Tree Inorder Traversal <span class="font-normal text-slate-400">— LeetCode 94 · Easy</span></h3>
+                            <p class="mb-2 text-slate-300">Learn how changing the visiting order produces a different traversal.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-inorder-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode <span aria-hidden="true">↗</span></a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">3. Binary Tree Postorder Traversal <span class="font-normal text-slate-400">— LeetCode 145 · Easy</span></h3>
+                            <p class="mb-2 text-slate-300">Practice the Left → Right → Root order.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-postorder-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode <span aria-hidden="true">↗</span></a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">4. Binary Tree Level Order Traversal <span class="font-normal text-slate-400">— LeetCode 102 · Medium</span></h3>
+                            <p class="mb-2 text-slate-300">Learn BFS using a queue instead of DFS using a stack.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode <span aria-hidden="true">↗</span></a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">5. Maximum Depth of Binary Tree <span class="font-normal text-slate-400">— LeetCode 104 · Easy</span></h3>
+                            <p class="mb-2 text-slate-300">Practice recursive tree traversal and understanding tree height.</p>
+                            <a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode <span aria-hidden="true">↗</span></a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes" aria-labelledby="interview-heading">
+                    <h2 id="interview-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-2">Preorder is a Depth-First Search (DFS) traversal.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Preorder: Root → Left → Right</li>
+                        <li>Inorder: Left → Root → Right</li>
+                        <li>Postorder: Left → Right → Root</li>
+                    </ul>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Visiting the left or right subtree before adding the root value.</li>
+                        <li>Pushing the left child before the right child in the iterative solution, which reverses the intended processing order.</li>
+                        <li>Forgetting the <code>null</code> base case in recursion.</li>
+                        <li>Assuming recursive space is always \(O(\log n)\); it can be \(O(n)\) for a skewed tree.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <dl class="space-y-4">
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q1. Why do we push the right child before the left child?</dt>
+                            <dd class="mt-1 text-slate-300">A stack processes the last inserted element first. Pushing right before left ensures the left child is processed first.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q2. Can preorder traversal be implemented without recursion?</dt>
+                            <dd class="mt-1 text-slate-300">Yes. Use an explicit stack, as shown in the iterative solution.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q3. What is the difference between DFS and BFS?</dt>
+                            <dd class="mt-1 text-slate-300">DFS explores deeper along a branch before returning. BFS explores nodes level by level using a queue.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q4. Is \(O(n)\) time optimal?</dt>
+                            <dd class="mt-1 text-slate-300">Yes. Every node must be visited to return all node values, giving a lower bound of \(\Omega(n)\).</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section id="recommendation" aria-labelledby="recommendation-heading">
+                    <h2 id="recommendation-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        For interview preparation, understand the recursive solution first because it expresses the
+                        preorder definition directly. Then implement the iterative version when you want to avoid
+                        recursion-depth issues.
+                    </p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Recommended for large or potentially skewed trees: iterative DFS using a stack.</li>
+                        <li>Time complexity: \(O(n)\).</li>
+                        <li>Auxiliary space: \(O(n)\) worst case for the iterative approach.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">One-line memory trick:</strong>
+                        Preorder means visit the Parent first, then Left, then Right — Root → Left → Right.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
