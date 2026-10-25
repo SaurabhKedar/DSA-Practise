@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Shortest Path in a Binary Maze with Hurdles — Java</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, .12), transparent 42rem),
+        #0f172a;
+    }
+    pre {
+      tab-size: 4;
+      scrollbar-color: #475569 #111827;
+    }
+    code, pre {
+      font-variant-ligatures: none;
+    }
+    .prose-note a {
+      color: #a5b4fc;
+      text-decoration: underline;
+      text-decoration-color: #6366f1;
+      text-underline-offset: 3px;
+    }
+    .prose-note a:hover {
+      color: #c7d2fe;
+    }
+    .prose-note :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="mx-auto max-w-5xl">
+    <article class="prose-note overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/95 shadow-2xl shadow-black/30">
+      <header class="border-b border-slate-700/80 px-6 py-8 sm:px-10 sm:py-10">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Algorithm Notes · Java</p>
+        <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Shortest Path in a Binary Maze with Hurdles</h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-300">
+          This problem can be solved in two ways: brute-force DFS with backtracking to compare all valid paths, and optimized BFS to find the shortest path efficiently.
+          The Java examples use the provided <code class="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-indigo-200">int[][] A</code> method signature and include explanatory comments.
+        </p>
+        <nav aria-label="Contents" class="mt-6 flex flex-wrap gap-2 text-sm">
+          <a class="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5" href="#understanding">Problem</a>
+          <a class="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5" href="#backtracking">Backtracking</a>
+          <a class="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5" href="#bfs">BFS</a>
+          <a class="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5" href="#comparison">Comparison</a>
+          <a class="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5" href="#interview">Interview notes</a>
+        </nav>
+      </header>
+
+      <div class="space-y-12 px-6 py-8 sm:px-10 sm:py-10">
+        <section id="understanding" aria-labelledby="understanding-heading">
+          <h2 id="understanding-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">1</span>
+            Problem understanding
+          </h2>
+          <p class="leading-7 text-slate-300">You are given an \(M \times N\) matrix:</p>
+          <ul class="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-400">
+            <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">1</code> represents an accessible cell.</li>
+            <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">0</code> represents a blocked cell (hurdle).</li>
+            <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">(B, C)</code> is the source.</li>
+            <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">(D, E)</code> is the destination.</li>
+          </ul>
+          <p class="mt-4 leading-7 text-slate-300">You can move up, right, down, or left. You cannot leave the matrix or move through a hurdle. Return the minimum number of moves needed to reach the destination, or <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">-1</code> if no valid path exists.</p>
+          <aside class="mt-4 rounded-xl border border-indigo-400/20 bg-indigo-400/5 px-4 py-3 text-sm leading-6 text-slate-200">
+            <span class="font-semibold text-indigo-200">Important:</span> Distance counts moves, not cells. If source and destination are the same, the answer is <code class="rounded bg-slate-800 px-1 py-0.5">0</code>.
+          </aside>
+
+          <div class="mt-6 grid gap-4 lg:grid-cols-3">
+            <section class="rounded-xl border border-slate-700 bg-slate-800/45 p-4" aria-labelledby="example-one">
+              <h3 id="example-one" class="mb-3 text-lg font-semibold text-indigo-200">Example 1</h3>
+              <pre class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm leading-6 text-slate-200"><code>A = [[1, 1, 0, 0],
+     [0, 1, 1, 0],
+     [0, 0, 1, 1],
+     [0, 0, 0, 1]]
+
+Source      = (0, 0)
+Destination = (3, 3)</code></pre>
+              <p class="mt-3 text-sm leading-6 text-slate-300">Shortest path: <code class="text-indigo-200">(0,0) → (0,1) → (1,1) → (1,2) → (2,2) → (2,3) → (3,3)</code>. It contains seven cells and six moves, so the answer is <strong class="text-white">6</strong>.</p>
+            </section>
+            <section class="rounded-xl border border-slate-700 bg-slate-800/45 p-4" aria-labelledby="example-two">
+              <h3 id="example-two" class="mb-3 text-lg font-semibold text-indigo-200">Example 2</h3>
+              <pre class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm leading-6 text-slate-200"><code>A = [[1, 1, 1],
+     [1, 0, 1],
+     [1, 1, 1]]
+
+Source      = (0, 0)
+Destination = (0, 2)</code></pre>
+              <p class="mt-3 text-sm leading-6 text-slate-300">Shortest path: <code class="text-indigo-200">(0,0) → (0,1) → (0,2)</code>, so the answer is <strong class="text-white">2</strong>.</p>
+            </section>
+            <section class="rounded-xl border border-slate-700 bg-slate-800/45 p-4" aria-labelledby="example-three">
+              <h3 id="example-three" class="mb-3 text-lg font-semibold text-indigo-200">Example 3</h3>
+              <pre class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm leading-6 text-slate-200"><code>A = [[1, 0, 1],
+     [1, 0, 1],
+     [1, 0, 1]]
+
+Source      = (0, 0)
+Destination = (0, 2)</code></pre>
+              <p class="mt-3 text-sm leading-6 text-slate-300">The middle column contains only hurdles, so there is no path from left to right. The answer is <strong class="text-white">-1</strong>.</p>
+            </section>
+          </div>
+        </section>
+
+        <section id="backtracking" aria-labelledby="backtracking-heading">
+          <h2 id="backtracking-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">2</span>
+            Brute-force approach — DFS with backtracking
+          </h2>
+          <h3 class="mb-2 text-lg font-semibold text-indigo-200">Intuition</h3>
+          <p class="leading-7 text-slate-300">Start at the source and try every possible direction. Each time the destination is reached, a valid path has been found; compare the lengths of all valid paths and return the minimum. A path must not visit the same cell twice, or it could continue moving in circles indefinitely. Backtracking keeps track of cells in the current path and undoes that choice after exploring.</p>
+
+          <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">How the algorithm works</h3>
+          <ol class="list-decimal space-y-2 pl-6 leading-7 text-slate-300 marker:font-semibold marker:text-indigo-300">
+            <li>If the current cell is the destination, return <code class="rounded bg-slate-800 px-1.5 py-0.5">0</code> because no more moves are needed.</li>
+            <li>Mark the current cell as visited.</li>
+            <li>Explore its four neighboring cells.</li>
+            <li>Skip neighbors that are outside the grid, blocked, or already visited.</li>
+            <li>Recursively calculate the shortest remaining distance from each valid neighbor.</li>
+            <li>Add <code class="rounded bg-slate-800 px-1.5 py-0.5">1</code> for the move to that neighbor and update the minimum.</li>
+            <li>Unmark the current cell before returning, allowing other paths to reuse it.</li>
+          </ol>
+          <p class="mt-3 text-sm text-slate-400">The key backtracking operation is: mark → explore → unmark.</p>
+
+          <h3 class="mb-3 mt-6 text-lg font-semibold text-indigo-200">Java solution — Backtracking</h3>
+          <p class="mb-3 leading-7 text-slate-300">This solution includes comments explaining the key decisions.</p>
+          <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-5 text-sm leading-6 text-slate-200"><code>public class Solution {
+
+    public int FindShortestPath(
+            int[][] A, int B, int C, int D, int E) {
+
+        int m = A.length;
+        int n = A[0].length;
+
+        // Tracks cells visited in the current path.
+        boolean[][] visited = new boolean[m][n];
+
+        // Integer.MAX_VALUE means no valid path was found.
+        int ans = explorePaths(A, visited, B, C, D, E);
+
+        return ans != Integer.MAX_VALUE ? ans : -1;
+    }
+
+    private int explorePaths(
+            int[][] A,
+            boolean[][] visited,
+            int currRow,
+            int currCol,
+            int destRow,
+            int destCol) {
+
+        // Destination reached: zero additional moves required.
+        if (currRow == destRow &amp;&amp; currCol == destCol) {
+            return 0;
+        }
+
+        int m = A.length;
+        int n = A[0].length;
+
+        // Mark the current cell before exploring its neighbors.
+        visited[currRow][currCol] = true;
+
+        // Up, right, down, left.
+        int[] rows = {-1, 0, 1, 0};
+        int[] cols = {0, 1, 0, -1};
+
+        int min = Integer.MAX_VALUE;
+
+        for (int i = 0; i &lt; 4; i++) {
+            int newRow = currRow + rows[i];
+            int newCol = currCol + cols[i];
+
+            // Check bounds, accessibility, and visitation.
+            if (newRow &gt;= 0 &amp;&amp; newCol &gt;= 0 &amp;&amp;
+                newRow &lt; m &amp;&amp; newCol &lt; n &amp;&amp;
+                !visited[newRow][newCol] &amp;&amp;
+                A[newRow][newCol] == 1) {
+
+                // Find the shortest path from the neighbor.
+                int dist = explorePaths(
+                    A, visited, newRow, newCol, destRow, destCol
+                );
+
+                // Update the minimum only if a path exists.
+                if (dist != Integer.MAX_VALUE) {
+                    min = Math.min(min, dist + 1);
+                }
+            }
+        }
+
+        // Backtrack: allow other paths to use this cell.
+        visited[currRow][currCol] = false;
+
+        return min;
+    }
+}</code></pre>
+
+          <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">Why return <code>Integer.MAX_VALUE</code>?</h3>
+          <p class="leading-7 text-slate-300">It marks an unreachable destination. The algorithm avoids adding <code class="rounded bg-slate-800 px-1.5 py-0.5">1</code> to that value, which could cause integer overflow. If all possible neighbors lead to dead ends, <code class="rounded bg-slate-800 px-1.5 py-0.5">min</code> remains <code class="rounded bg-slate-800 px-1.5 py-0.5">Integer.MAX_VALUE</code>; the public method converts it to <code class="rounded bg-slate-800 px-1.5 py-0.5">-1</code>.</p>
+
+          <h3 class="mb-3 mt-6 text-lg font-semibold text-indigo-200">Backtracking dry run</h3>
+          <p class="mb-3 leading-7 text-slate-300">For Example 2, one possible route is <code class="text-indigo-200">(0,0) → (0,1) → (0,2)</code>:</p>
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full min-w-[32rem] text-left text-sm">
+              <thead class="bg-slate-800 text-indigo-200"><tr><th scope="col" class="px-4 py-3 font-semibold">Current cell</th><th scope="col" class="px-4 py-3 font-semibold">Action</th><th scope="col" class="px-4 py-3 font-semibold">Remaining distance</th></tr></thead>
+              <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                <tr><td class="px-4 py-3 font-mono">(0,2)</td><td class="px-4 py-3">Destination reached</td><td class="px-4 py-3">0</td></tr>
+                <tr><td class="px-4 py-3 font-mono">(0,1)</td><td class="px-4 py-3">Add one move to reach destination</td><td class="px-4 py-3">1</td></tr>
+                <tr><td class="px-4 py-3 font-mono">(0,0)</td><td class="px-4 py-3">Add one move to reach (0,1)</td><td class="px-4 py-3">2</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 leading-7 text-slate-300">DFS also explores other possible routes, such as going down from <code class="rounded bg-slate-800 px-1.5 py-0.5">(0,0)</code>. Backtracking compares valid path lengths and eventually returns <code class="rounded bg-slate-800 px-1.5 py-0.5">2</code>.</p>
+
+          <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">Complexity of backtracking</h3>
+          <ul class="list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-400">
+            <li><strong class="text-slate-100">Time:</strong> Exponential in the worst case because DFS may enumerate many simple paths. A loose upper bound is \(O(4^{MN})\).</li>
+            <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(MN)\) for the visited matrix and recursion stack.</li>
+          </ul>
+          <p class="mt-3 leading-7 text-slate-300">This approach is useful for learning recursion and backtracking, but can be inefficient because it explores paths longer than necessary.</p>
+        </section>
+
+        <section id="bfs" aria-labelledby="bfs-heading">
+          <h2 id="bfs-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">3</span>
+            Optimized approach — BFS
+          </h2>
+          <h3 class="mb-2 text-lg font-semibold text-indigo-200">Why do we need optimization?</h3>
+          <p class="leading-7 text-slate-300">Backtracking explores many possible paths, even after a shorter path might already exist. BFS avoids this unnecessary work by exploring cells in increasing order of distance:</p>
+          <ul class="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-400">
+            <li>Level 0: Source cell, distance <code class="rounded bg-slate-800 px-1.5 py-0.5">0</code>.</li>
+            <li>Level 1: All accessible neighbors, distance <code class="rounded bg-slate-800 px-1.5 py-0.5">1</code>.</li>
+            <li>Level 2: All newly reachable cells, distance <code class="rounded bg-slate-800 px-1.5 py-0.5">2</code>.</li>
+            <li>Continue until the destination is reached.</li>
+          </ul>
+          <p class="mt-3 leading-7 text-slate-300">Because every move costs exactly one step, the first time BFS reaches the destination, the shortest distance is guaranteed.</p>
+
+          <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">Algorithm steps</h3>
+          <ol class="list-decimal space-y-2 pl-6 leading-7 text-slate-300 marker:font-semibold marker:text-indigo-300">
+            <li>Create a <code class="rounded bg-slate-800 px-1.5 py-0.5">distance</code> matrix initialized to <code class="rounded bg-slate-800 px-1.5 py-0.5">-1</code>. It represents both visitation and distance.</li>
+            <li>Set the source distance to <code class="rounded bg-slate-800 px-1.5 py-0.5">0</code> and insert it into a queue.</li>
+            <li>Remove the next cell from the queue.</li>
+            <li>Check its four neighbors.</li>
+            <li>Ignore neighbors outside the grid, containing <code class="rounded bg-slate-800 px-1.5 py-0.5">0</code>, or already visited.</li>
+            <li>Assign each valid neighbor the current distance plus one and add it to the queue.</li>
+            <li>Return the destination distance when reached, or <code class="rounded bg-slate-800 px-1.5 py-0.5">-1</code> if the queue becomes empty.</li>
+          </ol>
+
+          <h3 class="mb-3 mt-6 text-lg font-semibold text-indigo-200">Java solution — BFS</h3>
+          <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-5 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public int FindShortestPath(
+            int[][] A, int B, int C, int D, int E) {
+
+        int m = A.length;
+        int n = A[0].length;
+
+        // -1 means the cell has not been visited.
+        int[][] distance = new int[m][n];
+
+        for (int i = 0; i &lt; m; i++) {
+            Arrays.fill(distance[i], -1);
+        }
+
+        // Queue stores each cell as {row, column}.
+        Queue&lt;int[]&gt; queue = new LinkedList&lt;&gt;();
+
+        // The source is zero moves away from itself.
+        distance[B][C] = 0;
+        queue.offer(new int[]{B, C});
+
+        // Up, right, down, left.
+        int[] rows = {-1, 0, 1, 0};
+        int[] cols = {0, 1, 0, -1};
+
+        while (!queue.isEmpty()) {
+
+            int[] current = queue.poll();
+
+            int r = current[0];
+            int c = current[1];
+
+            // BFS guarantees the shortest distance here.
+            if (r == D &amp;&amp; c == E) {
+                return distance[r][c];
+            }
+
+            // Explore all four neighboring cells.
+            for (int i = 0; i &lt; 4; i++) {
+
+                int newRow = r + rows[i];
+                int newCol = c + cols[i];
+
+                // Skip cells outside the matrix.
+                if (newRow &lt; 0 || newRow &gt;= m ||
+                    newCol &lt; 0 || newCol &gt;= n) {
+                    continue;
+                }
+
+                // Skip hurdles and previously visited cells.
+                if (A[newRow][newCol] == 0 ||
+                    distance[newRow][newCol] != -1) {
+                    continue;
+                }
+
+                // The neighbor requires one additional move.
+                distance[newRow][newCol] =
+                        distance[r][c] + 1;
+
+                // Explore this cell later.
+                queue.offer(new int[]{newRow, newCol});
+            }
+        }
+
+        // The destination is unreachable.
+        return -1;
+    }
+}</code></pre>
+
+          <h3 class="mb-3 mt-6 text-lg font-semibold text-indigo-200">Understanding the important lines</h3>
+          <div class="space-y-4">
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <h4 class="font-semibold text-slate-100">1. Why initialize distances to <code class="rounded bg-slate-900 px-1.5 py-0.5 text-indigo-200">-1</code>?</h4>
+              <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-200"><code>Arrays.fill(distance[i], -1);</code></pre>
+              <p class="mt-3 leading-7 text-slate-300">A distance of <code class="rounded bg-slate-900 px-1.5 py-0.5">-1</code> means the cell has not been visited. This distinguishes unvisited cells from the source, whose distance is <code class="rounded bg-slate-900 px-1.5 py-0.5">0</code>.</p>
+            </div>
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <h4 class="font-semibold text-slate-100">2. Why mark a cell when adding it to the queue?</h4>
+              <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-200"><code>distance[newRow][newCol] = distance[r][c] + 1;
+queue.offer(new int[]{newRow, newCol});</code></pre>
+              <p class="mt-3 leading-7 text-slate-300">Marking it immediately prevents the same cell from being added multiple times. BFS reaches a cell through its shortest path first.</p>
+            </div>
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <h4 class="font-semibold text-slate-100">3. Why return as soon as the destination is reached?</h4>
+              <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-200"><code>if (r == D &amp;&amp; c == E) {
+    return distance[r][c];
+}</code></pre>
+              <p class="mt-3 leading-7 text-slate-300">BFS processes cells in nondecreasing order of distance, so no later path can produce a shorter distance.</p>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="dry-run-heading">
+          <h2 id="dry-run-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">4</span>
+            Dry run of the optimized solution
+          </h2>
+          <p class="mb-4 leading-7 text-slate-300">Use Example 2:</p>
+          <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>A = [[1, 1, 1],
+     [1, 0, 1],
+     [1, 1, 1]]
+
+Source      = (0, 0)
+Destination = (0, 2)</code></pre>
+          <div class="mt-4 rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+            <p class="font-semibold text-indigo-200">Initially</p>
+            <ul class="mt-2 list-disc space-y-1 pl-6 leading-6 text-slate-300 marker:text-indigo-400">
+              <li><code class="rounded bg-slate-900 px-1.5 py-0.5">distance[0][0] = 0</code></li>
+              <li>Queue = <code class="rounded bg-slate-900 px-1.5 py-0.5">[(0,0)]</code></li>
+              <li>All other distances = <code class="rounded bg-slate-900 px-1.5 py-0.5">-1</code></li>
+            </ul>
+          </div>
+          <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full min-w-[38rem] text-left text-sm">
+              <thead class="bg-slate-800 text-indigo-200"><tr><th scope="col" class="px-4 py-3 font-semibold">Step</th><th scope="col" class="px-4 py-3 font-semibold">Cell removed</th><th scope="col" class="px-4 py-3 font-semibold">New cells added</th><th scope="col" class="px-4 py-3 font-semibold">Queue after processing</th></tr></thead>
+              <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3 font-mono">(0,0)</td><td class="px-4 py-3 font-mono">(0,1), (1,0)</td><td class="px-4 py-3 font-mono">(0,1), (1,0)</td></tr>
+                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3 font-mono">(0,1)</td><td class="px-4 py-3 font-mono">(0,2)</td><td class="px-4 py-3 font-mono">(1,0), (0,2)</td></tr>
+                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3 font-mono">(1,0)</td><td class="px-4 py-3 font-mono">(2,0)</td><td class="px-4 py-3 font-mono">(0,2), (2,0)</td></tr>
+                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3 font-mono">(0,2)</td><td class="px-4 py-3">Destination reached</td><td class="px-4 py-3">Return <code class="rounded bg-slate-800 px-1.5 py-0.5">2</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 leading-7 text-slate-300">The destination's distance is <code class="rounded bg-slate-800 px-1.5 py-0.5">2</code>, so the output is:</p>
+          <pre class="mt-3 inline-block rounded-lg border border-slate-700 bg-slate-950 px-5 py-3 text-sm text-slate-100"><code>2</code></pre>
+          <p class="mt-3 leading-7 text-slate-300">The blocked cell <code class="rounded bg-slate-800 px-1.5 py-0.5">(1,1)</code> is never added to the queue.</p>
+        </section>
+
+        <section id="comparison" aria-labelledby="comparison-heading">
+          <h2 id="comparison-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">5</span>
+            Complexity comparison
+          </h2>
+          <p class="mb-4 leading-7 text-slate-300">Let \(V = M \times N\), the total number of cells.</p>
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full min-w-[38rem] text-left text-sm">
+              <thead class="bg-slate-800 text-indigo-200"><tr><th scope="col" class="px-4 py-3 font-semibold">Property</th><th scope="col" class="px-4 py-3 font-semibold">DFS + Backtracking</th><th scope="col" class="px-4 py-3 font-semibold">BFS</th></tr></thead>
+              <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Strategy</th><td class="px-4 py-3">Explore all possible simple paths</td><td class="px-4 py-3">Explore by increasing distance</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Time complexity</th><td class="px-4 py-3">Exponential worst case</td><td class="px-4 py-3">\(O(MN)\)</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Auxiliary space</th><td class="px-4 py-3">\(O(MN)\)</td><td class="px-4 py-3">\(O(MN)\)</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Guarantees shortest path</th><td class="px-4 py-3">Yes, after exploring all paths</td><td class="px-4 py-3">Yes, when destination is first reached</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Recommended for this problem</th><td class="px-4 py-3">For learning backtracking</td><td class="px-4 py-3">For interviews and implementation</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 leading-7 text-slate-300">BFS processes every cell at most once and checks four neighbors per cell, giving \(O(MN)\) time. Both approaches require \(O(MN)\) auxiliary space in the worst case.</p>
+        </section>
+
+        <section aria-labelledby="edge-cases-heading">
+          <h2 id="edge-cases-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">6</span>
+            Edge cases
+          </h2>
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full min-w-[34rem] text-left text-sm">
+              <thead class="bg-slate-800 text-indigo-200"><tr><th scope="col" class="px-4 py-3 font-semibold">Scenario</th><th scope="col" class="px-4 py-3 font-semibold">Expected result</th></tr></thead>
+              <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Source equals destination</th><td class="px-4 py-3"><code class="rounded bg-slate-800 px-1.5 py-0.5">0</code></td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">No valid path exists</th><td class="px-4 py-3"><code class="rounded bg-slate-800 px-1.5 py-0.5">-1</code></td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Only one row or one column</th><td class="px-4 py-3">Correct shortest distance</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Multiple paths exist</th><td class="px-4 py-3">Minimum number of moves</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Source has no accessible neighbors</th><td class="px-4 py-3"><code class="rounded bg-slate-800 px-1.5 py-0.5">-1</code>, unless source equals destination</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Grid is entirely accessible</th><td class="px-4 py-3">BFS finds the shortest route</td></tr>
+                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Grid size is \(1 \times 1\)</th><td class="px-4 py-3"><code class="rounded bg-slate-800 px-1.5 py-0.5">0</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 leading-7 text-slate-300">The problem guarantees that both the source and destination contain <code class="rounded bg-slate-800 px-1.5 py-0.5">1</code>, so additional validation for blocked endpoints is unnecessary.</p>
+        </section>
+
+        <section aria-labelledby="similar-problems-heading">
+          <h2 id="similar-problems-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">7</span>
+            Similar LeetCode problems
+          </h2>
+          <p class="mb-4 leading-7 text-slate-300">These problems reinforce the same BFS, grid traversal, and shortest-path patterns.</p>
+          <ol class="list-decimal space-y-3 pl-6 leading-7 text-slate-300 marker:font-semibold marker:text-indigo-300">
+            <li><a href="https://leetcode.com/problems/shortest-path-in-binary-matrix/">1091. Shortest Path in Binary Matrix</a> — Medium. A closely related grid shortest-path problem, but diagonal movement is allowed and the answer counts cells.</li>
+            <li><a href="https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/">1926. Nearest Exit from Entrance in Maze</a> — Medium. Finds the shortest route through a maze using BFS.</li>
+            <li><a href="https://leetcode.com/problems/01-matrix/">542. 01 Matrix</a> — Medium. Practices finding minimum distances in a grid using BFS.</li>
+            <li><a href="https://leetcode.com/problems/rotting-oranges/">994. Rotting Oranges</a> — Medium. Uses BFS levels to calculate the minimum time for grid changes to spread.</li>
+            <li><a href="https://leetcode.com/problems/open-the-lock/">752. Open the Lock</a> — Medium. Uses BFS to find the minimum number of moves between states.</li>
+          </ol>
+        </section>
+
+        <section id="interview" aria-labelledby="interview-heading">
+          <h2 id="interview-heading" class="mb-5 flex items-center gap-3 text-2xl font-bold text-white">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-sm text-indigo-300">8</span>
+            Interview preparation notes
+          </h2>
+          <h3 class="mb-2 text-lg font-semibold text-indigo-200">Key concepts to remember</h3>
+          <ul class="list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-400">
+            <li><strong class="text-slate-100">DFS + Backtracking:</strong> Useful when all possible paths must be explored.</li>
+            <li><strong class="text-slate-100">BFS:</strong> Best suited to shortest paths in an unweighted graph or grid.</li>
+            <li><strong class="text-slate-100">Visited tracking:</strong> Prevents repeated exploration and cycles.</li>
+            <li><strong class="text-slate-100">Distance tracking:</strong> Counts moves from the source.</li>
+          </ul>
+
+          <h3 class="mb-2 mt-6 text-lg font-semibold text-indigo-200">Common mistakes</h3>
+          <ul class="list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-400">
+            <li>Forgetting to unmark a cell after recursive exploration in backtracking.</li>
+            <li>Returning the first path found by DFS as though it were the shortest.</li>
+            <li>Counting cells instead of moves.</li>
+            <li>Allowing diagonal movement.</li>
+            <li>Adding blocked or out-of-bounds cells to the queue.</li>
+          </ul>
+
+          <h3 class="mb-3 mt-6 text-lg font-semibold text-indigo-200">Possible interviewer follow-ups</h3>
+          <dl class="space-y-4">
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <dt class="font-semibold text-slate-100">Q1. Can backtracking solve the problem correctly?</dt>
+              <dd class="mt-2 leading-7 text-slate-300">Yes. It examines all possible simple paths and returns the minimum length, but it may take exponential time.</dd>
+            </div>
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <dt class="font-semibold text-slate-100">Q2. Why does BFS guarantee the shortest path?</dt>
+              <dd class="mt-2 leading-7 text-slate-300">Because it explores all cells at distance \(k\) before exploring cells at distance \(k+1\).</dd>
+            </div>
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <dt class="font-semibold text-slate-100">Q3. Can we use a visited matrix instead of a distance matrix in BFS?</dt>
+              <dd class="mt-2 leading-7 text-slate-300">Yes. Store the distance alongside each cell in the queue and use a separate visited matrix.</dd>
+            </div>
+            <div class="rounded-xl border border-slate-700 bg-slate-800/45 p-4">
+              <dt class="font-semibold text-slate-100">Q4. What if each move has a different cost?</dt>
+              <dd class="mt-2 leading-7 text-slate-300">Use Dijkstra's algorithm when edge costs are non-negative and may differ. Ordinary BFS is appropriate when all moves have equal cost.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section aria-labelledby="recommendation-heading" class="rounded-2xl border border-indigo-400/25 bg-indigo-500/10 p-5 sm:p-6">
+          <h2 id="recommendation-heading" class="mb-3 text-2xl font-bold text-white">9. Final recommendation</h2>
+          <p class="leading-7 text-slate-200">Keep both implementations in your learning notes, but prioritize BFS during interviews.</p>
+          <ul class="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-300 marker:text-indigo-300">
+            <li><strong class="text-slate-100">Backtracking:</strong> Helps you understand recursion, exploring paths, and undoing choices.</li>
+            <li><strong class="text-slate-100">BFS:</strong> Provides the efficient \(O(MN)\) solution for this shortest-path problem.</li>
+          </ul>
+          <p class="mt-4 border-t border-indigo-300/20 pt-4 font-medium leading-7 text-indigo-100">The most important intuition: when asked to find the shortest path in an unweighted grid, use BFS. When asked to find or print all possible paths, consider DFS with backtracking.</p>
+        </section>
+      </div>
+    </article>
+    <footer class="mx-auto mt-6 max-w-5xl px-2 text-center text-xs leading-5 text-slate-500">Shortest Path in a Binary Maze with Hurdles · Java</footer>
+  </main>
+</body>
+</html>
