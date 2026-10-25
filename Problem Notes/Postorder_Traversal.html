@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Postorder Traversal of a Binary Tree — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Postorder Traversal of a Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Given the root of a binary tree, return its node values in postorder:
+                    traverse the left subtree, then the right subtree, and visit the current node last.
+                    The iterative two-stack solution avoids depending on Java's recursion depth.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Left → Right → Root (LRN)
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding" aria-labelledby="problem-heading">
+                    <h2 id="problem-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        We are given the root node <code>A</code> of a binary tree. Return an
+                        <code>ArrayList&lt;Integer&gt;</code> containing the values of its nodes in postorder traversal.
+                    </p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li><strong class="text-slate-100">Left subtree:</strong> visit the left child first.</li>
+                        <li><strong class="text-slate-100">Right subtree:</strong> visit the right child next.</li>
+                        <li><strong class="text-slate-100">Node (root):</strong> visit the current node last.</li>
+                    </ol>
+                    <p class="mb-5 text-indigo-200">In short: Left → Right → Node (LRN).</p>
+
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example 1</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>1
+ \
+  2
+ /
+3</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">
+                            Node 2 is the right child of node 1, and node 3 is the left child of node 2.
+                            Postorder visits 3, then 2, and finally 1. Output:
+                            <code>[3, 2, 1]</code>.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example 2</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>       1
+      / \
+     6   2
+        /
+       3</code></pre>
+                        <ol class="mt-3 list-inside list-decimal space-y-1 text-sm text-slate-400">
+                            <li>Visit the left subtree: <code>6</code>.</li>
+                            <li>Visit the right subtree: <code>3</code>, then <code>2</code>.</li>
+                            <li>Visit the root: <code>1</code>.</li>
+                        </ol>
+                        <p class="mt-2 text-sm text-slate-300">Output: <code>[6, 3, 2, 1]</code>.</p>
+                    </div>
+
+                    <p class="mt-4 text-sm text-slate-400">
+                        The example explanations in the question say “Preorder,” but the shown outputs are for postorder traversal.
+                    </p>
+                </section>
+
+                <section id="recursive-approach" aria-labelledby="recursive-heading">
+                    <h2 id="recursive-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Basic Approach — Recursive Traversal</h2>
+                    <p class="mb-4">
+                        Recursion follows the definition directly, so there is no need to store and rearrange a complete traversal.
+                        For every node, traverse its left subtree, traverse its right subtree, and then add the node's value.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the current node is <code>null</code>, stop.</li>
+                        <li>Recursively traverse the left subtree.</li>
+                        <li>Recursively traverse the right subtree.</li>
+                        <li>Add the current node's value to the result list.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code — Recursive solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+
+/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; postorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Start traversal from the root.
+        postorder(A, result);
+
+        return result;
+    }
+
+    private void postorder(TreeNode node, ArrayList&lt;Integer&gt; result) {
+        // Base case: there is no node to visit.
+        if (node == null) {
+            return;
+        }
+
+        // Visit the left subtree first.
+        postorder(node.left, result);
+
+        // Visit the right subtree next.
+        postorder(node.right, result);
+
+        // Add the current node only after both subtrees.
+        result.add(node.val);
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Recursive dry run</h3>
+                    <p class="mb-3">For Example 2, the traversal builds the result as follows:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">Visit node <code>6</code>.</td><td class="px-4 py-3"><code>[6]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">Visit node <code>3</code>.</td><td class="px-4 py-3"><code>[6, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">Visit node <code>2</code>.</td><td class="px-4 py-3"><code>[6, 3, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">Visit root <code>1</code>.</td><td class="px-4 py-3"><code>[6, 3, 2, 1]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 text-slate-300">Final answer: <code>[6, 3, 2, 1]</code>.</p>
+
+                    <h3 class="mb-2 mt-6 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\), because every node is visited exactly once.</li>
+                        <li>Auxiliary space: \(O(H)\) for the recursion call stack, where \(H\) is the tree height; in the worst case, \(O(N)\).</li>
+                        <li>Output space: \(O(N)\) for the result list.</li>
+                    </ul>
+                    <div class="mt-4 rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Recursion-depth limitation:</strong>
+                        With up to \(10^5\) nodes, a highly skewed tree can cause a Java <code>StackOverflowError</code>.
+                        An iterative solution avoids relying on the call stack.
+                    </div>
+                </section>
+
+                <section id="iterative-approach" aria-labelledby="iterative-heading">
+                    <h2 id="iterative-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Recommended Approach — Iterative Traversal Using Two Stacks</h2>
+                    <p class="mb-4">
+                        Use one stack to process nodes and another to collect them in reverse postorder.
+                        Popping the second stack restores the required order.
+                    </p>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <p><strong class="text-indigo-100">Required postorder:</strong> Left → Right → Root</p>
+                        <p><strong class="text-indigo-100">Order collected first:</strong> Root → Right → Left</p>
+                        <p><strong class="text-indigo-100">Popping the second stack:</strong> Left → Right → Root</p>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the root is <code>null</code>, return an empty list.</li>
+                        <li>Push the root into the first stack.</li>
+                        <li>Pop a node from the first stack and push it into the second stack.</li>
+                        <li>Push its left child, if present, and then its right child into the first stack.</li>
+                        <li>Repeat until the first stack is empty.</li>
+                        <li>Pop every node from the second stack and append its value to the result.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code — Iterative two-stack solution</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.Stack;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; postorderTraversal(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // An empty tree has an empty postorder traversal.
+        if (A == null) {
+            return result;
+        }
+
+        Stack&lt;TreeNode&gt; first = new Stack&lt;&gt;();
+        Stack&lt;TreeNode&gt; second = new Stack&lt;&gt;();
+
+        // Begin processing at the root.
+        first.push(A);
+
+        while (!first.isEmpty()) {
+            // Store the node so the second stack can reverse the order.
+            TreeNode node = first.pop();
+            second.push(node);
+
+            // Push left first and right second; the right child is popped first.
+            if (node.left != null) {
+                first.push(node.left);
+            }
+
+            if (node.right != null) {
+                first.push(node.right);
+            }
+        }
+
+        // Popping the second stack produces Left, Right, Root order.
+        while (!second.isEmpty()) {
+            result.add(second.pop().val);
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <p class="mt-4 text-slate-300">
+                        The first stack is last-in, first-out. Because the right child is pushed last, it is popped first.
+                        This builds <code>Root → Right → Left</code> in the second stack; popping that stack reverses the
+                        order to the required <code>Left → Right → Root</code>.
+                    </p>
+                </section>
+
+                <section id="iterative-dry-run" aria-labelledby="dry-run-heading">
+                    <h2 id="dry-run-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">For Example 2, the stacks change as follows. The rightmost item shown is the top of each stack.</p>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <pre class="overflow-x-auto bg-transparent text-center text-base text-slate-200"><code>       1
+      / \
+     6   2
+        /
+       3</code></pre>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Operation</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">First stack</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Second stack</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">Push root <code>1</code>.</td><td class="px-4 py-3"><code>[1]</code></td><td class="px-4 py-3"><code>[]</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">Pop <code>1</code>; push it to second, then push <code>6</code> and <code>2</code>.</td><td class="px-4 py-3"><code>[6, 2]</code></td><td class="px-4 py-3"><code>[1]</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">Pop <code>2</code>; push it to second, then push <code>3</code>.</td><td class="px-4 py-3"><code>[6, 3]</code></td><td class="px-4 py-3"><code>[1, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">Pop <code>3</code> and push it to second.</td><td class="px-4 py-3"><code>[6]</code></td><td class="px-4 py-3"><code>[1, 2, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">Pop <code>6</code> and push it to second.</td><td class="px-4 py-3"><code>[]</code></td><td class="px-4 py-3"><code>[1, 2, 3, 6]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3 mt-5">Now pop the second stack to build the result:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Popped value</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result list</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3"><code>6</code></td><td class="px-4 py-3"><code>[6]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>[6, 3]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>[6, 3, 2]</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>[6, 3, 2, 1]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 text-slate-300">Final output: <code>[6, 3, 2, 1]</code>.</p>
+                </section>
+
+                <section id="complexity-comparison" aria-labelledby="comparison-heading">
+                    <h2 id="comparison-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis and Comparison</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) be the height of the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Main concern</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Recursive</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\)</td><td class="px-4 py-3">Deep recursion may overflow.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Iterative, two stacks</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">Requires two stacks.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Iterative, one stack</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\)</td><td class="px-4 py-3">Slightly more complex logic.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4">
+                        Both recursive and iterative two-stack solutions visit every node a constant number of times,
+                        so both take \(O(N)\) time. The iterative two-stack method can use \(O(N)\) auxiliary space in
+                        the worst case. The result list also requires \(O(N)\) output space, separate from auxiliary space.
+                    </p>
+                </section>
+
+                <section id="edge-cases" aria-labelledby="edge-cases-heading">
+                    <h2 id="edge-cases-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Single node: <code>5</code></th><td class="px-4 py-3"><code>[5]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Left-skewed tree: <code>1 → 2 → 3</code></th><td class="px-4 py-3"><code>[3, 2, 1]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Right-skewed tree: <code>1 → 2 → 3</code></th><td class="px-4 py-3"><code>[3, 2, 1]</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Complete binary tree</th><td class="px-4 py-3">Visit each left subtree, then each right subtree, then its parent.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Duplicate values</th><td class="px-4 py-3">Include every node, even when values repeat.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Node value <code>0</code></th><td class="px-4 py-3">Process it normally.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Up to \(10^5\) nodes</th><td class="px-4 py-3">Use the iterative approach to avoid recursive stack overflow.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Empty root (<code>null</code>)</th><td class="px-4 py-3">Return <code>[]</code>, although the stated constraints require at least one node.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems" aria-labelledby="similar-heading">
+                    <h2 id="similar-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">
+                        These problems provide practice with postorder and related binary-tree traversal patterns.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">145. Binary Tree Postorder Traversal — Easy</h3>
+                            <p class="mb-2 text-sm text-slate-400">Direct practice of postorder, including iterative traversal.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-postorder-traversal/?utm_source=chatgpt.com">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">94. Binary Tree Inorder Traversal — Easy</h3>
+                            <p class="mb-2 text-sm text-slate-400">Practice the same tree structure with Left → Root → Right order.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-inorder-traversal/?utm_source=chatgpt.com">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">144. Binary Tree Preorder Traversal — Easy</h3>
+                            <p class="mb-2 text-sm text-slate-400">Learn how moving the node visit changes the traversal order.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-preorder-traversal/?utm_source=chatgpt.com">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">102. Binary Tree Level Order Traversal — Medium</h3>
+                            <p class="mb-2 text-sm text-slate-400">Practice breadth-first traversal with a queue instead of depth-first traversal with stacks.</p>
+                            <a href="https://leetcode.com/problems/binary-tree-level-order-traversal/?utm_source=chatgpt.com">Solve on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">590. N-ary Tree Postorder Traversal — Easy</h3>
+                            <p class="mb-2 text-sm text-slate-400">Apply postorder when a node can have multiple children rather than just two.</p>
+                            <a href="https://leetcode.com/problems/n-ary-tree-postorder-traversal/?utm_source=chatgpt.com">Solve on LeetCode</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section id="interview-notes" aria-labelledby="interview-heading">
+                    <h2 id="interview-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-4">All three binary-tree depth-first traversals visit every node once. The difference is when we process the root node.</p>
+                    <div class="mb-6 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Traversal</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Order</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Memory trick</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Preorder</th><td class="px-4 py-3">Root → Left → Right</td><td class="px-4 py-3">Root first.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Inorder</th><td class="px-4 py-3">Left → Root → Right</td><td class="px-4 py-3">Root in the middle.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Postorder</th><td class="px-4 py-3">Left → Right → Root</td><td class="px-4 py-3">Root last.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-6 list-inside list-decimal space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Adding the node too early:</strong> In recursive postorder, <code>result.add(node.val)</code> must come after both recursive calls.</li>
+                        <li><strong class="text-slate-100">Confusing preorder with postorder:</strong> Remember <code>LRN</code> for postorder.</li>
+                        <li><strong class="text-slate-100">Pushing children in the wrong order:</strong> In the two-stack solution, push left first and right second to build the reversed traversal.</li>
+                        <li><strong class="text-slate-100">Ignoring recursion depth:</strong> For a tree with up to \(10^5\) nodes, prefer an iterative solution when stack overflow is a concern.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interview follow-up questions</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <p class="font-semibold text-slate-100">Why is postorder traversal called Left-Right-Root?</p>
+                            <p>Because we completely process both child subtrees before processing the parent node.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Where is postorder traversal useful?</p>
+                            <p>Deleting a tree, evaluating expression trees, and processing child dependencies before their parent.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Can we solve this using one stack?</p>
+                            <p>Yes. Track the previously visited node to determine whether the right subtree has already been processed. This saves the second stack but requires more careful logic.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">What is the difference between DFS and BFS?</p>
+                            <p>Depth-first search explores a branch deeply before moving to another branch. Breadth-first search explores nodes level by level.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="recommendation" aria-labelledby="recommendation-heading">
+                    <h2 id="recommendation-heading" class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        For interview preparation, understand the recursive approach first because its logic is simple.
+                        Then learn the iterative two-stack approach to handle very deep trees safely.
+                    </p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Recommended implementation: iterative two-stack solution.</li>
+                        <li>Time complexity: \(O(N)\).</li>
+                        <li>Auxiliary space: \(O(N)\) in the worst case.</li>
+                        <li>Output space: \(O(N)\).</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Remember:</strong>
+                        Postorder means children first, parent last — Left → Right → Root (LRN).
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
