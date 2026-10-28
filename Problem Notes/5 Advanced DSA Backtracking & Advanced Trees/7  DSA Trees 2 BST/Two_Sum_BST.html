@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Two Sum in a BST — Java Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Two Sum in a Binary Search Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Find two different nodes whose values add up to the target <code>B</code>.
+                    The BST property supports a two-iterator solution, while a HashSet offers a simple linear-time approach.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended approach:</strong>
+                    Use a HashSet for an easy-to-explain \(O(N)\)-time solution, or two BST iterators for \(O(N)\) time and \(O(H)\) auxiliary space.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>A</code>: the root of a Binary Search Tree.</li>
+                        <li><code>B</code>: the target sum.</li>
+                    </ul>
+                    <p class="mb-4">Check whether two different nodes have values that add up to <code>B</code>. Return <code>1</code> if a pair exists, and <code>0</code> otherwise.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Pair found</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>    10
+   /  \
+  9    20</code></pre>
+                            <p class="mt-3 text-slate-300">For target <code>B = 19</code>, the values <code>10</code> and <code>9</code> belong to different nodes and sum to <code>19</code>.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>1</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — No pair</h3>
+                            <p class="mb-3 text-slate-300">Using the same tree with target <code>B = 40</code>, the possible pair sums are <code>10 + 9 = 19</code>, <code>10 + 20 = 30</code>, and <code>9 + 20 = 29</code>. None equals <code>40</code>.</p>
+                            <p class="font-semibold text-indigo-200">Output: <code>0</code></p>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-3 mt-6 text-xl font-semibold text-slate-100">Important Conditions</h3>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li>The tree can contain up to \(100{,}000\) nodes, so an \(O(N^2)\) solution may be too slow.</li>
+                        <li>Node values are positive integers.</li>
+                        <li>The same node cannot be used twice. A single node with value <code>10</code> cannot satisfy a target of <code>20</code>.</li>
+                        <li>Depending on the BST's duplicate-value convention, equal values may exist in different nodes. Two distinct nodes with equal values can form a valid pair.</li>
+                    </ul>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach — Store Values and Check Every Pair</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">Collect every node's value into a list, then check all possible pairs. For <code>[9, 10, 20]</code>, check <code>9 + 10</code>, <code>9 + 20</code>, and <code>10 + 20</code>. Return <code>1</code> if any pair equals <code>B</code>; otherwise, return <code>0</code>.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Java Solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    private void inorder(TreeNode root, List&lt;Integer&gt; values) {
+        if (root == null) {
+            return;
+        }
+
+        // Store every node's value in sorted order.
+        inorder(root.left, values);
+        values.add(root.val);
+        inorder(root.right, values);
+    }
+
+    public int t2Sum(TreeNode A, int B) {
+        List&lt;Integer&gt; values = new ArrayList&lt;&gt;();
+
+        // Collect all values from the BST.
+        inorder(A, values);
+
+        // Check every pair of different positions.
+        for (int i = 0; i &lt; values.size(); i++) {
+            for (int j = i + 1; j &lt; values.size(); j++) {
+                if (values.get(i) + values.get(j) == B) {
+                    return 1;
+                }
+            }
+        }
+
+        return 0;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Dry Run</h3>
+                    <p class="mb-3 text-slate-300">For <code>values = [9, 10, 20]</code> and <code>B = 19</code>:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">i</th><th scope="col" class="p-3">j</th><th scope="col" class="p-3">Pair sum</th><th scope="col" class="p-3">Result</th></tr></thead>
+                            <tbody><tr class="border-t border-slate-700"><td class="p-3">0</td><td class="p-3">1</td><td class="p-3">9 + 10 = 19</td><td class="p-3 text-indigo-200">Found; return 1</td></tr></tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-3 mt-5 text-xl font-semibold text-slate-100">Complexity</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N^2)\) for checking pairs, plus \(O(N)\) traversal; overall \(O(N^2)\).</li>
+                        <li>Auxiliary space: \(O(N)\) for stored values and the recursion stack.</li>
+                    </ul>
+                    <p class="mt-3 rounded-lg border border-amber-800 bg-amber-950/50 p-3 text-amber-200">Limitation: Checking every pair is too expensive for a tree containing up to \(100{,}000\) nodes.</p>
+                </section>
+
+                <section id="hashset">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach 1 — HashSet</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">For a current node with value <code>x</code>, calculate the value needed to complete the target:</p>
+                    <p class="mb-4 rounded-lg bg-slate-900 p-4 text-center text-lg text-indigo-200">\[\text{required} = B - x\]</p>
+                    <p class="mb-4">If <code>required</code> has already been visited, the pair is found. For <code>B = 19</code>, visiting <code>10</code> requires <code>9</code>, so store <code>10</code>. When <code>9</code> is visited, its required value is <code>10</code>, which is already in the set.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Create a <code>HashSet&lt;Integer&gt;</code> to store visited node values.</li>
+                        <li>Traverse the tree.</li>
+                        <li>For each node, calculate <code>B - node.val</code>.</li>
+                        <li>If the required value is in the set, return <code>1</code>.</li>
+                        <li>Otherwise, add the current value and continue.</li>
+                        <li>If traversal finishes without a pair, return <code>0</code>.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Java Solution — Recommended</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.HashSet;
+import java.util.Set;
+
+public class Solution {
+
+    private boolean findPair(
+            TreeNode root, int B, Set&lt;Integer&gt; seen) {
+
+        // An empty subtree cannot contain a pair.
+        if (root == null) {
+            return false;
+        }
+
+        // Find the value needed to reach the target.
+        int required = B - root.val;
+
+        // Check before inserting so this node cannot match itself.
+        if (seen.contains(required)) {
+            return true;
+        }
+
+        // Remember this value for the nodes visited afterward.
+        seen.add(root.val);
+
+        // Search both subtrees.
+        return findPair(root.left, B, seen)
+                || findPair(root.right, B, seen);
+    }
+
+    public int t2Sum(TreeNode A, int B) {
+        Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+
+        return findPair(A, B, seen) ? 1 : 0;
+    }
+}</code></pre>
+                    <p class="mb-5 text-slate-300">This preserves the required InterviewBit method signature: <code>public int t2Sum(TreeNode A, int B)</code>.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Why Check Before Inserting?</h3>
+                    <p class="mb-4">If the tree contains only one node with value <code>10</code> and <code>B = 20</code>, inserting first and then checking would let that node match itself. Checking first ensures that a match must come from a previously visited node.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Dry Run</h3>
+                    <p class="mb-3 text-slate-300">Tree values: <code>10</code>, <code>9</code>, <code>20</code>; target <code>B = 19</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Current node</th><th scope="col" class="p-3">Required value</th><th scope="col" class="p-3">Set before check</th><th scope="col" class="p-3">Action</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t border-slate-700"><td class="p-3">10</td><td class="p-3">9</td><td class="p-3">{}</td><td class="p-3">Not found; add 10</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">9</td><td class="p-3">10</td><td class="p-3">{10}</td><td class="p-3 text-indigo-200">Found; return 1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-3 mt-5 text-xl font-semibold text-slate-100">Complexity Analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\) average, since each node is visited at most once and HashSet operations take \(O(1)\) average time.</li>
+                        <li>Auxiliary space: \(O(N)\) for the HashSet and up to \(O(H)\) for recursion; overall \(O(N)\).</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300">A highly skewed tree can cause deep recursion. An iterative traversal avoids that recursion-stack risk.</p>
+                </section>
+
+                <section id="two-iterators">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Optimized Approach 2 — Two-Pointer BST Traversal</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">An inorder traversal of a BST produces ascending values. For the example tree, that sequence is <code>[9, 10, 20]</code>. A sorted sequence can be searched with two pointers: start at the smallest and largest values, move the smaller pointer forward when the sum is too small, and move the larger pointer backward when the sum is too large.</p>
+                    <p class="mb-4">Two stack-based BST iterators implement these pointers without storing every node in an array.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Create an ascending iterator using inorder traversal.</li>
+                        <li>Create a descending iterator using reverse inorder traversal.</li>
+                        <li>Get the smallest and largest nodes.</li>
+                        <li>While the iterators refer to different nodes, calculate their sum. Return <code>1</code> if it equals <code>B</code>.</li>
+                        <li>Advance the ascending iterator if the sum is too small; advance the descending iterator if it is too large.</li>
+                        <li>Return <code>0</code> when the iterators meet or cross without finding a pair.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Java Solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayDeque;
+import java.util.Deque;
+
+public class Solution {
+
+    // Iterates through BST nodes in ascending or descending order.
+    private static class BSTIterator {
+        private final Deque&lt;TreeNode&gt; stack = new ArrayDeque&lt;&gt;();
+        private final boolean ascending;
+
+        BSTIterator(TreeNode root, boolean ascending) {
+            this.ascending = ascending;
+            pushPath(root);
+        }
+
+        // Store the path to the next smallest or largest node.
+        private void pushPath(TreeNode node) {
+            while (node != null) {
+                stack.push(node);
+                node = ascending ? node.left : node.right;
+            }
+        }
+
+        // Return the next node in the chosen order.
+        TreeNode next() {
+            if (stack.isEmpty()) {
+                return null;
+            }
+
+            TreeNode node = stack.pop();
+
+            // After visiting a node, explore its opposite subtree.
+            if (ascending) {
+                pushPath(node.right);
+            } else {
+                pushPath(node.left);
+            }
+
+            return node;
+        }
+    }
+
+    public int t2Sum(TreeNode A, int B) {
+
+        // Start one iterator at the smallest value.
+        BSTIterator leftIterator = new BSTIterator(A, true);
+
+        // Start the other iterator at the largest value.
+        BSTIterator rightIterator = new BSTIterator(A, false);
+
+        TreeNode left = leftIterator.next();
+        TreeNode right = rightIterator.next();
+
+        // Node identity ensures the same node is never used twice.
+        while (left != null &amp;&amp; right != null &amp;&amp; left != right) {
+            long sum = (long) left.val + right.val;
+
+            if (sum == B) {
+                return 1;
+            } else if (sum &lt; B) {
+                // The sum needs a larger value.
+                left = leftIterator.next();
+            } else {
+                // The sum needs a smaller value.
+                right = rightIterator.next();
+            }
+        }
+
+        return 0;
+    }
+}</code></pre>
+                    <p class="mb-5 text-slate-300">Compare node references with <code>left != right</code>, not their values. Distinct nodes may have equal values. The <code>long</code> sum also avoids integer overflow if node value limits are expanded.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Dry Run</h3>
+                    <p class="mb-3 text-slate-300">For <code>B = 19</code>:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Left node</th><th scope="col" class="p-3">Right node</th><th scope="col" class="p-3">Sum</th><th scope="col" class="p-3">Action</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t border-slate-700"><td class="p-3">9</td><td class="p-3">20</td><td class="p-3">29</td><td class="p-3">Too large; move right backward</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">9</td><td class="p-3">10</td><td class="p-3">19</td><td class="p-3 text-indigo-200">Pair found; output 1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4 mt-4 text-slate-300">For <code>B = 40</code>, the largest possible pair is <code>10 + 20 = 30</code>, so the iterators eventually meet without finding a pair. Output: <code>0</code>.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Complexity Analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\). Each iterator pushes and pops each node at most once.</li>
+                        <li>Auxiliary space: \(O(H)\) for the iterator stacks; \(O(\log N)\) for a balanced BST and \(O(N)\) for a skewed BST.</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300">This method uses less memory than storing all node values in an array when the BST is balanced.</p>
+                </section>
+
+                <section id="comparison">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Comparison of All Approaches</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Approach</th><th scope="col" class="p-3">Time</th><th scope="col" class="p-3">Auxiliary Space</th><th scope="col" class="p-3">Main Idea</th></tr></thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-t border-slate-700"><td class="p-3">Store values + check pairs</td><td class="p-3">\(O(N^2)\)</td><td class="p-3">\(O(N)\)</td><td class="p-3">Try every pair</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">HashSet</td><td class="p-3">\(O(N)\) average</td><td class="p-3">\(O(N)\)</td><td class="p-3">Search for the complement</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Two BST iterators</td><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(H)\)</td><td class="p-3">Two pointers using BST order</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-3 mt-5 text-xl font-semibold text-slate-100">Which Should You Choose?</h3>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li>For a straightforward, efficient solution, use the HashSet approach.</li>
+                        <li>To demonstrate deeper understanding of BST properties and reduce auxiliary space for balanced trees, use two BST iterators.</li>
+                        <li>Avoid brute force for the maximum constraint of \(100{,}000\) nodes.</li>
+                    </ul>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Case</th><th scope="col" class="p-3">Example</th><th scope="col" class="p-3">Expected Result</th></tr></thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-t border-slate-700"><td class="p-3">Pair includes the root</td><td class="p-3"><code>10, 9</code>; target <code>19</code></td><td class="p-3"><code>1</code></td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">No valid pair</td><td class="p-3"><code>10, 9, 20</code>; target <code>40</code></td><td class="p-3"><code>0</code></td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Single node cannot pair with itself</td><td class="p-3"><code>10</code>; target <code>20</code></td><td class="p-3"><code>0</code></td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Two nodes have equal values</td><td class="p-3"><code>5, 5</code>; target <code>10</code></td><td class="p-3"><code>1</code> if both nodes exist</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Minimum target</td><td class="p-3">Positive node values; target <code>1</code></td><td class="p-3"><code>0</code></td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Highly skewed tree</td><td class="p-3">A chain of nodes</td><td class="p-3">Correct result; recursion depth may be large in the recursive solution</td></tr>
+                                <tr class="border-t border-slate-700"><td class="p-3">Maximum tree size</td><td class="p-3">\(N = 100000\)</td><td class="p-3">Prefer an \(O(N)\) approach</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">For the HashSet solution, check for the complement before inserting the current value. This guarantees that a single node is never used twice.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-5 text-slate-300">These problems reinforce the same HashSet, two-pointer, and BST traversal concepts.</p>
+                    <ol class="list-inside list-decimal space-y-4 text-slate-300">
+                        <li>
+                            <strong class="text-slate-100">Two Sum IV — Input is a BST</strong> <span class="text-slate-400">· LeetCode 653 · Easy</span>
+                            <p class="ml-6">The closest match: find two nodes in a BST that sum to a target. <a href="https://leetcode.com/problems/two-sum-iv-input-is-a-bst/">Solve on LeetCode</a>.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Two Sum II — Input Array Is Sorted</strong> <span class="text-slate-400">· LeetCode 167 · Medium</span>
+                            <p class="ml-6">Builds the two-pointer technique used by the BST iterator approach. <a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/">Solve on LeetCode</a>.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Binary Search Tree Iterator</strong> <span class="text-slate-400">· LeetCode 173 · Medium</span>
+                            <p class="ml-6">Covers stack-based sorted traversal without storing all values. <a href="https://leetcode.com/problems/binary-search-tree-iterator/">Solve on LeetCode</a>.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Two Sum</strong> <span class="text-slate-400">· LeetCode 1 · Easy</span>
+                            <p class="ml-6">Practices complement lookup using a HashSet or HashMap. <a href="https://leetcode.com/problems/two-sum/">Solve on LeetCode</a>.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Kth Smallest Element in a BST</strong> <span class="text-slate-400">· LeetCode 230 · Medium</span>
+                            <p class="ml-6">Reinforces inorder traversal and the sorted order of a BST. <a href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/">Solve on LeetCode</a>.</p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Key Concepts to Remember</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Complement: For a current value <code>x</code>, search for <code>B - x</code>.</li>
+                        <li>HashSet: Provides average \(O(1)\) membership lookup.</li>
+                        <li>BST property: Inorder traversal returns values in ascending order.</li>
+                        <li>Two pointers: Increase the smaller value when the sum is too small; decrease the larger value when the sum is too large.</li>
+                    </ul>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Common Mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Using one node twice: Ensure the matching node is different from the current node.</li>
+                        <li>Returning a boolean instead of an integer: The platform expects <code>1</code> or <code>0</code>.</li>
+                        <li>Using nested loops for large inputs: This takes \(O(N^2)\) time.</li>
+                        <li>Comparing node values instead of node identity in the iterator approach: Distinct nodes can have equal values.</li>
+                        <li>Ignoring recursion depth: A highly skewed tree can cause a <code>StackOverflowError</code> in recursive traversal.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Likely Interviewer Follow-up Questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q1. Can we solve it without a HashSet?</h4>
+                            <p class="text-slate-300">Yes. Use ascending and descending BST iterators with two stacks. This requires \(O(H)\) auxiliary space.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q2. Why does the two-pointer method work?</h4>
+                            <p class="text-slate-300">The BST iterators generate values in sorted order. If the sum is too small, advancing the smallest pointer is the useful direction; if it is too large, moving the largest pointer backward is the useful direction.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q3. What if duplicate values are present?</h4>
+                            <p class="text-slate-300">Two different nodes can form a valid pair even if their values are equal. The HashSet solution works when the second occurrence is encountered, because the first occurrence has already been inserted.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q4. What is the best approach for a balanced BST?</h4>
+                            <p class="text-slate-300">Both optimized approaches take \(O(N)\) time. The iterator approach uses \(O(\log N)\) auxiliary space for a balanced BST, while the HashSet approach uses \(O(N)\).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">For an InterviewBit submission, start with the HashSet approach because it is easy to explain, concise, and efficient for up to \(100{,}000\) nodes.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\) average.</li>
+                        <li>Auxiliary space: \(O(N)\).</li>
+                        <li>Core intuition: For every node, check whether <code>B - node.val</code> has already been visited.</li>
+                    </ul>
+                    <blockquote class="rounded-xl border-l-4 border-indigo-400 bg-slate-900 p-4 text-indigo-100">
+                        Two Sum = current value + required complement. Store previously visited values so you do not need to check every pair.
+                    </blockquote>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
