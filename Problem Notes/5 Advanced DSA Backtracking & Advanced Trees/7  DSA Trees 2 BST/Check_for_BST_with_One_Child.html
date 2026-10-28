@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Check for BST with One Child — Java Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Check for BST with One Child</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Given an integer array representing a preorder traversal, determine whether it can describe a Binary Search Tree (BST) where every internal node has exactly one child.
+                    This guide compares a brute-force construction, a tempting but incorrect boundary check, and the recommended range-based validation.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Key idea:</strong>
+                    Each value in preorder must respect the valid range established by earlier values. Tracking those boundaries correctly gives an \(O(N)\) time, \(O(1)\) auxiliary-space solution.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given an integer array <code>A</code> representing the preorder traversal of a binary tree. Determine whether it is possible for this array to represent the preorder traversal of a BST where every internal node has exactly one child.</p>
+                    <p class="mb-3">A BST follows these rules:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Values in the left subtree are smaller than the parent.</li>
+                        <li>Values in the right subtree are greater than the parent.</li>
+                        <li>Every non-leaf node has exactly one child.</li>
+                    </ul>
+                    <p class="mb-5 text-slate-300">Preorder traversal visits nodes in this order: Root → Left → Right.</p>
+                    <p class="mb-5">Return <code>"YES"</code> if such a BST is possible; otherwise, return <code>"NO"</code>.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Valid</h3>
+                            <p class="mb-3 text-slate-300">Input: <code>A = [4, 10, 5, 8]</code></p>
+                            <p class="mb-2 text-slate-300">One possible BST:</p>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>4
+ \
+  10
+  /
+ 5
+  \
+   8</code></pre>
+                            <p class="mt-3 text-slate-300">Preorder: <code>4 → 10 → 5 → 8</code>.</p>
+                            <ul class="mt-2 list-inside list-disc space-y-1 text-slate-300">
+                                <li><code>10 &gt; 4</code>, so <code>10</code> is the right child of <code>4</code>.</li>
+                                <li><code>5 &lt; 10</code>, so <code>5</code> is the left child of <code>10</code>.</li>
+                                <li><code>8 &gt; 5</code>, so <code>8</code> is the right child of <code>5</code>.</li>
+                            </ul>
+                            <p class="mt-3 text-slate-300">Every internal node has one child, and the BST ordering is valid.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>"YES"</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — Invalid</h3>
+                            <p class="mb-3 text-slate-300">Input: <code>A = [1, 5, 6, 4]</code></p>
+                            <p class="text-slate-300">After moving right from <code>1</code> through <code>5</code> and then right again to <code>6</code>, the value <code>4</code> is less than <code>5</code>, violating the boundary established when entering <code>5</code>'s right subtree.</p>
+                            <p class="mt-3 font-semibold text-indigo-200">Output: <code>"NO"</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">A straightforward approach is to construct a BST by inserting the array elements in order, then check whether any node has both a left and a right child.</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Insert each element into a BST.</li>
+                        <li>Traverse the tree.</li>
+                        <li>If any node has two children, return <code>"NO"</code>.</li>
+                        <li>Otherwise, return <code>"YES"</code>.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java Implementation</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+
+    static class Node {
+        int val;
+        Node left, right;
+
+        Node(int val) {
+            this.val = val;
+        }
+    }
+
+    private Node insert(Node root, int val) {
+        if (root == null) {
+            return new Node(val);
+        }
+
+        if (val &lt; root.val) {
+            root.left = insert(root.left, val);
+        } else if (val &gt; root.val) {
+            root.right = insert(root.right, val);
+        }
+
+        return root;
+    }
+
+    private boolean checkOneChild(Node root) {
+        if (root == null) {
+            return true;
+        }
+
+        // A node with two children violates the required condition.
+        if (root.left != null &amp;&amp; root.right != null) {
+            return false;
+        }
+
+        // Check the remaining child subtree or subtrees.
+        return checkOneChild(root.left)
+            &amp;&amp; checkOneChild(root.right);
+    }
+
+    public String solve(int[] A) {
+        Node root = null;
+
+        // Insert elements in their given order.
+        for (int val : A) {
+            root = insert(root, val);
+        }
+
+        // Accept only if every internal node has at most one child.
+        return checkOneChild(root) ? "YES" : "NO";
+    }
+}</code></pre>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Complexity</h3>
+                        <ul class="list-inside list-disc space-y-1 text-slate-300">
+                            <li>Time: \(O(N^2)\) in the worst case, due to repeated insertion into a skewed BST.</li>
+                            <li>Auxiliary space: \(O(N)\) for the constructed tree, plus recursion stack space.</li>
+                        </ul>
+                    </div>
+                    <p class="mt-4 text-slate-300">This approach works conceptually, but it performs unnecessary work. The preorder can be validated directly in \(O(N)\) time.</p>
+                </section>
+
+                <section id="last-element-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach 1 — Last-Element Boundary</h2>
+                    <p class="mb-4">This approach uses the last element as a boundary and compares each adjacent pair against it.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>If <code>A[i] &lt; A[i + 1]</code>, check whether <code>A[i] &gt; last</code>.</li>
+                        <li>Otherwise, check whether <code>A[i] &lt; last</code>.</li>
+                        <li>If either condition is violated, return <code>"NO"</code>.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java Implementation</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    public String solve(int[] A) {
+        int n = A.length;
+
+        // The last value acts as the final BST boundary.
+        int last = A[n - 1];
+
+        // Check each adjacent pair against the boundary.
+        for (int i = 0; i &lt; n - 1; i++) {
+            if (A[i] &lt; A[i + 1]) {
+                // An increasing pair requires the current value below last.
+                if (A[i] &gt; last) {
+                    return "NO";
+                }
+            } else {
+                // A decreasing pair requires the current value above last.
+                if (A[i] &lt; last) {
+                    return "NO";
+                }
+            }
+        }
+
+        // No adjacent pair violated this boundary check.
+        return "YES";
+    }
+}</code></pre>
+                    <div class="rounded-xl border border-rose-900 bg-rose-950/50 p-4">
+                        <h3 class="mb-2 font-semibold text-rose-200">Important correctness warning</h3>
+                        <p class="mb-3 text-slate-200">This approach is not correct for all valid inputs. It can reject a valid preorder because the last node is not necessarily a boundary for every adjacent pair. Do not use it as the final interview solution.</p>
+                        <p class="mb-2 text-slate-200">Consider <code>A = [10, 5, 7, 6]</code>, which is a valid preorder:</p>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>       10
+       /
+      5
+       \
+        7
+       /
+      6</code></pre>
+                        <p class="mt-3 text-slate-200">Every internal node has exactly one child, and the BST ordering is valid. The correct answer is <code>"YES"</code>.</p>
+                        <p class="mt-2 text-slate-200">However, the last-element approach compares <code>5 &lt; 7</code> and checks whether <code>5 &gt; 6</code>. That condition is false, so it incorrectly returns <code>"NO"</code>.</p>
+                        <p class="mt-3 text-slate-200">This is an example of an appealing but insufficient boundary check.</p>
+                    </div>
+                </section>
+
+                <section id="range-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Optimized Approach 2 — Range-Based Validation (Recommended)</h2>
+                    <p class="mb-4">In a BST, every node must respect the boundaries established by its ancestors. Maintain the smallest and largest allowed values as the preorder is scanned. If a value falls outside the current range, the traversal is invalid.</p>
+                    <p class="mb-4 text-slate-300">The range starts unrestricted. For each value after the root, compare it with the previous value. If it is greater, the traversal moves to a right child and raises the minimum boundary. Otherwise, it moves to a left child and lowers the maximum boundary.</p>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Maintain:</strong>
+                        <code>min</code> as the smallest allowed value and <code>max</code> as the largest allowed value.
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Recommended Java Implementation</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    public String solve(int[] A) {
+        int n = A.length;
+
+        // One or two distinct values always form a valid one-child BST.
+        if (n &lt;= 2) {
+            return "YES";
+        }
+
+        // Initially, every integer is within the valid range.
+        int min = Integer.MIN_VALUE;
+        int max = Integer.MAX_VALUE;
+
+        for (int i = 1; i &lt; n; i++) {
+            // Reject a value outside the boundaries established so far.
+            if (A[i] &lt; min || A[i] &gt; max) {
+                return "NO";
+            }
+
+            if (A[i] &gt; A[i - 1]) {
+                // Move to a right child; future values must exceed A[i - 1].
+                min = A[i - 1];
+            } else {
+                // Move to a left child; future values must be below A[i - 1].
+                max = A[i - 1];
+            }
+        }
+
+        // Every value satisfied the valid range.
+        return "YES";
+    }
+}</code></pre>
+                </section>
+
+                <section id="range-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. How the Range Changes</h2>
+                    <p class="mb-3 text-slate-300">Consider the preorder <code>A = [10, 5, 7, 6]</code>. Initially, <code>min</code> is <code>Integer.MIN_VALUE</code> and <code>max</code> is <code>Integer.MAX_VALUE</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Current value</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Previous value</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Range before check</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-950 text-slate-300">
+                                <tr><td class="p-3">5</td><td class="p-3">10</td><td class="p-3">Unrestricted</td><td class="p-3">Move left; <code>max = 10</code></td></tr>
+                                <tr><td class="p-3">7</td><td class="p-3">5</td><td class="p-3">Min to 10</td><td class="p-3">Move right; <code>min = 5</code></td></tr>
+                                <tr><td class="p-3">6</td><td class="p-3">7</td><td class="p-3">5 to 10</td><td class="p-3">Move left; <code>max = 7</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 text-slate-300">Every element satisfies its valid range. Output: <code>"YES"</code>.</p>
+                </section>
+
+                <section id="recommended-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Dry Run of the Recommended Solution</h2>
+                    <p class="mb-3 text-slate-300">Consider the invalid input <code>A = [1, 5, 6, 4]</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[40rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Index</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Current value</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">min before check</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">max before check</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-950 text-slate-300">
+                                <tr><td class="p-3">1</td><td class="p-3">5</td><td class="p-3"><code>Integer.MIN_VALUE</code></td><td class="p-3"><code>Integer.MAX_VALUE</code></td><td class="p-3">Valid; update <code>min = 1</code></td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3">6</td><td class="p-3">1</td><td class="p-3"><code>Integer.MAX_VALUE</code></td><td class="p-3">Valid; update <code>min = 5</code></td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3">4</td><td class="p-3">5</td><td class="p-3"><code>Integer.MAX_VALUE</code></td><td class="p-3 text-rose-300">Invalid: <code>4 &lt; 5</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 text-slate-300">The algorithm immediately returns <code>"NO"</code>. The value <code>4</code> cannot appear after the traversal has entered the right subtree of <code>5</code>, because every value in that subtree must be greater than <code>5</code>.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Complexity Analysis</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[44rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Time Complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Auxiliary Space</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Correct for all valid inputs?</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-950 text-slate-300">
+                                <tr><td class="p-3">Brute force: construct BST</td><td class="p-3">\(O(N^2)\) worst case</td><td class="p-3">\(O(N)\)</td><td class="p-3">Yes, assuming distinct values</td></tr>
+                                <tr><td class="p-3">Last-element boundary</td><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(1)\)</td><td class="p-3">No</td></tr>
+                                <tr><td class="p-3">Range-based validation</td><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(1)\)</td><td class="p-3">Yes, assuming distinct values</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The range-based solution is the best choice because it checks each element once and uses only a constant amount of extra memory.</p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Input</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Expected output</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-950 text-slate-300">
+                                <tr><td class="p-3"><code>[7]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">A single node is valid.</td></tr>
+                                <tr><td class="p-3"><code>[1, 2]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">One right child.</td></tr>
+                                <tr><td class="p-3"><code>[2, 1]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">One left child.</td></tr>
+                                <tr><td class="p-3"><code>[1, 2, 3, 4]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">Right-skewed BST.</td></tr>
+                                <tr><td class="p-3"><code>[5, 4, 3, 2]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">Left-skewed BST.</td></tr>
+                                <tr><td class="p-3"><code>[1, 5, 6, 4]</code></td><td class="p-3"><code>"NO"</code></td><td class="p-3">Violates an established boundary.</td></tr>
+                                <tr><td class="p-3"><code>[10, 5, 7, 6]</code></td><td class="p-3"><code>"YES"</code></td><td class="p-3">Valid preorder that exposes the flaw in the last-element approach.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Similar LeetCode Problems</h2>
+                    <ol class="list-inside list-decimal space-y-4 text-slate-300">
+                        <li>
+                            <a href="https://leetcode.com/problems/verify-preorder-sequence-in-binary-search-tree/">255. Verify Preorder Sequence in Binary Search Tree</a>
+                            <span class="text-slate-400"> — Medium · Premium</span>
+                            <p class="ml-6 mt-1">The closest match: validate whether a preorder sequence represents a BST.</p>
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/">1008. Construct Binary Search Tree from Preorder Traversal</a>
+                            <span class="text-slate-400"> — Medium</span>
+                            <p class="ml-6 mt-1">Practice reconstructing BSTs using preorder traversal.</p>
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/validate-binary-search-tree/">98. Validate Binary Search Tree</a>
+                            <span class="text-slate-400"> — Medium</span>
+                            <p class="ml-6 mt-1">Reinforces the use of minimum and maximum boundaries.</p>
+                        </li>
+                        <li>
+                            <a href="https://leetcode.com/problems/search-in-a-binary-search-tree/">700. Search in a Binary Search Tree</a>
+                            <span class="text-slate-400"> — Easy</span>
+                            <p class="ml-6 mt-1">Reinforces BST ordering rules.</p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">10. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Key concept:</strong>
+                        Validate preorder using the boundaries imposed by previous nodes.
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Checking only adjacent elements without tracking all previous constraints.</li>
+                        <li>Assuming the last element is a universal boundary for every pair.</li>
+                        <li>Forgetting that a value must respect the bounds established by all relevant ancestors.</li>
+                        <li>Constructing a tree when direct validation is sufficient.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Final recommendation</h3>
+                    <p class="mb-3 text-slate-300">Implement the range-based solution in your interview.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time complexity: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(1)\)</li>
+                        <li>Pattern: BST preorder validation using range boundaries</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Takeaway:</strong>
+                        A locally reasonable adjacent-pair check can fail. Maintaining valid ranges captures the constraints established by the traversal.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
