@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Morris Inorder Traversal — Java Solution</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Trees · Inorder Traversal</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Morris Inorder Traversal</h1>
+      <p class="mb-5 text-lg text-slate-300">
+        Traverse a binary tree without recursion or an explicit stack by temporarily threading existing tree pointers.
+        The traversal runs in \(O(N)\) time and uses \(O(1)\) auxiliary space.
+      </p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Pattern to remember:</strong>
+        Left → Root → Right, using temporary threads to return from a left subtree.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">
+          Given the root <code class="text-indigo-300">A</code> of a binary tree, return an
+          <code class="text-indigo-300">ArrayList&lt;Integer&gt;</code> containing its inorder traversal.
+          Inorder traversal always follows:
+        </p>
+        <p class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4 text-center text-lg font-semibold text-indigo-200">
+          Left → Root → Right
+        </p>
+        <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+          <h3 class="mb-3 font-semibold text-slate-100">Example</h3>
+          <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>1
+ \
+  2
+ /
+3</code></pre>
+          <p class="mt-3 text-sm text-slate-300">
+            Node <code>2</code> is the right child of <code>1</code>, and node <code>3</code> is the left child of
+            <code>2</code>. The inorder output is <code class="text-indigo-200">[1, 3, 2]</code>.
+          </p>
+        </div>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li>Recursion is not allowed.</li>
+          <li>An explicit stack is not allowed.</li>
+          <li>The output array is allowed; auxiliary space should be constant.</li>
+          <li>The tree can contain up to \(10^5\) nodes.</li>
+        </ul>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+        <p class="mb-4">
+          A normal iterative inorder traversal uses a stack: move left while pushing nodes, pop and visit a node,
+          then continue from its right child. This takes \(O(N)\) time, but the stack can use \(O(N)\) space.
+          Recursion also uses the call stack.
+        </p>
+        <p class="rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Why not use it?</strong> The problem prohibits both recursion and an explicit stack, so we need
+          Morris Traversal.
+        </p>
+      </section>
+
+      <section id="morris-traversal">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Morris Traversal</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Core intuition</h3>
+        <p class="mb-4">
+          Ordinarily, a stack or recursion remembers where to return after exploring a left subtree. Morris Traversal
+          temporarily creates a link back to the current node instead.
+        </p>
+        <p class="mb-3">When the current node has a left child:</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Find the rightmost node in the left subtree, called the inorder predecessor.</li>
+          <li>If its right pointer is <code>null</code>, point it temporarily to the current node and move left.</li>
+          <li>When traversal returns through that thread, remove it, visit the current node, and move right.</li>
+        </ul>
+        <p class="mb-5 text-slate-300">These temporary links are called threads.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Step-by-step algorithm</h3>
+        <ol class="mb-6 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Initialize <code>current = A</code> and create an empty result array.</li>
+          <li>If <code>current.left == null</code>, add its value and move to <code>current.right</code>.</li>
+          <li>Otherwise, find the rightmost node in <code>current.left</code>, the inorder predecessor.</li>
+          <li>If the predecessor's right pointer is <code>null</code>, create a temporary thread to <code>current</code> and move left.</li>
+          <li>If the predecessor's right pointer already points to <code>current</code>, remove the thread, add <code>current.val</code>, and move right.</li>
+          <li>Continue until <code>current == null</code>.</li>
+        </ol>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.ArrayList;
+
+public class Solution {
+    public ArrayList&lt;Integer&gt; solve(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        TreeNode current = A;
+
+        // Continue until all nodes are processed.
+        while (current != null) {
+
+            // Case 1: No left subtree.
+            // Visit this node and move to the right.
+            if (current.left == null) {
+                result.add(current.val);
+                current = current.right;
+            } else {
+
+                // Find the rightmost node in the left subtree.
+                // This node is the inorder predecessor.
+                TreeNode predecessor = current.left;
+
+                while (predecessor.right != null
+                        &amp;&amp; predecessor.right != current) {
+                    predecessor = predecessor.right;
+                }
+
+                // Case 2: First visit to this node.
+                // Create a temporary thread back to current.
+                if (predecessor.right == null) {
+                    predecessor.right = current;
+                    current = current.left;
+                } else {
+
+                    // Case 3: We returned through the thread.
+                    // Remove the thread to restore the tree.
+                    predecessor.right = null;
+
+                    // Left subtree is complete; visit current.
+                    result.add(current.val);
+
+                    // Process the right subtree next.
+                    current = current.right;
+                }
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+        <p class="mt-4 rounded-lg border border-slate-700 bg-slate-900 p-4 text-slate-300">
+          <strong class="text-slate-100">Platform note:</strong> Keep the given <code>TreeNode</code> definition.
+          Only implement the <code>solve()</code> method inside <code>Solution</code>.
+        </p>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4">
+          In this example, node <code>1</code> has left child <code>6</code> and right child <code>2</code>;
+          node <code>2</code> has left child <code>3</code>.
+        </p>
+        <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  6   2
+     /
+    3</code></pre>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[42rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr>
+                <th scope="col">Step</th>
+                <th scope="col">Current</th>
+                <th scope="col">Action</th>
+                <th scope="col">Result</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>1</td><td><code>1</code></td><td>Create thread <code>6.right → 1</code>; move left.</td><td><code>[]</code></td></tr>
+              <tr><td>2</td><td><code>6</code></td><td>No left child; visit <code>6</code>.</td><td><code>[6]</code></td></tr>
+              <tr><td>3</td><td><code>1</code></td><td>Thread found; remove it and visit <code>1</code>.</td><td><code>[6, 1]</code></td></tr>
+              <tr><td>4</td><td><code>2</code></td><td>Create thread <code>3.right → 2</code>; move left.</td><td><code>[6, 1]</code></td></tr>
+              <tr><td>5</td><td><code>3</code></td><td>No left child; visit <code>3</code>.</td><td><code>[6, 1, 3]</code></td></tr>
+              <tr><td>6</td><td><code>2</code></td><td>Thread found; remove it and visit <code>2</code>.</td><td><code>[6, 1, 3, 2]</code></td></tr>
+              <tr><td>7</td><td><code>null</code></td><td>Traversal ends.</td><td><code>[6, 1, 3, 2]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">
+          <strong class="text-slate-100">Final output:</strong>
+          <code class="rounded bg-slate-950 px-2 py-1 text-indigo-200">[6, 1, 3, 2]</code>
+        </p>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Why do we need the second condition?</h3>
+        <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>predecessor.right != current</code></pre>
+        <p class="mb-3 text-slate-300">
+          This condition prevents the predecessor search from following a temporary thread back to the current node.
+          Without it, the traversal could get stuck in a loop.
+        </p>
+        <p class="text-slate-300">
+          Removing the thread with <code>predecessor.right = null</code> is essential to restore the original tree structure.
+        </p>
+      </section>
+
+      <section id="complexity">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+        <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes.</p>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[34rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr>
+                <th scope="col">Approach</th>
+                <th scope="col">Time</th>
+                <th scope="col">Auxiliary space</th>
+                <th scope="col">Allowed here?</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>Recursive inorder</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>No</td></tr>
+              <tr><td>Stack-based inorder</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>No</td></tr>
+              <tr><td>Morris traversal</td><td>\(O(N)\)</td><td>\(O(1)\)</td><td class="font-semibold text-indigo-200">Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time — \(O(N)\):</strong> Every node is visited, and predecessor links are traversed only a constant number of times across the traversal.</li>
+          <li><strong class="text-slate-100">Auxiliary space — \(O(1)\):</strong> Only a few node references, such as <code>current</code> and <code>predecessor</code>, are maintained. There is no recursion or explicit stack.</li>
+          <li><strong class="text-slate-100">Output space — \(O(N)\):</strong> The returned <code>ArrayList</code> stores all node values. Output memory is separate from auxiliary space.</li>
+        </ul>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Single node:</strong> The root has no left child, so its value is added immediately.</li>
+          <li><strong class="text-slate-100">Left-skewed tree:</strong> Temporary threads let traversal return to ancestors without a stack.</li>
+          <li><strong class="text-slate-100">Right-skewed tree:</strong> Each node has no left child, so traversal simply moves right.</li>
+          <li><strong class="text-slate-100">Balanced tree:</strong> Threads handle each left subtree and are removed after use.</li>
+          <li><strong class="text-slate-100">Up to \(10^5\) nodes:</strong> The algorithm remains \(O(N)\) in time and uses constant auxiliary space.</li>
+        </ul>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce inorder traversal and tree-traversal patterns.</p>
+        <ol class="list-inside list-decimal space-y-3 text-slate-300">
+          <li>
+            <a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/binary-tree-inorder-traversal/?utm_source=chatgpt.com">Binary Tree Inorder Traversal — LeetCode 94</a>
+            — Easy. The same traversal order; compare recursion, stack, and Morris solutions.
+          </li>
+          <li>
+            <a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/binary-tree-preorder-traversal/?utm_source=chatgpt.com">Binary Tree Preorder Traversal — LeetCode 144</a>
+            — Easy. Adapt Morris Traversal to visit the root before its left subtree.
+          </li>
+          <li>
+            <a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/binary-tree-postorder-traversal/?utm_source=chatgpt.com">Binary Tree Postorder Traversal — LeetCode 145</a>
+            — Easy. Learn the more challenging left-right-root ordering.
+          </li>
+          <li>
+            <a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/recover-binary-search-tree/?utm_source=chatgpt.com">Recover Binary Search Tree — LeetCode 99</a>
+            — Medium. Uses inorder traversal to identify misplaced BST nodes.
+          </li>
+        </ol>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <p class="mb-4 rounded-lg border border-indigo-800 bg-indigo-950/60 p-4 text-indigo-200">
+          <strong class="text-indigo-100">Pattern to remember:</strong>
+          Morris Traversal = inorder traversal + temporary threaded links.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-6 list-inside list-disc space-y-2 text-slate-300">
+          <li>Forgetting to remove the temporary thread.</li>
+          <li>Not checking whether <code>predecessor.right == current</code>.</li>
+          <li>Adding a node to the result before its left subtree has been processed.</li>
+          <li>Claiming total space is \(O(1)\) without distinguishing the output array from auxiliary space.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+        <dl class="space-y-4 text-slate-300">
+          <div>
+            <dt class="font-semibold text-slate-100">Q1. Why is Morris Traversal \(O(1)\) auxiliary space?</dt>
+            <dd>It uses existing tree pointers and a constant number of references instead of a stack.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q2. Does Morris Traversal modify the tree?</dt>
+            <dd>Temporarily, yes. It restores the modified pointers during normal completion.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q3. Can Morris Traversal be used for preorder?</dt>
+            <dd>Yes. The visit position changes: visit the current node when first creating the thread instead of when removing it.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q4. Is it always preferable to recursion?</dt>
+            <dd>No. Recursion is often simpler when permitted. Morris Traversal is especially useful when auxiliary space must remain constant.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">
+          For this problem, implement Morris Inorder Traversal because it satisfies both restrictions: no recursion and no stack.
+        </p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\)</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(1)\)</li>
+          <li><strong class="text-slate-100">Output space:</strong> \(O(N)\)</li>
+        </ul>
+        <p class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+          <strong class="text-indigo-100">Simple rule:</strong>
+          No left child → visit and move right. Left child exists → find the predecessor, create a thread to go left,
+          then remove the thread and visit the node when you return.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

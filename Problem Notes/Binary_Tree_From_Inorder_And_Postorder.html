@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Binary Tree From Inorder And Postorder — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Binary Tree From Inorder And Postorder</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Reconstruct a binary tree from its inorder and postorder traversals.
+                    Postorder identifies the root, while inorder shows how to divide the left and right subtrees.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Read postorder backward and build Root → Right → Left, using the root's inorder position to split each subtree.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given two traversals of the same binary tree:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li><strong class="text-slate-100">Inorder:</strong> Left → Root → Right</li>
+                        <li><strong class="text-slate-100">Postorder:</strong> Left → Right → Root</li>
+                    </ul>
+                    <p class="mb-4">Reconstruct the original binary tree and return its root.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-slate-200"><code>Inorder:   [2, 1, 3]
+Postorder: [2, 3, 1]</code></pre>
+                            <p class="mt-3 text-slate-300">The last postorder value, <code>1</code>, is the root. In inorder, values before it belong to the left subtree, and values after it belong to the right subtree.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Reconstructed tree</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <p class="mb-4">The simplest approach searches for each root in the inorder array every time a subtree is built.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Take the last element of the current postorder range as the root.</li>
+                        <li>Search for that value in the inorder range.</li>
+                        <li>Count the elements to the left and right of the root in inorder.</li>
+                        <li>Recursively construct the left and right subtrees using their corresponding postorder ranges.</li>
+                        <li>Return the root.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java solution — Brute Force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public TreeNode buildTree(ArrayList&lt;Integer&gt; A, ArrayList&lt;Integer&gt; B) {
+        return build(A, B, 0, A.size() - 1, 0, B.size() - 1);
+    }
+
+    private TreeNode build(ArrayList&lt;Integer&gt; inorder,
+                           ArrayList&lt;Integer&gt; postorder,
+                           int inStart, int inEnd,
+                           int postStart, int postEnd) {
+
+        // An empty range represents an empty subtree.
+        if (inStart &gt; inEnd || postStart &gt; postEnd) {
+            return null;
+        }
+
+        // The last value in this postorder range is the subtree root.
+        int rootValue = postorder.get(postEnd);
+        TreeNode root = new TreeNode(rootValue);
+
+        // Search the current inorder range for the root's position.
+        int rootIndex = inStart;
+        while (inorder.get(rootIndex) != rootValue) {
+            rootIndex++;
+        }
+
+        // The number of inorder values before the root is the left-subtree size.
+        int leftSize = rootIndex - inStart;
+
+        // Build the left subtree from the matching traversal ranges.
+        root.left = build(inorder, postorder,
+                inStart, rootIndex - 1,
+                postStart, postStart + leftSize - 1);
+
+        // Build the right subtree from the remaining values before the root.
+        root.right = build(inorder, postorder,
+                rootIndex + 1, inEnd,
+                postStart + leftSize, postEnd - 1);
+
+        return root;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Brute-force dry run</h3>
+                    <p class="mb-3">For <code>A = [2, 1, 3]</code> and <code>B = [2, 3, 1]</code>:</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>The last postorder value is <code>1</code>. Create root <code>1</code>.</li>
+                        <li>Find <code>1</code> in inorder at index <code>1</code>. The left subtree contains <code>[2]</code>, and the right subtree contains <code>[3]</code>.</li>
+                        <li>The left subtree's root is <code>2</code>.</li>
+                        <li>The right subtree's root is <code>3</code>.</li>
+                        <li>Both nodes have no children, so return the completed tree.</li>
+                    </ol>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N^2)\) in the worst case, because each root is searched for linearly.</li>
+                        <li>Auxiliary space: \(O(N)\) for recursion in the worst case, excluding the output tree.</li>
+                    </ul>
+                    <p class="rounded-lg border border-amber-800 bg-amber-950/40 p-4 text-amber-100">The repeated inorder search is the bottleneck. A HashMap can eliminate that search cost.</p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — HashMap + Recursion</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>The last unused element in postorder is the root of the current subtree.</li>
+                        <li>The root's index in inorder tells us how many nodes belong to its left and right subtrees.</li>
+                    </ul>
+                    <p class="mb-5">
+                        Store every inorder value's index in a <code>HashMap</code>. Then finding a root's position takes \(O(1)\) average time.
+                        Because postorder is Left → Right → Root, process it backward by building the root, then the right subtree, then the left subtree.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Step-by-step algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Store every inorder value and its index in a HashMap.</li>
+                        <li>Initialize a pointer at the last element of postorder.</li>
+                        <li>Take the current postorder element as the root and move the pointer backward.</li>
+                        <li>Find the root's inorder index using the HashMap.</li>
+                        <li>Recursively construct the right subtree first, then the left subtree.</li>
+                        <li>Return the root.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+                    <p class="mb-3 text-slate-300">This solution preserves the required <code>buildTree(ArrayList&lt;Integer&gt; A, ArrayList&lt;Integer&gt; B)</code> signature.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Solution {
+
+    private Map&lt;Integer, Integer&gt; inorderIndex;
+    private int postIndex;
+
+    public TreeNode buildTree(ArrayList&lt;Integer&gt; A,
+                              ArrayList&lt;Integer&gt; B) {
+
+        // Map each value to its position so subtree roots are found quickly.
+        inorderIndex = new HashMap&lt;&gt;();
+        for (int i = 0; i &lt; A.size(); i++) {
+            inorderIndex.put(A.get(i), i);
+        }
+
+        // Begin at the last postorder value, which is the root.
+        postIndex = B.size() - 1;
+
+        return build(B, 0, A.size() - 1);
+    }
+
+    private TreeNode build(ArrayList&lt;Integer&gt; postorder,
+                           int inStart, int inEnd) {
+
+        // No inorder values in this range means this subtree is empty.
+        if (inStart &gt; inEnd) {
+            return null;
+        }
+
+        // Consume the current root from the end of postorder.
+        int rootValue = postorder.get(postIndex);
+        postIndex--;
+        TreeNode root = new TreeNode(rootValue);
+
+        // The map gives the split between the left and right subtrees.
+        int rootIndex = inorderIndex.get(rootValue);
+
+        // Read backward through postorder: build the right side before the left.
+        root.right = build(postorder, rootIndex + 1, inEnd);
+        root.left = build(postorder, inStart, rootIndex - 1);
+
+        return root;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why build the right subtree first?</h3>
+                    <p class="mb-4">
+                        Consider postorder <code>[6, 3, 2, 1]</code>. Reading backward gives <code>1</code>, then <code>2</code>, then <code>3</code>, then <code>6</code>.
+                        After creating root <code>1</code>, the next value, <code>2</code>, belongs to its right subtree.
+                        That subtree must be built before consuming <code>6</code>, which belongs to the left subtree.
+                        Building the left side first would consume values in the wrong order.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Use the second example:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>Inorder:   A = [6, 1, 3, 2]
+Postorder: B = [6, 3, 2, 1]
+Initially: postIndex = 3</code></pre>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">postIndex before</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Root created</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Inorder range</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">3</td><td class="px-4 py-3">1</td><td class="px-4 py-3"><code>[6, 1, 3, 2]</code></td><td class="px-4 py-3">Build right subtree first</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td><td class="px-4 py-3"><code>[3, 2]</code></td><td class="px-4 py-3">Build node 2's right subtree</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">1</td><td class="px-4 py-3">No node</td><td class="px-4 py-3">Empty range</td><td class="px-4 py-3">Right child of 2 is <code>null</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">1</td><td class="px-4 py-3">3</td><td class="px-4 py-3"><code>[3]</code></td><td class="px-4 py-3">Build node 2's left subtree</td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">0</td><td class="px-4 py-3">No node</td><td class="px-4 py-3">Empty range</td><td class="px-4 py-3">Children of 3 are <code>null</code></td></tr>
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">0</td><td class="px-4 py-3">6</td><td class="px-4 py-3"><code>[6]</code></td><td class="px-4 py-3">Build root 1's left subtree</td></tr>
+                                <tr><td class="px-4 py-3">7</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">No node</td><td class="px-4 py-3">Empty range</td><td class="px-4 py-3">Children of 6 are <code>null</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Resulting tree</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>      1
+     / \
+    6   2
+       /
+      3</code></pre>
+                    <p class="mt-4 text-slate-300">The right subtree is built before the left subtree, but the final tree still has the correct left and right children.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[30rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">Brute force</td><td class="px-4 py-3">\(O(N^2)\) worst case</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                                <tr><td class="px-4 py-3">HashMap + recursion</td><td class="px-4 py-3">\(O(N)\) average</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4 mt-4">
+                        <strong class="text-slate-100">Optimized time:</strong> Creating the HashMap takes \(O(N)\). Each node is processed once,
+                        and its inorder position is retrieved in \(O(1)\) average time. Therefore, total time is \(O(N)\) on average.
+                    </p>
+                    <p class="mb-4">
+                        <strong class="text-slate-100">Optimized space:</strong> The HashMap stores \(N\) entries, and recursion can use up to \(O(N)\)
+                        stack space for a skewed tree. The returned tree itself uses another \(O(N)\) space, which is output space rather than auxiliary space.
+                    </p>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Constraint warning:</strong>
+                        The problem permits up to \(10^5\) nodes. A highly skewed tree can cause Java's recursive solution to throw
+                        <code>StackOverflowError</code>. This is the standard interview solution, but an iterative construction is safer when worst-case stack depth must be guaranteed.
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Single node:</strong> Inorder <code>[5]</code>, postorder <code>[5]</code>. Return a node containing <code>5</code>.</li>
+                        <li><strong class="text-slate-100">Completely left-skewed tree:</strong> Inorder <code>[3, 2, 1]</code>, postorder <code>[3, 2, 1]</code>. The tree is built correctly, though recursion depth is \(O(N)\).</li>
+                        <li><strong class="text-slate-100">Completely right-skewed tree:</strong> Inorder <code>[1, 2, 3]</code>, postorder <code>[3, 2, 1]</code>. The result is a right-skewed tree.</li>
+                        <li><strong class="text-slate-100">Root at either end of inorder:</strong> The left or right subtree may be empty. The base condition <code>inStart &gt; inEnd</code> handles this.</li>
+                        <li><strong class="text-slate-100">Duplicate values:</strong> The problem guarantees distinct values, so each value has a unique HashMap index.</li>
+                    </ul>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5">These problems reinforce tree reconstruction and traversal patterns.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">106 — Medium</h3>
+                            <p class="mb-2">Construct Binary Tree from Inorder and Postorder Traversal</p>
+                            <p class="mb-3 text-slate-300">The exact same problem, including the same reconstruction pattern.</p>
+                            <a href="https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">105 — Medium</h3>
+                            <p class="mb-2">Construct Binary Tree from Preorder and Inorder Traversal</p>
+                            <p class="mb-3 text-slate-300">Uses inorder to split subtrees, but preorder identifies the root first.</p>
+                            <a href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">889 — Medium</h3>
+                            <p class="mb-2">Construct Binary Tree from Preorder and Postorder Traversal</p>
+                            <p class="mb-3 text-slate-300">Practices reconstruction using a different pair of traversals.</p>
+                            <a href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">1008 — Medium</h3>
+                            <p class="mb-2">Construct Binary Search Tree from Preorder Traversal</p>
+                            <p class="mb-3 text-slate-300">Practices reconstructing trees using traversal order and subtree boundaries.</p>
+                            <a href="https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </article>
+                    </div>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key pattern to remember</h3>
+                    <p class="mb-3">Tree construction using traversal arrays + HashMap + recursion.</p>
+                    <p class="mb-2">Remember these three rules:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Postorder: The last unprocessed element gives the root.</li>
+                        <li>Inorder: The root's index separates the left and right subtrees.</li>
+                        <li>Reverse postorder: Build the right subtree before the left subtree.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Building the left subtree first when reading postorder backward.</li>
+                        <li>Forgetting to decrement <code>postIndex</code> after selecting the root.</li>
+                        <li>Using the entire inorder array in every recursive call instead of restricting the range.</li>
+                        <li>Forgetting the base case for an empty subtree.</li>
+                        <li>Assuming recursion is always safe for a tree with \(10^5\) nodes.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interview follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q1. Why do we need inorder traversal?</h4>
+                            <p class="text-slate-300">Inorder identifies which nodes belong to the left subtree and which belong to the right subtree.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q2. Can we construct a unique binary tree using only postorder?</h4>
+                            <p class="text-slate-300">No. Postorder alone does not uniquely determine an arbitrary binary tree. The inorder traversal provides the additional information needed.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q3. Why use a HashMap?</h4>
+                            <p class="text-slate-300">It lets us find the root's position in inorder in \(O(1)\) average time instead of searching linearly.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q4. Can we build the tree iteratively?</h4>
+                            <p class="text-slate-300">Yes. An iterative stack-based solution avoids deep recursive calls and is useful when the tree can contain \(10^5\) nodes.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">For interviews, learn the HashMap + recursion solution first because its logic is straightforward and its average time complexity is optimal.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\) average.</li>
+                        <li>Auxiliary space: \(O(N)\).</li>
+                        <li>Core intuition: Postorder identifies the root; inorder identifies the subtree boundaries; reading postorder backward requires constructing the right subtree first.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Most important detail:</strong>
+                        Root → Right → Left when processing postorder in reverse.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

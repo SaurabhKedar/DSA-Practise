@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Equal Tree Partition — Binary Tree (Java)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Trees · Subtree Sum</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Equal Tree Partition</h1>
+      <p class="mb-5 text-lg text-slate-300">Determine whether removing one edge can split a binary tree into two trees with equal sums.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Calculate each subtree sum once with an iterative traversal, then check every non-root subtree against half of the total.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">
+          We are given the root of a binary tree <code class="text-indigo-300">A</code>. We must remove exactly one edge so
+          that the two resulting trees have equal sums of node values.
+        </p>
+        <p class="mb-4 text-slate-300">
+          Let the sum of all nodes be \(S\). If a subtree has sum \(X\), removing the edge between that subtree's root and its parent
+          leaves sums \(X\) and \(S-X\). They are equal when:
+        </p>
+        <div class="mb-4 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-5 text-center text-lg text-indigo-100">
+          \[
+          X=S-X \implies 2X=S
+          \]
+        </div>
+        <p class="mb-4">Therefore, a valid partition exists if a <strong class="text-slate-100">non-root</strong> subtree has half the total sum.</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>If the total sum is odd, an equal partition is impossible.</li>
+          <li>The root cannot be detached by removing an edge above it because it has no parent.</li>
+          <li>Node values can be zero, so a total sum of zero can still allow a valid partition.</li>
+          <li>With up to \(10^5\) nodes, repeatedly calculating subtree sums is inefficient.</li>
+        </ul>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+        <p class="mb-4">Consider removing each edge one at a time and calculate the sum of the detached subtree.</p>
+        <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Calculate the total sum of the tree.</li>
+          <li>For every non-root node, calculate the sum of its subtree.</li>
+          <li>Check whether <code class="text-indigo-300">subtreeSum == totalSum - subtreeSum</code>.</li>
+          <li>Return <code>1</code> if any edge gives equal sums; otherwise, return <code>0</code>.</li>
+        </ol>
+        <p class="mb-4 text-slate-300">
+          Every edge connects a node to its parent, so considering each non-root node covers every possible edge removal.
+          However, recalculating the subtree sum for every node can take \(O(N^2)\) time in the worst case.
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Complexity</th><th scope="col">Cost</th><th scope="col">Reason</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Time</td><td>\(O(N^2)\)</td><td>Subtree sums may be recalculated for each node.</td></tr>
+              <tr><td>Auxiliary space</td><td>\(O(H)\)</td><td>Recursive calls use space proportional to tree height.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Subtree Sum</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4 text-slate-300">
+          If the total sum is <code class="text-indigo-300">36</code> and a subtree has sum <code class="text-indigo-300">18</code>,
+          removing the edge above it leaves that subtree and the remainder with sums of <code>18</code> each.
+        </p>
+        <p class="mb-4 text-slate-300">
+          A postorder traversal lets us calculate a node's subtree sum after its children have been processed. The implementation
+          below uses an iterative traversal so a highly skewed tree does not create deep recursive calls.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Step-by-step algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Traverse the tree and store its nodes in a list.</li>
+          <li>Process the list in reverse so each node's children are processed before the node itself.</li>
+          <li>Calculate and store each subtree sum in a <code>HashMap</code>.</li>
+          <li>Use the root's subtree sum as the total sum.</li>
+          <li>Check each non-root node for <code>2 * subtreeSum == totalSum</code>.</li>
+          <li>Return <code>1</code> if a matching subtree exists; otherwise, return <code>0</code>.</li>
+        </ol>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+    public int solve(TreeNode A) {
+        // An empty tree cannot be split by removing an edge.
+        if (A == null) {
+            return 0;
+        }
+
+        // Collect nodes iteratively to avoid deep recursive calls.
+        List&lt;TreeNode&gt; nodes = new ArrayList&lt;&gt;();
+        Deque&lt;TreeNode&gt; stack = new ArrayDeque&lt;&gt;();
+        stack.push(A);
+
+        while (!stack.isEmpty()) {
+            TreeNode current = stack.pop();
+            nodes.add(current);
+
+            // Add each existing child so it appears after its parent.
+            if (current.left != null) {
+                stack.push(current.left);
+            }
+
+            if (current.right != null) {
+                stack.push(current.right);
+            }
+        }
+
+        // Reverse traversal processes children before their parent.
+        Map&lt;TreeNode, Long&gt; subtreeSum = new HashMap&lt;&gt;();
+        for (int i = nodes.size() - 1; i &gt;= 0; i--) {
+            TreeNode current = nodes.get(i);
+
+            // Start with this node's value, then add child subtree sums.
+            long sum = current.val;
+            if (current.left != null) {
+                sum += subtreeSum.get(current.left);
+            }
+            if (current.right != null) {
+                sum += subtreeSum.get(current.right);
+            }
+
+            subtreeSum.put(current, sum);
+        }
+
+        // The root's subtree sum is the sum of the entire tree.
+        long totalSum = subtreeSum.get(A);
+
+        // Only a non-root node has a parent edge that can be removed.
+        for (TreeNode node : nodes) {
+            if (node == A) {
+                continue;
+            }
+
+            long sum = subtreeSum.get(node);
+
+            // Use long arithmetic for the doubled subtree sum.
+            if (sum * 2L == totalSum) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+}</code></pre>
+        <div class="mt-5 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Why use <code>long</code>?</strong>
+          With up to \(10^5\) nodes and values up to \(10^9\), the total can reach \(10^{14}\), beyond Java's
+          <code>int</code> range. The <code>2L</code> also ensures the multiplication uses <code>long</code> arithmetic.
+        </div>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4">
+          In Example 1, each node's subtree sum is calculated from its own value and the sums of its children.
+          The root is <code>5</code>, and the total sum is <code>36</code>.
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Node</th>
+                <th scope="col">Calculation</th>
+                <th scope="col">Subtree sum</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>4</td><td><code>4</code></td><td>4</td></tr>
+              <tr><td>6 (left subtree)</td><td><code>6</code></td><td>6</td></tr>
+              <tr><td>3</td><td><code>3 + 4 + 6</code></td><td>13</td></tr>
+              <tr><td>5 (right subtree)</td><td><code>5</code></td><td>5</td></tr>
+              <tr><td>6 (right subtree)</td><td><code>6</code></td><td>6</td></tr>
+              <tr><td>7</td><td><code>7 + 5 + 6</code></td><td>18</td></tr>
+              <tr><td>5 (root)</td><td><code>5 + 13 + 18</code></td><td>36</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 mt-4 text-slate-300">We need a non-root subtree with sum <code>18</code>. Compare the candidate subtrees:</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Candidate node</th>
+                <th scope="col">Subtree sum</th>
+                <th scope="col">Remaining sum</th>
+                <th scope="col">Equal?</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>3</td><td>13</td><td>23</td><td>No</td></tr>
+              <tr><td>7</td><td>18</td><td>18</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">
+          Removing the edge between the root <code>5</code> and node <code>7</code> produces two trees with sum <code>18</code>.
+          The output is <code>1</code>.
+        </p>
+        <p class="mt-4 text-slate-300">
+          For Example 2, the total is \(1+2+10+20+2=35\). Since the total is odd, an equal partition is impossible. The output is <code>0</code>.
+        </p>
+      </section>
+
+      <section id="complexity-analysis">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+        <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes and \(H\) the tree height.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Approach</th><th scope="col">Time complexity</th><th scope="col">Auxiliary space</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Brute force</td><td>\(O(N^2)\)</td><td>\(O(H)\) recursive stack</td></tr>
+              <tr><td>Optimized iterative</td><td>\(O(N)\)</td><td>\(O(N)\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="mt-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>The first traversal visits every node once: \(O(N)\).</li>
+          <li>The reverse traversal calculates each subtree sum once: \(O(N)\).</li>
+          <li>The final loop checks each node once: \(O(N)\).</li>
+          <li>The list, stack, and hash map use \(O(N)\) additional memory.</li>
+        </ul>
+        <p class="mt-4 text-slate-300">The iterative method avoids recursion-depth problems on a highly skewed tree.</p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Case</th><th scope="col">Expected result</th><th scope="col">Reason</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Single node with value <code>5</code></td><td><code>0</code></td><td>No edge exists to remove.</td></tr>
+              <tr><td>Two nodes with values <code>4</code> and <code>4</code></td><td><code>1</code></td><td>Removing their connecting edge gives equal sums.</td></tr>
+              <tr><td>Total sum is odd</td><td><code>0</code></td><td>Equal integer sums are impossible.</td></tr>
+              <tr><td>Multiple subtrees have half the total sum</td><td><code>1</code></td><td>Finding any one valid edge is sufficient.</td></tr>
+              <tr><td>All values are zero, with at least two nodes</td><td><code>1</code></td><td>Any edge produces two sums of zero.</td></tr>
+              <tr><td>Large node values</td><td>Depends on the tree</td><td><code>long</code> prevents integer overflow.</td></tr>
+              <tr><td>Highly skewed tree</td><td>Depends on subtree sums</td><td>Iterative traversal avoids deep recursive calls.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce subtree calculations and binary-tree traversal.</p>
+        <ul class="list-inside list-disc space-y-3 text-slate-300">
+          <li>
+            <strong class="text-slate-100">Equal Tree Partition — LeetCode 663, Medium:</strong>
+            The same problem: determine whether an edge can split a binary tree into equal-sum trees.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/equal-tree-partition/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Most Frequent Subtree Sum — LeetCode 508, Medium:</strong>
+            Practice calculating subtree sums and storing their frequencies.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/most-frequent-subtree-sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Path Sum — LeetCode 112, Easy:</strong>
+            Practice tree traversal and accumulating values along a path.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/path-sum/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Path Sum III — LeetCode 437, Medium:</strong>
+            Find paths whose values sum to a target.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/path-sum-iii/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Distribute Coins in Binary Tree — LeetCode 979, Medium:</strong>
+            Practice postorder processing and reasoning about subtree balance.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/distribute-coins-in-binary-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+        </ul>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+        <p class="mb-4 rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          Binary Tree + Subtree Sum + Postorder Traversal
+        </p>
+        <p class="mb-3 text-slate-300">A subtree sum is:</p>
+        <div class="mb-5 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-5 text-center text-indigo-100">
+          \[
+          \text{subtreeSum}(node)
+          =
+          node.val+\text{leftSum}+\text{rightSum}
+          \]
+        </div>
+        <p class="mb-3 text-slate-300">Once the total sum is known, the partition condition is:</p>
+        <div class="mb-5 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-5 text-center text-indigo-100">
+          \[
+          2 \times \text{subtreeSum}= \text{totalSum}
+          \]
+        </div>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Using <code>int</code> when the total can reach \(10^{14}\); use <code>long</code>.</li>
+          <li>Counting the root as a partition even though it has no parent edge to remove.</li>
+          <li>Recalculating every subtree, which can take \(O(N^2)\) time.</li>
+          <li>Assuming a total sum of zero means the answer is <code>0</code>; zero-valued trees with at least two nodes can be partitioned.</li>
+          <li>Using recursion without considering tree height; a skewed tree can cause <code>StackOverflowError</code> in Java.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+        <dl class="space-y-4 text-slate-300">
+          <div>
+            <dt class="font-semibold text-slate-100">Why does an odd total sum rule out a partition?</dt>
+            <dd>Equal sums would each have to be half the total, but an odd integer cannot be divided into two equal integer sums.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Why must we exclude the root?</dt>
+            <dd>Removing an edge requires a parent-child connection. The root has no parent.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Can we solve this without a hash map?</dt>
+            <dd>Yes. A different postorder implementation can track candidate subtree sums; storing sums in a map keeps this solution straightforward.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Why is postorder useful here?</dt>
+            <dd>A node's subtree sum depends on its children's sums, so its children must be processed first.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">
+          For an interview, implement the optimized \(O(N)\) approach. The iterative version is particularly suitable when the tree
+          may contain up to \(10^5\) nodes because it avoids recursive stack overflow.
+        </p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\)</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N)\)</li>
+          <li><strong class="text-slate-100">Core intuition:</strong> Calculate every subtree sum once, then check whether any non-root subtree has exactly half of the total sum.</li>
+        </ul>
+        <p class="rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          Remember: find half the total in a non-root subtree, and the tree can be partitioned.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

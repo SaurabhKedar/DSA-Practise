@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Path Sum — Binary Tree (Java)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Trees · Depth-First Search</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Path Sum</h1>
+      <p class="mb-5 text-lg text-slate-300">Determine whether a binary tree contains a root-to-leaf path whose node values sum to the target.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Use iterative DFS and carry the remaining target sum with each node. A match counts only when the path ends at a leaf.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">
+          We are given a binary tree with root <code class="text-indigo-300">A</code> and a target sum
+          <code class="text-indigo-300">B</code>. Check whether at least one path from the root to a leaf has a sum equal to
+          <code class="text-indigo-300">B</code>.
+        </p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Root:</strong> The first node of the tree.</li>
+          <li><strong class="text-slate-100">Leaf:</strong> A node with no left or right child.</li>
+          <li><strong class="text-slate-100">Path:</strong> Move from parent to child, starting at the root and ending at a leaf.</li>
+          <li><strong class="text-slate-100">Output:</strong> Return <code>1</code> if such a path exists; otherwise, return <code>0</code>.</li>
+        </ul>
+        <p class="rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Important:</strong> Reaching a node with the target sum is not enough. That node must also be a leaf.
+        </p>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+        <p class="mb-4">Explore every root-to-leaf path, calculate its sum, and compare it with <code class="text-indigo-300">B</code>.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Start at the root with the current sum equal to zero.</li>
+          <li>Add the current node's value to the sum.</li>
+          <li>If the current node is a leaf, check whether the sum equals <code>B</code>.</li>
+          <li>Otherwise, explore the left and right subtrees.</li>
+          <li>If either subtree contains a matching path, return <code>1</code>; otherwise, return <code>0</code>.</li>
+        </ol>
+        <p class="text-slate-300">
+          A brute-force implementation could explicitly store each path and calculate its sum at every leaf. Storing paths is
+          unnecessary for the most efficient traversal, but the version below demonstrates the explicit-path approach.
+        </p>
+      </section>
+
+      <section id="brute-force-solution">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Brute Force Solution — Store and Check Each Path</h2>
+        <p class="mb-4">
+          Maintain the current path in a list. At each leaf, calculate the sum of all values in that path and compare it with
+          <code class="text-indigo-300">B</code>.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    private boolean dfs(TreeNode node, int target, List&lt;Integer&gt; path) {
+        if (node == null) {
+            return false;
+        }
+
+        // Include the current node in the path.
+        path.add(node.val);
+
+        boolean found = false;
+
+        // Check the sum only when we reach a leaf.
+        if (node.left == null &amp;&amp; node.right == null) {
+            long sum = 0;
+
+            // Calculate the sum of this complete path.
+            for (int value : path) {
+                sum += value;
+            }
+
+            found = sum == target;
+        } else {
+            // Explore both subtrees.
+            found = dfs(node.left, target, path)
+                  || dfs(node.right, target, path);
+        }
+
+        // Backtrack: remove the current node before returning.
+        path.remove(path.size() - 1);
+        return found;
+    }
+
+    public int hasPathSum(TreeNode A, int B) {
+        return dfs(A, B, new ArrayList&lt;&gt;()) ? 1 : 0;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity</h3>
+        <p class="mb-3 text-slate-300">Let \(N\) be the number of nodes and \(H\) the tree height.</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(NH)\) in the worst case, because summing each leaf's path can take up to \(H\) time.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for the path and recursive call stack.</li>
+        </ul>
+        <p class="text-slate-300">
+          <strong class="text-slate-100">Limitation:</strong> A highly skewed tree can make this approach inefficient, and deep recursion can cause a
+          <code>StackOverflowError</code> in Java.
+        </p>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Optimized Approach — Iterative DFS</h2>
+        <p class="mb-4">Instead of storing paths and repeatedly adding their values, carry the remaining sum as you traverse the tree.</p>
+        <p class="mb-3 text-slate-300">For example, if the target is <code class="text-indigo-300">22</code> and the path is <code>5 → 4 → 11 → 2</code>:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>Start with remaining sum <code>22</code>.</li>
+          <li>Visit <code>5</code>: remaining sum becomes <code>22 - 5 = 17</code>.</li>
+          <li>Visit <code>4</code>: remaining sum becomes <code>17 - 4 = 13</code>.</li>
+          <li>Visit <code>11</code>: remaining sum becomes <code>13 - 11 = 2</code>.</li>
+          <li>Visit <code>2</code>: remaining sum becomes <code>2 - 2 = 0</code>.</li>
+        </ul>
+        <p class="mb-5 text-slate-300">The path is valid because the remaining sum is zero at a leaf.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Create a stack to perform Depth-First Search (DFS).</li>
+          <li>Store each stack entry as a pair: <code>(node, remainingSum)</code>.</li>
+          <li>Start by pushing the root and target sum <code>B</code>.</li>
+          <li>Pop an entry and subtract the current node's value from its remaining sum.</li>
+          <li>If the node is a leaf and the remaining sum is zero, return <code>1</code>.</li>
+          <li>Otherwise, push its existing children with the updated remaining sum.</li>
+          <li>If the stack becomes empty, return <code>0</code>.</li>
+        </ol>
+        <p class="mb-5 text-slate-300">
+          This iterative version avoids recursion-depth problems, which matters because the constraints permit up to
+          \(10^5\) nodes.
+        </p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Recommended Java solution</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public int hasPathSum(TreeNode A, int B) {
+
+        // An empty tree has no root-to-leaf path.
+        if (A == null) {
+            return 0;
+        }
+
+        // Each entry stores a node and its remaining target sum.
+        Stack&lt;TreeNode&gt; nodes = new Stack&lt;&gt;();
+        Stack&lt;Long&gt; sums = new Stack&lt;&gt;();
+
+        nodes.push(A);
+        sums.push((long) B);
+
+        while (!nodes.isEmpty()) {
+
+            TreeNode current = nodes.pop();
+            long remaining = sums.pop();
+
+            // Subtract the current node's value.
+            remaining -= current.val;
+
+            // A valid path must end at a leaf.
+            if (current.left == null &amp;&amp; current.right == null) {
+                if (remaining == 0) {
+                    return 1;
+                }
+                continue;
+            }
+
+            // Explore the left subtree, if it exists.
+            if (current.left != null) {
+                nodes.push(current.left);
+                sums.push(remaining);
+            }
+
+            // Explore the right subtree, if it exists.
+            if (current.right != null) {
+                nodes.push(current.right);
+                sums.push(remaining);
+            }
+        }
+
+        // No root-to-leaf path matched the target.
+        return 0;
+    }
+}</code></pre>
+        <p class="mt-4 text-slate-300">
+          <strong class="text-slate-100">Why use <code>long</code> for the remaining sum?</strong>
+          The target and individual node values are integers, but a path can contain up to \(10^5\) nodes. Its accumulated
+          sum can exceed Java's <code>int</code> range, so using <code>long</code> prevents overflow.
+        </p>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4">Consider the first example with <code class="text-indigo-300">B = 22</code>. We follow the path <code>5 → 4 → 11 → 2</code>.</p>
+        <p class="mb-4 text-sm text-slate-400">
+          Reference:
+          <a href="https://medium.com/%40priyanshi01/leetcode-112-path-sum-f64fd57329cb?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 112: Path Sum explanation on Medium</a>.
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Current node</th>
+                <th scope="col">Remaining before</th>
+                <th scope="col">Remaining after subtraction</th>
+                <th scope="col">Result</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>5</td><td>22</td><td>17</td><td>Continue</td></tr>
+              <tr><td>4</td><td>17</td><td>13</td><td>Continue</td></tr>
+              <tr><td>11</td><td>13</td><td>2</td><td>Continue</td></tr>
+              <tr><td>2</td><td>2</td><td>0</td><td>Leaf found; return <code>1</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 mt-4 text-slate-300">The traversal stops as soon as it finds this valid path. Output:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>1</code></pre>
+        <p class="mb-4 text-slate-300">
+          For the second example, <code>B = -1</code>, none of the root-to-leaf paths has the required sum. The stack eventually
+          becomes empty, so the output is <code>0</code>.
+        </p>
+        <p class="rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          Negative node values are allowed. Do not stop early merely because the remaining sum becomes negative.
+        </p>
+      </section>
+
+      <section id="complexity-analysis">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Complexity Analysis</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Approach</th>
+                <th scope="col">Time complexity</th>
+                <th scope="col">Auxiliary space</th>
+                <th scope="col">Main drawback</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr>
+                <td>Brute force: recalculate each path sum</td>
+                <td>\(O(NH)\)</td>
+                <td>\(O(H)\)</td>
+                <td>Recalculates sums</td>
+              </tr>
+              <tr>
+                <td>Optimized: iterative DFS</td>
+                <td>\(O(N)\)</td>
+                <td>\(O(N)\) worst case</td>
+                <td>Uses explicit stacks</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 mt-4 text-slate-300">Here, \(N\) is the number of nodes and \(H\) is the tree height.</p>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Brute force:</strong> A path can contain \(H\) nodes, and summing paths at the leaves may require \(O(NH)\) time.</li>
+          <li><strong class="text-slate-100">Optimized:</strong> Each node is processed at most once, giving \(O(N)\) time.</li>
+          <li><strong class="text-slate-100">Space:</strong> The iterative stack can hold up to \(O(N)\) nodes in a highly branching tree. This extra memory avoids deep recursive calls.</li>
+        </ul>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Case</th>
+                <th scope="col">Expected behavior</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Single node, <code>B</code> equals its value</td><td>Return <code>1</code></td></tr>
+              <tr><td>Single node, <code>B</code> differs from its value</td><td>Return <code>0</code></td></tr>
+              <tr><td>Target reached at a non-leaf node</td><td>Continue searching; do not return <code>1</code></td></tr>
+              <tr><td>Negative node values</td><td>Handle normally</td></tr>
+              <tr><td>Multiple valid paths</td><td>Return <code>1</code> as soon as one is found</td></tr>
+              <tr><td>No matching path</td><td>Return <code>0</code></td></tr>
+              <tr><td>Skewed tree with up to \(10^5\) nodes</td><td>Iterative DFS avoids recursion stack overflow</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Similar LeetCode Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce the same tree-traversal pattern.</p>
+        <ol class="list-inside list-decimal space-y-3 text-slate-300">
+          <li>
+            Path Sum —
+            <a href="https://leetcode.com/problems/path-sum/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 112</a>
+            — Easy. Almost identical to this problem.
+          </li>
+          <li>
+            Path Sum II —
+            <a href="https://leetcode.com/problems/path-sum-ii/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 113</a>
+            — Medium. Return all root-to-leaf paths that match the target.
+          </li>
+          <li>
+            Path Sum III —
+            <a href="https://leetcode.com/problems/path-sum-iii/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 437</a>
+            — Medium. Count paths matching the target that do not necessarily start at the root.
+          </li>
+          <li>
+            Sum Root to Leaf Numbers —
+            <a href="https://leetcode.com/problems/sum-root-to-leaf-numbers/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 129</a>
+            — Medium. Build numbers from root-to-leaf paths and calculate their total.
+          </li>
+        </ol>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+        <p class="mb-4 text-slate-300"><strong class="text-slate-100">Pattern to remember:</strong> Binary tree DFS with a running sum.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-6 list-inside list-disc space-y-2 text-slate-300">
+          <li>Checking the target sum at every node instead of only at leaves.</li>
+          <li>Assuming node values are positive.</li>
+          <li>Using <code>int</code> for a potentially large accumulated sum.</li>
+          <li>Using recursion without considering the maximum tree depth.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+        <div class="space-y-5 text-slate-300">
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q1. Can we solve this recursively?</p>
+            <p>Yes. Pass the remaining target to each child and return true when a leaf exactly matches it. However, a tree of depth \(10^5\) can overflow Java's call stack.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q2. Why do we need to check both <code>left == null</code> and <code>right == null</code>?</p>
+            <p>Because a leaf has neither child. A node with only one child is not a leaf.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q3. Can we stop when the remaining sum becomes zero?</p>
+            <p>No. We must also reach a leaf. A later negative node could change the sum.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q4. Why is the optimized time complexity \(O(N)\)?</p>
+            <p>Every node is pushed and popped at most once, and the work performed per node is constant.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">
+          For this problem's constraint of up to \(10^5\) nodes, use iterative DFS because it processes every node at most once
+          and avoids recursion-depth issues.
+        </p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\)</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N)\) worst case</li>
+          <li><strong class="text-slate-100">Core intuition:</strong> Subtract each visited node's value from the remaining target. If the remaining sum becomes zero at a leaf, return <code>1</code>; otherwise, keep searching.</li>
+        </ul>
+        <p class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-100">
+          Remember: The path must start at the root, end at a leaf, and have exactly the target sum.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

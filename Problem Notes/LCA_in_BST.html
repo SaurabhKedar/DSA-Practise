@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Lowest Common Ancestor in a BST — Java</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Search Trees · Lowest Common Ancestor</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Lowest Common Ancestor in a BST</h1>
+      <p class="mb-5 text-lg text-slate-300">Find the deepest node that is an ancestor of two given nodes in a Binary Search Tree.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Compare both target values with the current node and move into the only subtree that can contain both.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">
+          We are given a Binary Search Tree (BST) and two node values, <code class="text-indigo-300">B</code> and
+          <code class="text-indigo-300">C</code>. Find their Lowest Common Ancestor (LCA): the deepest node that is an
+          ancestor of both nodes. A node is considered an ancestor of itself.
+        </p>
+        <p class="mb-3 text-slate-300">The BST property is:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>Values in the left subtree are smaller than the current node's value.</li>
+          <li>Values in the right subtree are greater than the current node's value.</li>
+        </ul>
+        <p class="mb-5 text-slate-300">This ordering lets us find the LCA without traversing the entire tree.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 1</h3>
+        <p class="mb-3 text-slate-300">For <code class="text-indigo-300">B = 8</code> and <code class="text-indigo-300">C = 20</code>:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>Path to <code>8</code>: <code>15 → 12 → 10 → 8</code></li>
+          <li>Path to <code>20</code>: <code>15 → 20</code></li>
+        </ul>
+        <p class="mb-5 text-slate-300">The paths first separate after node <code>15</code>, so the LCA is <code>15</code>.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 2</h3>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>       8
+      / \
+     6   21
+    / \
+   1   7</code></pre>
+        <p class="text-slate-300">
+          For <code class="text-indigo-300">B = 7</code> and <code class="text-indigo-300">C = 1</code>, both nodes are below
+          <code>6</code>, on opposite sides of it. The LCA is <code>6</code>.
+        </p>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+        <p class="mb-4">Find the path from the root to each target, then compare the paths from their beginnings.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Start at the root and record the path to <code>B</code>.</li>
+          <li>Start again at the root and record the path to <code>C</code>.</li>
+          <li>Compare the paths from the beginning.</li>
+          <li>The last node they share is the LCA.</li>
+        </ol>
+        <p class="mb-3 text-slate-300">For <code>B = 8</code> and <code>C = 20</code>:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>Path to 8:  [15, 12, 10, 8]
+Path to 20: [15, 20]
+              ↑
+       Last common node = 15</code></pre>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    private boolean findPath(TreeNode root, int target,
+                             List&lt;Integer&gt; path) {
+        if (root == null) {
+            return false;
+        }
+
+        // Include the current node in the path.
+        path.add(root.val);
+
+        if (root.val == target) {
+            return true;
+        }
+
+        // Search both subtrees.
+        if (findPath(root.left, target, path) ||
+            findPath(root.right, target, path)) {
+            return true;
+        }
+
+        // This node is not on the target's path.
+        path.remove(path.size() - 1);
+        return false;
+    }
+
+    public int solve(TreeNode A, int B, int C) {
+        List&lt;Integer&gt; pathB = new ArrayList&lt;&gt;();
+        List&lt;Integer&gt; pathC = new ArrayList&lt;&gt;();
+
+        findPath(A, B, pathB);
+        findPath(A, C, pathC);
+
+        int lca = -1;
+
+        // Find the last common node in both paths.
+        for (int i = 0;
+             i &lt; Math.min(pathB.size(), pathC.size()); i++) {
+
+            if (pathB.get(i).equals(pathC.get(i))) {
+                lca = pathB.get(i);
+            } else {
+                break;
+            }
+        }
+
+        return lca;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity</h3>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\) worst case; finding each path can visit all \(N\) nodes.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for the paths and recursion stack, where \(H\) is the tree height. In the worst case, this is \(O(N)\).</li>
+        </ul>
+        <p class="text-slate-300"><strong class="text-slate-100">Limitation:</strong> This approach does not fully use the BST property.</p>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Use the BST Property</h2>
+        <p class="mb-4">At each node, compare its value with both targets and move in at most one direction.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Condition at current node</th><th scope="col">Action</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Both <code>B</code> and <code>C</code> are smaller</td><td>Move to the left child.</td></tr>
+              <tr><td>Both <code>B</code> and <code>C</code> are greater</td><td>Move to the right child.</td></tr>
+              <tr><td>The values split across the node, or one equals it</td><td>The current node is the LCA.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-5 mt-4 text-slate-300">The third case includes when the current node is one of the targets, because a node can be an ancestor of itself.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Interview-ready Java solution</h3>
+        <p class="mb-4 text-slate-300">Use the provided <code>TreeNode</code> class and method signature without changing them.</p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    public int solve(TreeNode A, int B, int C) {
+
+        // Start searching from the root.
+        TreeNode current = A;
+
+        while (current != null) {
+
+            // Both target values are smaller:
+            // their LCA must be in the left subtree.
+            if (B &lt; current.val &amp;&amp; C &lt; current.val) {
+                current = current.left;
+            }
+
+            // Both target values are greater:
+            // their LCA must be in the right subtree.
+            else if (B &gt; current.val &amp;&amp; C &gt; current.val) {
+                current = current.right;
+            }
+
+            // The values split across the two sides,
+            // or the current node is one of the targets.
+            else {
+                return current.val;
+            }
+        }
+
+        // The problem guarantees both nodes exist.
+        return -1;
+    }
+}</code></pre>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4 text-slate-300">Consider Example 2 with <code>B = 7</code> and <code>C = 1</code>:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>       8
+      / \
+     6   21
+    / \
+   1   7</code></pre>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Step</th>
+                <th scope="col">Current node</th>
+                <th scope="col">Condition</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>1</td><td>8</td><td><code>7 &lt; 8</code> and <code>1 &lt; 8</code></td><td>Move left to <code>6</code>.</td></tr>
+              <tr><td>2</td><td>6</td><td><code>7 &gt; 6</code>, while <code>1 &lt; 6</code></td><td>Return <code>6</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-5 mt-4 text-slate-300">The search stops at <code>6</code>, where the target values lie on different sides. Final output: <code>6</code>.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run for Example 1</h3>
+        <p class="text-slate-300">
+          For <code>B = 8</code> and <code>C = 20</code>, the search starts at <code>15</code>.
+          Since <code>8 &lt; 15</code> and <code>20 &gt; 15</code>, return <code>15</code>.
+          The optimized algorithm checks one node in Example 1 and two nodes in Example 2.
+        </p>
+      </section>
+
+      <section id="complexity-analysis">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+        <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes and \(H\) be the height of the BST.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Approach</th>
+                <th scope="col">Time complexity</th>
+                <th scope="col">Auxiliary space</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Brute force: store paths</td><td>\(O(N)\)</td><td>\(O(H)\)</td></tr>
+              <tr><td>Optimized: iterative BST traversal</td><td>\(O(H)\)</td><td>\(O(1)\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="mt-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>The optimized traversal moves down one level per iteration, so it takes \(O(H)\) time.</li>
+          <li>For a balanced BST, \(H = O(\log N)\), so the time is \(O(\log N)\).</li>
+          <li>For a skewed BST, \(H = O(N)\), so the time is \(O(N)\).</li>
+          <li>The optimized solution uses \(O(1)\) auxiliary space because it maintains only one current-node reference.</li>
+        </ul>
+        <p class="mt-4 text-slate-300">A BST does not automatically guarantee logarithmic height.</p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Case</th><th scope="col">Example</th><th scope="col">Expected behavior</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Targets in opposite subtrees</td><td><code>B = 8, C = 20</code></td><td>Return root <code>15</code>.</td></tr>
+              <tr><td>Targets in the left subtree</td><td><code>B = 1, C = 7</code></td><td>Move left until the split at <code>6</code>.</td></tr>
+              <tr><td>Targets in the right subtree</td><td>Both values greater than the root</td><td>Keep moving right.</td></tr>
+              <tr><td>One target is the root</td><td><code>B = 15, C = 8</code></td><td>Return <code>15</code>.</td></tr>
+              <tr><td>One target is an ancestor of the other</td><td><code>B = 12, C = 8</code></td><td>Return <code>12</code>.</td></tr>
+              <tr><td>Both targets are equal</td><td><code>B = C = 8</code></td><td>Return <code>8</code>.</td></tr>
+              <tr><td>Highly skewed BST</td><td>A chain of nodes</td><td>Correct result, but \(O(N)\) time.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">The problem guarantees that both nodes exist, so the <code>-1</code> return is only a defensive fallback.</p>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce the LCA concept and tree traversal patterns.</p>
+        <ol class="list-inside list-decimal space-y-5 text-slate-300">
+          <li>
+            <a class="font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">235. Lowest Common Ancestor of a Binary Search Tree</a>
+            <span class="ml-1 text-slate-400">— Medium</span>
+            <p class="ml-6 mt-1">The closest match. Practise using BST ordering to locate the split point.</p>
+          </li>
+          <li>
+            <a class="font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">236. Lowest Common Ancestor of a Binary Tree</a>
+            <span class="ml-1 text-slate-400">— Medium</span>
+            <p class="ml-6 mt-1">Find the LCA in a general binary tree, where BST ordering cannot be used.</p>
+          </li>
+          <li>
+            <a class="font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-deepest-leaves/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">1123. Lowest Common Ancestor of Deepest Leaves</a>
+            <span class="ml-1 text-slate-400">— Medium</span>
+            <p class="ml-6 mt-1">Find the LCA of all deepest leaves, reinforcing subtree depth and ancestor reasoning.</p>
+          </li>
+          <li>
+            <a class="font-semibold text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">865. Smallest Subtree with All the Deepest Nodes</a>
+            <span class="ml-1 text-slate-400">— Medium</span>
+            <p class="ml-6 mt-1">Find the smallest subtree containing every deepest node.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="interview-preparation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <p class="mb-4 rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Pattern to remember:</strong> BST property plus ancestor/split-point search.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Traversing both subtrees unnecessarily instead of using BST ordering.</li>
+          <li>Returning the root immediately without checking whether both targets lie on the same side.</li>
+          <li>Forgetting that the LCA can be one of the target nodes.</li>
+          <li>Claiming \(O(\log N)\) time for every BST, including skewed trees.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+        <dl class="space-y-4 text-slate-300">
+          <div>
+            <dt class="font-semibold text-slate-100">Why is this faster than searching the entire tree?</dt>
+            <dd>BST ordering tells us which subtree can contain both targets, letting us discard the other subtree at every step.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">What if the input is an ordinary binary tree instead of a BST?</dt>
+            <dd>We cannot make decisions using value comparisons. Use a general binary-tree LCA algorithm, such as recursive DFS.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Can you solve it recursively?</dt>
+            <dd>Yes. Apply the same three conditions recursively. It takes \(O(H)\) time and \(O(H)\) auxiliary space for the call stack.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">What if one target is the ancestor of the other?</dt>
+            <dd>The ancestor itself is the LCA. When one value equals <code>current.val</code>, neither the “both smaller” nor “both greater” condition applies.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">Use the iterative optimized solution in an interview. It is simple, uses the BST property, and requires constant auxiliary space.</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(H)\), worst case \(O(N)\).</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(1)\).</li>
+        </ul>
+        <blockquote class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-5 text-lg font-semibold text-indigo-100">
+          If both targets are smaller, go left. If both are greater, go right. Otherwise, the current node is the LCA.
+        </blockquote>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

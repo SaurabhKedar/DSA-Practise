@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Sorted Array to Balanced BST — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Sorted Array to Balanced BST</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Convert a sorted integer array into a height-balanced Binary Search Tree (BST).
+                    The key is to choose a middle element as the root, then recursively build subtrees from the remaining halves.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Middle becomes root; the left half becomes the left subtree, and the right half becomes the right subtree.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given an integer array sorted in ascending order. Convert it into a height-balanced Binary Search Tree (BST)
+                        and return its root node.
+                    </p>
+                    <p class="mb-3">A BST follows these rules:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Every value in the left subtree is smaller than the root.</li>
+                        <li>Every value in the right subtree is greater than the root.</li>
+                        <li>For every node, the heights of its left and right subtrees differ by at most 1.</li>
+                    </ul>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Input</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>A = [1, 2, 3, 5, 10]</code></pre>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Balanced BST</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>        3
+       / \
+      1   5
+       \   \
+        2   10</code></pre>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-slate-300">The output is not another array. It is the root node of the constructed tree.</p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">
+                        A straightforward approach is to insert each sorted element into a normal BST one by one.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">How it works</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Start with an empty BST.</li>
+                        <li>Insert <code>1</code>, then <code>2</code>, then <code>3</code>, and so on.</li>
+                        <li>Return the root.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why it is inefficient</h3>
+                    <p class="mb-3">Because the array is sorted, inserting elements in ascending order creates a skewed tree:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>1
+ \
+  2
+   \
+    3
+     \
+      5
+       \
+        10</code></pre>
+                    <p class="mb-3">This tree is not height-balanced.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(n^2)\) in the worst case, because each insertion may traverse the existing tree.</li>
+                        <li>Auxiliary space: \(O(n)\) for the tree, with potentially \(O(n)\) recursive call-stack depth if insertion is recursive.</li>
+                    </ul>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Limitation:</strong>
+                        This approach does not guarantee a balanced tree.
+                    </div>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Divide and Conquer</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Since the array is already sorted, there is no need to search for the correct position of an element.
+                        The middle element is a good choice for the root because approximately half the elements fall on each side.
+                    </p>
+                    <p class="mb-3">For <code>A = [1, 2, 3, 5, 10]</code>:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>The middle element is <code>3</code>; make it the root.</li>
+                        <li>The left half is <code>[1, 2]</code>; recursively build the left subtree.</li>
+                        <li>The right half is <code>[5, 10]</code>; recursively build the right subtree.</li>
+                        <li>Repeat until there are no elements left in a range.</li>
+                    </ol>
+                    <p class="mb-4">Two pointers, <code>start</code> and <code>end</code>, represent the current portion of the array.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — interview-ready solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+
+    // DO NOT MODIFY THE ARGUMENTS WITH "final" PREFIX.
+    public TreeNode sortedArrayToBST(final int[] A) {
+        return buildBST(A, 0, A.length - 1);
+    }
+
+    private TreeNode buildBST(int[] A, int start, int end) {
+
+        // No elements are available in this range.
+        if (start &gt; end) {
+            return null;
+        }
+
+        // Select the middle element as the root.
+        int mid = start + (end - start) / 2;
+
+        TreeNode root = new TreeNode(A[mid]);
+
+        // Construct the left subtree from the left half.
+        root.left = buildBST(A, start, mid - 1);
+
+        // Construct the right subtree from the right half.
+        root.right = buildBST(A, mid + 1, end);
+
+        // Return the root of this subtree.
+        return root;
+    }
+}</code></pre>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Understanding the important lines</h3>
+                    <ol class="list-inside list-decimal space-y-4 text-slate-300">
+                        <li>
+                            <strong class="text-slate-100">Base condition</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (start &gt; end) {
+    return null;
+}</code></pre>
+                            <p class="mt-2">When <code>start</code> becomes greater than <code>end</code>, the current range has no elements, so that child is <code>null</code>.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Finding the middle</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>int mid = start + (end - start) / 2;</code></pre>
+                            <p class="mt-2">This finds the middle index without directly adding <code>start + end</code>, which is safer against integer overflow.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Creating the root</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>TreeNode root = new TreeNode(A[mid]);</code></pre>
+                            <p class="mt-2">The middle element becomes the root of the current subtree.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Building the left subtree</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>root.left = buildBST(A, start, mid - 1);</code></pre>
+                            <p class="mt-2">Only elements before the middle index are considered.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Building the right subtree</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>root.right = buildBST(A, mid + 1, end);</code></pre>
+                            <p class="mt-2">Only elements after the middle index are considered.</p>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Returning the root</strong>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>return root;</code></pre>
+                            <p class="mt-2">The completed subtree is returned to its parent node.</p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider <code>A = [1, 2, 3, 5, 10]</code>, with array indices from <code>0</code> through <code>4</code>.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Start</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">End</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Mid</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Selected node</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">1</th><td class="px-4 py-3">0</td><td class="px-4 py-3">4</td><td class="px-4 py-3">2</td><td class="px-4 py-3">3 (root)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">2</th><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1 (left subtree)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">3</th><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">2 (right child of 1)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">4</th><td class="px-4 py-3">3</td><td class="px-4 py-3">4</td><td class="px-4 py-3">3</td><td class="px-4 py-3">5 (right subtree)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">5</th><td class="px-4 py-3">4</td><td class="px-4 py-3">4</td><td class="px-4 py-3">4</td><td class="px-4 py-3">10 (right child of 5)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Walk through the recursion</h3>
+                    <div class="space-y-5 text-slate-300">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Step 1: Select the root</h4>
+                            <p><code>start = 0</code>, <code>end = 4</code>, so <code>mid = 2</code>. The root becomes <code>3</code>.</p>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-center text-slate-200"><code>3</code></pre>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Step 2: Build the left subtree</h4>
+                            <p>The range <code>[1, 2]</code> has middle value <code>1</code> using integer division. Then <code>[2]</code> becomes the right child of <code>1</code>.</p>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-center text-slate-200"><code>  3
+ /
+1
+ \
+  2</code></pre>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Step 3: Build the right subtree</h4>
+                            <p>The range <code>[5, 10]</code> has middle value <code>5</code>. Then <code>[10]</code> becomes the right child of <code>5</code>.</p>
+                        </div>
+                    </div>
+                    <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Final tree</h3>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>        3
+       / \
+      1   5
+       \   \
+        2   10</code></pre>
+                    <p class="mb-3">
+                        This is the tree produced by the specified midpoint formula. Its inorder traversal is
+                        <code>[1, 2, 3, 5, 10]</code>, confirming the BST ordering.
+                    </p>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950/60 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Note:</strong>
+                        The exact shape can vary depending on how the middle element is chosen when a range has an even number of elements.
+                        Either midpoint convention works for this problem.
+                    </div>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-3">Let \(n\) be the length of the array.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Time complexity: \(O(n)\).</strong> Every array element is selected exactly once to create a tree node. The work per node, excluding recursive calls, is constant.</li>
+                        <li><strong class="text-slate-100">Auxiliary space: \(O(\log n)\).</strong> The recursive calls divide the array approximately in half each time, so the recursion depth is \(O(\log n)\) for a balanced tree.</li>
+                        <li>The tree itself requires \(O(n)\) space for its nodes. If total memory including the output tree is counted, space complexity is \(O(n)\).</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Approach comparison</h3>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[40rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Guarantees balanced BST?</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Insert sorted values one by one</th><td class="px-4 py-3">\(O(n^2)\) worst case</td><td class="px-4 py-3">\(O(n)\) worst-case stack</td><td class="px-4 py-3">No</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Divide and conquer using midpoint</th><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(\log n)\)</td><td class="px-4 py-3">Yes</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Input</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>[7]</code></th><td class="px-4 py-3">A single root node with value <code>7</code>.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>[1, 2]</code></th><td class="px-4 py-3">Root <code>1</code>, with <code>2</code> as its right child under this midpoint formula.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100"><code>[1, 2, 3]</code></th><td class="px-4 py-3">Root <code>2</code>, with children <code>1</code> and <code>3</code>.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Large sorted array of 100,000 elements</th><td class="px-4 py-3">Builds the tree in linear time with logarithmic recursion depth.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Negative or zero values</th><td class="px-4 py-3">Works normally; the algorithm depends on sorted order, not whether values are positive.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The stated problem allows an array of at least one element, so an empty input does not need to be handled under its constraints.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-4 text-slate-300">These problems reinforce the same recursion and BST concepts.</p>
+                    <ol class="list-inside list-decimal space-y-5 text-slate-300">
+                        <li>
+                            <strong class="text-slate-100">Convert Sorted Array to Binary Search Tree — LeetCode 108 · Easy</strong>
+                            <p class="ml-6 mt-1">The exact same problem: choose middle elements recursively to construct a height-balanced BST.</p>
+                            <a class="ml-6 mt-1 inline-block" href="https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Convert Sorted List to Binary Search Tree — LeetCode 109 · Medium</strong>
+                            <p class="ml-6 mt-1">Similar idea, but the input is a sorted linked list rather than an array.</p>
+                            <a class="ml-6 mt-1 inline-block" href="https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Validate Binary Search Tree — LeetCode 98 · Medium</strong>
+                            <p class="ml-6 mt-1">Tests whether a tree follows the BST ordering rules.</p>
+                            <a class="ml-6 mt-1 inline-block" href="https://leetcode.com/problems/validate-binary-search-tree/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Balanced Binary Tree — LeetCode 110 · Easy</strong>
+                            <p class="ml-6 mt-1">Focuses on checking whether the heights of the two subtrees differ by at most one at every node.</p>
+                            <a class="ml-6 mt-1 inline-block" href="https://leetcode.com/problems/balanced-binary-tree/">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Construct Binary Tree from Preorder and Inorder Traversal — LeetCode 105 · Medium</strong>
+                            <p class="ml-6 mt-1">Reinforces recursive tree construction by dividing the input into smaller subproblems.</p>
+                            <a class="ml-6 mt-1 inline-block" href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/">Solve on LeetCode</a>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-4"><strong class="text-slate-100">Key concept to remember:</strong> Divide and Conquer + Recursion.</p>
+                    <p class="mb-5 text-slate-300">Whenever a sorted array needs to become a balanced BST, choose the middle element as the root and recursively process the left and right halves.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Using <code>mid - 1</code> for the left range and <code>mid + 1</code> for the right range incorrectly, or accidentally including <code>mid</code> again. This can cause infinite recursion.</li>
+                        <li>Forgetting the base condition <code>start &gt; end</code>.</li>
+                        <li>Building the tree by inserting sorted values one by one, which can produce a skewed tree.</li>
+                        <li>Claiming \(O(n)\) total space when discussing only auxiliary space; the recursive stack is \(O(\log n)\), but the output tree takes \(O(n)\).</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <p class="font-semibold text-slate-100">Q1. Why does choosing the middle element produce a balanced BST?</p>
+                            <p>It divides the sorted elements into two portions whose sizes differ by at most one. Repeating this at every recursive call keeps the subtree heights balanced.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Q2. Why is the time complexity \(O(n)\)?</p>
+                            <p>Each element is processed exactly once to create one node.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Q3. Can you solve it iteratively?</p>
+                            <p>Yes. You can use a stack or queue of range boundaries and parent-node references, but recursion is simpler and naturally expresses the divide-and-conquer approach.</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-100">Q4. What if the array contains duplicates?</p>
+                            <p>The stated problem does not specify duplicate handling. If duplicates are allowed, the BST ordering convention must be defined. The midpoint construction preserves nondecreasing inorder order, but strict BST rules may not hold for equal values.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4 text-slate-300">Use the recursive midpoint approach in an interview. It is simple, optimal, and guarantees a height-balanced BST for a sorted array.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n)\)</li>
+                        <li>Auxiliary space: \(O(\log n)\)</li>
+                        <li>Total space including the tree: \(O(n)\)</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">One-line intuition:</strong>
+                        Middle becomes root, left half becomes left subtree, right half becomes right subtree.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

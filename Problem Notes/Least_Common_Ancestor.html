@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Least Common Ancestor — Binary Tree (Java)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Trees · Depth-First Search</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Least Common Ancestor (LCA)</h1>
+      <p class="mb-5 text-lg text-slate-300">Find the lowest node in an unordered binary tree that is an ancestor of both target values.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Use recursive DFS to find both targets and propagate their LCA candidate in one traversal. Return <code>-1</code> if either target is missing.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">
+          You are given an unordered binary tree and two values, <code class="text-indigo-300">B</code> and
+          <code class="text-indigo-300">C</code>. Return the value of their Lowest Common Ancestor (LCA).
+        </p>
+        <p class="mb-4">
+          The LCA is the deepest node in the tree that is an ancestor of both target nodes. A node is considered an ancestor of itself.
+        </p>
+        <p class="mb-3 text-slate-300">For example, consider this tree, where <code>1</code> is the root and <code>4</code> and <code>5</code> are children of node <code>2</code>:</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>If <code>B = 4</code> and <code>C = 5</code>, the LCA is <code>2</code>.</li>
+          <li>If <code>B = 2</code> and <code>C = 3</code>, the LCA is <code>1</code>.</li>
+          <li>If one target node is an ancestor of the other, that ancestor itself is the LCA.</li>
+        </ul>
+        <p class="rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Important:</strong> If either <code>B</code> or <code>C</code> does not exist in the tree, return <code>-1</code>.
+          The standard recursive LCA algorithm alone can return a node even when one target is missing.
+        </p>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Idea: Find both paths from the root</h3>
+        <p class="mb-4">
+          Find the path from the root to <code class="text-indigo-300">B</code> and the path from the root to
+          <code class="text-indigo-300">C</code>. Compare the paths from the beginning; their last common node is the LCA.
+        </p>
+        <p class="mb-3 text-slate-300">For example:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>Path to <code>B = 4</code>: <code>[1, 2, 4]</code></li>
+          <li>Path to <code>C = 5</code>: <code>[1, 2, 5]</code></li>
+        </ul>
+        <p class="mb-4 text-slate-300">The common prefix is <code>[1, 2]</code>, so the answer is <code>2</code>.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Steps</h3>
+        <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Use DFS to find the path from the root to <code>B</code>.</li>
+          <li>Use DFS to find the path from the root to <code>C</code>.</li>
+          <li>If either path is missing, return <code>-1</code>.</li>
+          <li>Compare the paths and return their last common node.</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Brute-force Java solution</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    // Finds the path from root to the target value.
+    private boolean findPath(TreeNode root, int target,
+                             ArrayList&lt;Integer&gt; path) {
+        if (root == null) {
+            return false;
+        }
+
+        // Include the current node in the path.
+        path.add(root.val);
+
+        if (root.val == target) {
+            return true;
+        }
+
+        // Search the left or right subtree.
+        if (findPath(root.left, target, path) ||
+            findPath(root.right, target, path)) {
+            return true;
+        }
+
+        // This node is not part of the target path.
+        path.remove(path.size() - 1);
+        return false;
+    }
+
+    public int lca(TreeNode A, int B, int C) {
+        ArrayList&lt;Integer&gt; pathB = new ArrayList&lt;&gt;();
+        ArrayList&lt;Integer&gt; pathC = new ArrayList&lt;&gt;();
+
+        // Both targets must exist in the tree.
+        if (!findPath(A, B, pathB) ||
+            !findPath(A, C, pathC)) {
+            return -1;
+        }
+
+        int i = 0;
+        int lca = -1;
+
+        // Find the last common node in both paths.
+        while (i &lt; pathB.size() &amp;&amp; i &lt; pathC.size()
+                &amp;&amp; pathB.get(i).equals(pathC.get(i))) {
+            lca = pathB.get(i);
+            i++;
+        }
+
+        return lca;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\). Each DFS can visit up to \(N\) nodes, and comparing the paths takes at most \(O(N)\).</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for the two paths and recursion stack, where \(H\) is the tree height. In a skewed tree, this becomes \(O(N)\).</li>
+        </ul>
+        <p class="text-slate-300">
+          <strong class="text-slate-100">Limitation:</strong> This approach stores two paths and traverses the tree multiple times.
+          A single traversal can find the LCA and verify target existence.
+        </p>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Recursive DFS</h2>
+        <p class="mb-4">Instead of building paths, let each recursive call report three things about its subtree:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>The potential LCA found in that subtree.</li>
+          <li>Whether <code>B</code> exists in that subtree.</li>
+          <li>Whether <code>C</code> exists in that subtree.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">At each node</h3>
+        <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
+          <li>If the current node is <code>null</code>, return an empty result.</li>
+          <li>Recursively process the left and right subtrees.</li>
+          <li>Check whether the current node matches <code>B</code> or <code>C</code>.</li>
+          <li>If the current node is one of the targets, it may be the LCA.</li>
+          <li>If one target is found on the left and the other on the right, the current node is their LCA.</li>
+          <li>Otherwise, pass the LCA candidate from either subtree upward.</li>
+          <li>At the root, return the LCA only if both targets were found; otherwise, return <code>-1</code>.</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+        <p class="mb-4 text-slate-300">This solution preserves the required <code>public int lca(TreeNode A, int B, int C)</code> signature.</p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+
+    // Stores the result of processing a subtree.
+    private static class Result {
+        TreeNode lca;
+        boolean foundB;
+        boolean foundC;
+
+        Result(TreeNode lca, boolean foundB, boolean foundC) {
+            this.lca = lca;
+            this.foundB = foundB;
+            this.foundC = foundC;
+        }
+    }
+
+    private Result findLCA(TreeNode root, int B, int C) {
+        // An empty subtree contains neither target.
+        if (root == null) {
+            return new Result(null, false, false);
+        }
+
+        // Process both subtrees.
+        Result left = findLCA(root.left, B, C);
+        Result right = findLCA(root.right, B, C);
+
+        // Check whether the current node matches either target.
+        boolean isB = (root.val == B);
+        boolean isC = (root.val == C);
+
+        // Combine target-existence information.
+        boolean foundB = isB || left.foundB || right.foundB;
+        boolean foundC = isC || left.foundC || right.foundC;
+
+        TreeNode lca = null;
+
+        // The current node is the LCA if it is a target
+        // and the other target exists below it.
+        if (isB || isC) {
+            lca = root;
+        }
+
+        // Targets found in separate subtrees have this node
+        // as their lowest common ancestor.
+        else if (left.lca != null &amp;&amp; right.lca != null) {
+            lca = root;
+        }
+
+        // Otherwise, pass the candidate from the non-empty side.
+        else if (left.lca != null) {
+            lca = left.lca;
+        } else if (right.lca != null) {
+            lca = right.lca;
+        }
+
+        return new Result(lca, foundB, foundC);
+    }
+
+    public int lca(TreeNode A, int B, int C) {
+        Result result = findLCA(A, B, C);
+
+        // Return -1 if either target is missing.
+        if (!result.foundB || !result.foundC) {
+            return -1;
+        }
+
+        return result.lca.val;
+    }
+}</code></pre>
+        <p class="mt-4 text-slate-300">
+          This approach assumes node values are unique, as is customary for this version of the problem. It also handles
+          <code>B == C</code> by treating the matching node as both targets.
+        </p>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4">Consider the example with <code class="text-indigo-300">B = 4</code> and <code class="text-indigo-300">C = 5</code>:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+        <p class="mb-4 text-slate-300">The recursive calls start at the leaves and return results upward.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Current node</th>
+                <th scope="col">Target <code>B</code> found?</th>
+                <th scope="col">Target <code>C</code> found?</th>
+                <th scope="col">LCA candidate</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>4</td><td>Yes</td><td>No</td><td>4</td></tr>
+              <tr><td>5</td><td>No</td><td>Yes</td><td>5</td></tr>
+              <tr><td>2</td><td>Yes</td><td>Yes</td><td>2</td></tr>
+              <tr><td>3</td><td>No</td><td>No</td><td><code>null</code></td></tr>
+              <tr><td>1</td><td>Yes</td><td>Yes</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 mt-4 text-slate-300">
+          At node <code>2</code>, the left subtree contains <code>4</code> and the right subtree contains <code>5</code>.
+          Therefore, node <code>2</code> is the lowest node connecting both targets.
+        </p>
+        <p class="mb-3 text-slate-300">The final result is:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>2</code></pre>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">What if a target is missing?</h3>
+        <p class="text-slate-300">
+          Suppose <code>B = 4</code> and <code>C = 10</code>, but node <code>10</code> does not exist. The recursive search
+          finds <code>4</code>, but <code>foundC</code> remains <code>false</code>. Therefore, the method returns <code>-1</code>
+          instead of incorrectly returning <code>4</code> or another ancestor.
+        </p>
+      </section>
+
+      <section id="complexity-comparison">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Comparison</h2>
+        <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes and \(H\) be the height of the tree.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Approach</th>
+                <th scope="col">Time complexity</th>
+                <th scope="col">Auxiliary space</th>
+                <th scope="col">Main idea</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Brute force</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>Find both paths and compare</td></tr>
+              <tr><td>Optimized DFS</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>Find the LCA and verify both targets in one traversal</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 mt-4 text-slate-300">
+          The optimized solution reduces the number of tree traversals and avoids storing complete root-to-node paths.
+          Both approaches have the same worst-case Big-O time complexity.
+        </p>
+        <p class="rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Recursion-depth note:</strong> Because the constraints allow up to \(10^5\) nodes, a highly skewed tree
+          could cause a Java <code>StackOverflowError</code> with recursive DFS. If the platform includes such extreme cases,
+          an iterative solution is safer.
+        </p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Case</th>
+                <th scope="col">Expected result</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td><code>B</code> and <code>C</code> are in separate subtrees</td><td>Their common ancestor</td></tr>
+              <tr><td>One target is an ancestor of the other</td><td>The ancestor</td></tr>
+              <tr><td>Both targets are the same existing value</td><td>That node</td></tr>
+              <tr><td>Either target does not exist</td><td><code>-1</code></td></tr>
+              <tr><td>Both targets are at leaf nodes</td><td>Their lowest common ancestor</td></tr>
+              <tr><td>Tree contains only one node</td><td>That node if both targets match it; otherwise <code>-1</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce the same tree-recursion concepts.</p>
+        <ol class="list-inside list-decimal space-y-4 text-slate-300">
+          <li>
+            <strong class="text-slate-100">Lowest Common Ancestor of a Binary Tree</strong> — LeetCode 236 · Medium.
+            The closest match: find the LCA using recursive DFS.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Lowest Common Ancestor of a Binary Search Tree</strong> — LeetCode 235 · Medium.
+            Uses the BST ordering property to find the LCA without searching both subtrees.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Lowest Common Ancestor of Deepest Leaves</strong> — LeetCode 1123 · Medium.
+            Combines recursion, subtree height, and ancestor identification.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-deepest-leaves/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Smallest Subtree with all the Deepest Nodes</strong> — LeetCode 865 · Medium.
+            Practices returning useful information from recursive subtrees to identify a common ancestor.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+        </ol>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <p class="mb-4 text-slate-300"><strong class="text-slate-100">Pattern to remember:</strong> Binary tree DFS with recursive result propagation.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Returning an LCA candidate without checking that both targets exist.</li>
+          <li>Assuming the tree is a BST and using value comparisons to choose a subtree.</li>
+          <li>Forgetting that one target can itself be the LCA.</li>
+          <li>Ignoring recursion depth for a tree with up to \(10^5\) nodes.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interview follow-ups</h3>
+        <ol class="list-inside list-decimal space-y-3 text-slate-300">
+          <li><strong class="text-slate-100">How does the solution change for a BST?</strong> Use the ordering property to move left or right until the two values split across subtrees or one equals the current node.</li>
+          <li><strong class="text-slate-100">What if each node has a parent pointer?</strong> Find the ancestors of one node, then walk up from the other until an ancestor matches.</li>
+          <li><strong class="text-slate-100">What if one target might not exist?</strong> Track whether both targets were found, as this problem requires.</li>
+          <li><strong class="text-slate-100">Can recursion be avoided?</strong> Yes. Find both paths iteratively using a stack or parent map, then compare the paths.</li>
+        </ol>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">
+          Implement the optimized recursive DFS for this problem because it directly captures the LCA pattern and verifies that both target values exist.
+        </p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\)</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\), worst case \(O(N)\)</li>
+        </ul>
+        <p class="rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Remember:</strong> If the two targets are found in different subtrees, the current node is their LCA.
+          If only one subtree has an LCA candidate, pass that candidate upward. Finally, return <code>-1</code> if either target is missing.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

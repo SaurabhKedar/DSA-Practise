@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Search in BST — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Search in a Binary Search Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Use the Binary Search Tree (BST) property to find a target value without visiting every node.
+                    The iterative solution follows only the subtree that can contain the target.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Key pattern:</strong>
+                    Equal means found. Smaller means go left. Greater means go right. Reaching <code>null</code> means not found.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given the root of a BST, <code>A</code>, and a target value, <code>B</code>.
+                        Return <code>1</code> if a node with value <code>B</code> exists; otherwise, return <code>0</code>.
+                    </p>
+                    <p class="mb-3">The BST property is:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>All values in the left subtree are smaller than the current node.</li>
+                        <li>All values in the right subtree are greater than the current node.</li>
+                    </ul>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Target found</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>      15
+     /  \
+   12    20
+         /
+        16</code></pre>
+                            <p class="mt-3 text-slate-300">For <code>B = 16</code>, start at <code>15</code>. Since <code>16 &gt; 15</code>, move right to <code>20</code>. Since <code>16 &lt; 20</code>, move left to <code>16</code>, where the target is found.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>1</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — Target not found</h3>
+                            <p class="mb-3 text-slate-300">When searching for <code>9</code> in the BST rooted at <code>8</code>, move right to <code>21</code>, then left to <code>null</code>.</p>
+                            <p class="font-semibold text-indigo-200">Output: <code>0</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Traverse the entire tree using DFS and compare every node's value with <code>B</code>.
+                        Recursion can visit both the left and right subtrees without using the BST property.
+                    </p>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Brute-Force Java Code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public int solve(TreeNode A, int B) {
+        // An empty subtree cannot contain the target.
+        if (A == null) {
+            return 0;
+        }
+
+        // Return success as soon as the current node matches.
+        if (A.val == B) {
+            return 1;
+        }
+
+        // Search both subtrees without relying on the BST ordering.
+        if (solve(A.left, B) == 1 || solve(A.right, B) == 1) {
+            return 1;
+        }
+
+        // The target was not found in either subtree.
+        return 0;
+    }
+}</code></pre>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Complexity Analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\), where \(N\) is the number of nodes, because every node may be visited.</li>
+                        <li>Auxiliary space: \(O(H)\) for the recursive call stack, where \(H\) is the tree height. In the worst case, this is \(O(N)\).</li>
+                    </ul>
+                    <p class="mt-4 rounded-lg border border-amber-800 bg-amber-950/50 p-4 text-amber-100">
+                        <strong>Limitation:</strong> This approach ignores the BST property and may search unnecessary nodes.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BST Search</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">At each node, use its value to choose which subtree could contain the target:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>If <code>B == A.val</code>, return <code>1</code>.</li>
+                        <li>If <code>B &lt; A.val</code>, move to the left child.</li>
+                        <li>If <code>B &gt; A.val</code>, move to the right child.</li>
+                        <li>If the current node becomes <code>null</code>, return <code>0</code>.</li>
+                    </ul>
+                    <p class="mb-4">This iterative solution avoids recursive stack usage and is suitable for a tree containing up to \(10^5\) nodes.</p>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Optimized Java Code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+public class Solution {
+    public int solve(TreeNode A, int B) {
+        // Begin at the root and follow one branch at a time.
+        TreeNode current = A;
+
+        while (current != null) {
+            // The target has been found.
+            if (current.val == B) {
+                return 1;
+            }
+
+            // A smaller target can only be in the left subtree.
+            else if (B &lt; current.val) {
+                current = current.left;
+            }
+
+            // A greater target can only be in the right subtree.
+            else {
+                current = current.right;
+            }
+        }
+
+        // The search reached an empty child without finding the target.
+        return 0;
+    }
+}</code></pre>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider the BST from Example 1 and target <code>B = 16</code>.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>      15
+     /  \
+   12    20
+         /
+        16</code></pre>
+                    <p class="mb-3 text-slate-300">Search path: <code>15 → 20 → 16</code></p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3"><code>current.val</code></th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Comparison</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">15</td><td class="px-4 py-3"><code>16 &gt; 15</code></td><td class="px-4 py-3">Move right</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">20</td><td class="px-4 py-3"><code>16 &lt; 20</code></td><td class="px-4 py-3">Move left</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">16</td><td class="px-4 py-3"><code>16 == 16</code></td><td class="px-4 py-3">Return <code>1</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 font-semibold text-indigo-200">Final output: <code>1</code></p>
+
+                    <h3 class="mb-3 mt-6 text-xl font-semibold text-slate-100">Second Example — Target <code>9</code></h3>
+                    <p class="mb-3 text-slate-300">Starting at <code>8</code>, the search moves right to <code>21</code>, then left to <code>null</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[24rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3"><code>current.val</code></th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Move right</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">21</td><td class="px-4 py-3">Move left</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3"><code>null</code></td><td class="px-4 py-3">Return <code>0</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 font-semibold text-indigo-200">Final output: <code>0</code></p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) be the height of the BST.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Brute-force DFS</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Optimized BST search</th><td class="px-4 py-3">\(O(H)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="mt-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Balanced BST: \(O(\log N)\) time.</li>
+                        <li>Skewed BST: \(O(N)\) time in the worst case.</li>
+                        <li>Optimized auxiliary space: \(O(1)\), because the iterative solution uses only a pointer and no additional data structure.</li>
+                    </ul>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected result</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target equals root</th><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Found immediately</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is in the left subtree</th><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Search left when the target is smaller</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is in the right subtree</th><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Search right when the target is greater</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target does not exist</th><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Search eventually reaches <code>null</code></td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is <code>0</code></th><td class="px-4 py-3"><code>0</code> or <code>1</code></td><td class="px-4 py-3">Depends on whether <code>0</code> exists</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Highly skewed BST</th><td class="px-4 py-3"><code>0</code> or <code>1</code></td><td class="px-4 py-3">Correct, but may take \(O(N)\) time</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce the BST search pattern.</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/search-in-a-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">700. Search in a Binary Search Tree</a> — Easy. The closest match; search for a target and return the corresponding subtree.</li>
+                        <li><a href="https://leetcode.com/problems/insert-into-a-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">701. Insert into a Binary Search Tree</a> — Medium. Uses the same left-versus-right decision.</li>
+                        <li><a href="https://leetcode.com/problems/delete-node-in-a-bst/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">450. Delete Node in a BST</a> — Medium. First locate the target using BST search, then handle deletion.</li>
+                        <li><a href="https://leetcode.com/problems/validate-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">98. Validate Binary Search Tree</a> — Medium. Reinforces the ordering rules that make BST search possible.</li>
+                        <li><a href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">235. Lowest Common Ancestor of a Binary Search Tree</a> — Medium. Uses BST comparisons to choose which direction to explore.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-3"><strong class="text-slate-100">Key pattern:</strong> Use the BST property to eliminate one subtree at every comparison.</p>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Common Mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Searching both subtrees unnecessarily.</li>
+                        <li>Moving left when the target is greater than the current value.</li>
+                        <li>Forgetting to return <code>0</code> after reaching <code>null</code>.</li>
+                        <li>Assuming every BST search is \(O(\log N)\); that is guaranteed only for a balanced tree.</li>
+                    </ul>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Likely Interviewer Follow-Ups</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q1. Why is BST search faster than normal binary-tree search?</p>
+                            <p class="mt-2 text-slate-300">The BST property tells us which subtree can contain the target, so we can skip the other subtree.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q2. What is the worst-case time complexity?</p>
+                            <p class="mt-2 text-slate-300">\(O(N)\), when the BST is skewed.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q3. Can this be solved recursively?</p>
+                            <p class="mt-2 text-slate-300">Yes. Recursion follows the same comparisons, but it uses \(O(H)\) stack space.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <p class="font-semibold text-slate-100">Q4. What if the tree is balanced?</p>
+                            <p class="mt-2 text-slate-300">Its height is \(O(\log N)\), so the search takes \(O(\log N)\) time.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        Use the iterative optimized solution in an interview. It is simple, takes constant auxiliary space,
+                        and uses the BST property effectively.
+                    </p>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-5 text-center text-lg font-semibold text-indigo-100">
+                        Equal → found. Smaller → left. Greater → right. Null → not found.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

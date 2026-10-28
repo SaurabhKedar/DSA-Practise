@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Kth Smallest Element in BST — Java</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Search Trees · Inorder Traversal</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Kth Smallest Element in BST</h1>
+      <p class="mb-5 text-lg text-slate-300">Find the element at position <code class="text-indigo-300">B</code> when the values of a binary search tree are arranged in ascending order.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Use inorder traversal to visit BST values in sorted order, count each visited node, and stop at the <code>B</code>th node.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">You are given:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><code class="text-indigo-300">A</code>: The root of a Binary Search Tree.</li>
+          <li><code class="text-indigo-300">B</code>: The 1-based position of the smallest element to find.</li>
+        </ul>
+        <p class="mb-4">Return the element at position <code class="text-indigo-300">B</code> in ascending order.</p>
+        <p class="mb-3 text-slate-300">A BST has the following property:</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>All values in the left subtree are smaller than the node's value.</li>
+          <li>All values in the right subtree are greater than the node's value.</li>
+        </ul>
+        <p class="mb-5 text-slate-300">
+          Therefore, inorder traversal (Left → Root → Right) visits BST elements in sorted ascending order. This lets us find the
+          <code>B</code>th smallest value without sorting the entire tree.
+        </p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Example 1</h3>
+            <p class="mb-2 text-slate-300">Inorder traversal: <code>1 → 2 → 3</code></p>
+            <ul class="list-inside list-disc space-y-1 text-slate-300">
+              <li>1st smallest = <code>1</code></li>
+              <li>2nd smallest = <code>2</code></li>
+              <li>3rd smallest = <code>3</code></li>
+            </ul>
+            <p class="mt-2 text-slate-300">Output: <code class="text-indigo-300">2</code></p>
+          </div>
+          <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Example 2</h3>
+            <p class="mb-2 text-slate-300">Inorder traversal: <code>1 → 2 → 3</code></p>
+            <p class="text-slate-300">Output: <code class="text-indigo-300">1</code></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4 text-slate-300">
+          Visit every node, store its value in a list, sort the list in ascending order, and return the element at index
+          <code>B - 1</code>. We subtract one because Java lists use zero-based indexing.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+    public int kthsmallest(TreeNode A, int B) {
+        List&lt;Integer&gt; values = new ArrayList&lt;&gt;();
+
+        // Collect every node value.
+        collectValues(A, values);
+
+        // Sort values in ascending order.
+        Collections.sort(values);
+
+        // B is 1-based, but list indices are 0-based.
+        return values.get(B - 1);
+    }
+
+    private void collectValues(TreeNode node, List&lt;Integer&gt; values) {
+        if (node == null) {
+            return;
+        }
+
+        // Add this node before collecting values from its children.
+        values.add(node.val);
+        collectValues(node.left, values);
+        collectValues(node.right, values);
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity</h3>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N\log N)\), because sorting \(N\) node values takes \(O(N\log N)\).</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N)\) to store values, plus \(O(H)\) recursion stack space, where \(H\) is the tree height.</li>
+        </ul>
+        <p class="rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Limitation:</strong> This sorts all elements even though only one is needed. The BST already provides a more efficient way to find the answer.
+        </p>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Inorder Traversal</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4 text-slate-300">Because the tree is a BST, inorder traversal automatically visits values from smallest to largest.</p>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Traverse the left subtree.</li>
+          <li>Visit the current node and increase a counter.</li>
+          <li>If the counter equals <code>B</code>, save the current value.</li>
+          <li>Otherwise, traverse the right subtree.</li>
+          <li>Stop as soon as the <code>B</code>th element is found.</li>
+        </ol>
+        <p class="mb-5 text-slate-300">This avoids visiting unnecessary nodes when the answer appears early.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java solution (recommended)</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+public class Solution {
+
+    private int count;
+    private int answer;
+
+    public int kthsmallest(TreeNode A, int B) {
+        // Reset state so repeated calls on this Solution instance are independent.
+        count = 0;
+        inorder(A, B);
+        return answer;
+    }
+
+    private boolean inorder(TreeNode node, int B) {
+        // No node to visit.
+        if (node == null) {
+            return false;
+        }
+
+        // Visit smaller elements first.
+        if (inorder(node.left, B)) {
+            return true;
+        }
+
+        // Process the current node.
+        count++;
+
+        // The Bth visited node is the answer.
+        if (count == B) {
+            answer = node.val;
+            return true;
+        }
+
+        // Search larger elements only if needed.
+        return inorder(node.right, B);
+    }
+}</code></pre>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Understanding the important variables</h3>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Variable</th><th scope="col">Purpose</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td><code>count</code></td><td>Counts the nodes visited in sorted order.</td></tr>
+              <tr><td><code>answer</code></td><td>Stores the <code>B</code>th smallest value.</td></tr>
+              <tr><td><code>B</code></td><td>The required position in ascending order.</td></tr>
+              <tr><td><code>node</code></td><td>The current node being processed.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-5 rounded-xl border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Why does <code>inorder()</code> return a boolean?</strong>
+          Recursive calls use the return value to signal that the answer has already been found. Each parent then stops exploring its remaining subtree.
+        </div>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4 text-slate-300">Consider this BST with <code class="text-indigo-300">B = 2</code>. The inorder traversal visits <code>1</code>, then <code>2</code>, then <code>3</code>.</p>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Start at node <code>2</code>.</li>
+          <li>Move to its left child, node <code>1</code>.</li>
+          <li>Node <code>1</code> has no left child, so visit it. Now <code>count = 1</code>.</li>
+          <li>Since <code>count</code> is not <code>B</code>, continue.</li>
+          <li>Return to node <code>2</code> and visit it. Now <code>count = 2</code>.</li>
+          <li>Since <code>count == B</code>, save <code>answer = 2</code> and stop.</li>
+        </ol>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Step</th>
+                <th scope="col">Node visited</th>
+                <th scope="col">Count</th>
+                <th scope="col">Answer</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>1</td><td><code>1</code></td><td>1</td><td>Not found</td></tr>
+              <tr><td>2</td><td><code>2</code></td><td>2</td><td><code>2</code> — found</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">Node <code>3</code> is never visited because the answer has already been found. Final output: <code class="text-indigo-300">2</code>.</p>
+      </section>
+
+      <section id="complexity-analysis">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+        <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes, \(H\) the tree height, and \(K=B\).</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr>
+                <th scope="col">Approach</th>
+                <th scope="col">Time complexity</th>
+                <th scope="col">Auxiliary space</th>
+              </tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Collect and sort</td><td>\(O(N\log N)\)</td><td>\(O(N+H)\)</td></tr>
+              <tr><td>Inorder traversal with early stopping</td><td>\(O(N)\) worst case</td><td>\(O(H)\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="mt-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Worst-case time:</strong> \(O(N)\), when the required element is the largest or near the end of the traversal.</li>
+          <li><strong class="text-slate-100">Best-case bound:</strong> \(O(H+K)\) for the nodes and recursive traversal needed to reach the \(K\)th node; more precisely, work is proportional to the portion of the tree visited.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for recursion. A balanced BST has \(H=O(\log N)\), while a skewed BST can have \(H=O(N)\).</li>
+        </ul>
+        <p class="mt-4 text-slate-300">The optimized approach is preferable because it does not store or sort all node values.</p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th scope="col">Case</th><th scope="col">Expected behavior</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td><code>B = 1</code></td><td>Return the minimum value, which is the leftmost node.</td></tr>
+              <tr><td><code>B = N</code></td><td>Return the maximum value, which is the rightmost node.</td></tr>
+              <tr><td>Single-node tree</td><td>Return the root value when <code>B = 1</code>.</td></tr>
+              <tr><td>Left-skewed BST</td><td>Inorder traversal visits nodes from the bottom-left upward.</td></tr>
+              <tr><td>Right-skewed BST</td><td>Inorder traversal visits nodes from the root toward the right.</td></tr>
+              <tr><td>Large node values</td><td>Works for values up to \(10^9\), because Java <code>int</code> supports them.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          The solution assumes <code>B</code> is valid, meaning \(1 \le B \le N\). If the platform allows invalid values of <code>B</code>, additional validation would be necessary.
+        </p>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce the same BST and traversal concepts.</p>
+        <ol class="list-inside list-decimal space-y-4 text-slate-300">
+          <li>
+            <strong class="text-slate-100">Binary Tree Inorder Traversal</strong> — LeetCode 94 · Easy.
+            Learn the exact traversal pattern used in this solution.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/binary-tree-inorder-traversal/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Kth Smallest Element in a BST</strong> — LeetCode 230 · Medium.
+            This is the same problem and is excellent for practicing the optimized solution.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Binary Search Tree Iterator</strong> — LeetCode 173 · Medium.
+            Learn how to produce BST elements in sorted order using a stack, one element at a time.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/binary-search-tree-iterator/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+          <li>
+            <strong class="text-slate-100">Validate Binary Search Tree</strong> — LeetCode 98 · Medium.
+            Reinforces the properties that make BST-specific optimizations possible.
+            <a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/validate-binary-search-tree/" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+          </li>
+        </ol>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <p class="mb-4 text-slate-300">
+          <strong class="text-slate-100">Key concept to remember:</strong>
+          BST + Inorder Traversal = Sorted Order. When asked for the <code>K</code>th smallest element in a BST, consider inorder traversal with a counter.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-6 list-inside list-disc space-y-2 text-slate-300">
+          <li>Using preorder or postorder traversal and assuming the elements will be sorted.</li>
+          <li>Returning <code>values.get(B)</code> instead of <code>values.get(B - 1)</code> in the brute-force approach.</li>
+          <li>Forgetting to stop recursion once the answer has been found.</li>
+          <li>Forgetting to reset <code>count</code> before each call to <code>kthsmallest()</code>.</li>
+          <li>Assuming recursion uses constant space; its stack depends on tree height.</li>
+        </ul>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
+        <div class="space-y-5 text-slate-300">
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q1. How would you find the Kth largest element?</p>
+            <p>Use reverse inorder traversal: Right → Root → Left. Count visited nodes until the counter reaches <code>B</code>.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q2. Can you solve it iteratively?</p>
+            <p>Yes. Use a stack to perform iterative inorder traversal and stop at the <code>B</code>th popped node.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q3. What if we need to find many Kth-smallest queries on the same BST?</p>
+            <p>Store the subtree size at each node during preprocessing. These sizes can help answer each query in \(O(H)\) time, assuming the tree remains unchanged and subtree sizes are maintained correctly.</p>
+          </div>
+          <div>
+            <p class="mb-1 font-semibold text-slate-100">Q4. What if the BST is skewed?</p>
+            <p>Its height can become \(O(N)\), so recursion can use \(O(N)\) stack space and may risk stack overflow for 100,000 nodes. An iterative stack-based traversal avoids recursive call-stack overflow.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">Use inorder traversal with early stopping for this problem. It is straightforward, efficient, and interview-friendly.</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\) worst case.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for the recursive implementation.</li>
+          <li><strong class="text-slate-100">Core intuition:</strong> Visit nodes in sorted order, count them, and stop at the <code>B</code>th node.</li>
+        </ul>
+        <p class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-100">
+          Remember this pattern: whenever a problem asks for the smallest or largest element in a BST by rank, think about inorder or reverse inorder traversal first.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Balanced Binary Tree — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Balanced Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The key idea is to check whether the height difference between the left and right subtrees of every node is at most 1.
+                    The recommended solution calculates height and checks balance together in a single postorder traversal.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Postorder traversal + subtree information + early termination.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">A binary tree is height-balanced if, for every node:</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4 text-center text-lg">
+                        \[\left|\text{height(left)}-\text{height(right)}\right|\leq 1\]
+                    </div>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>If every node satisfies this condition, return <code>1</code>.</li>
+                        <li>If even one node violates it, return <code>0</code>.</li>
+                    </ul>
+                    <p class="mb-3">For this problem, there are two approaches:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Brute force: Calculate the height of both subtrees at every node.</li>
+                        <li>Optimized: Calculate height and check balance together in a single postorder traversal.</li>
+                    </ol>
+                    <p class="mb-5">The optimized approach is recommended because the tree can contain up to <code>10^5</code> nodes.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Balanced</h3>
+                            <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                            <p class="text-slate-300">Root <code>1</code> has children <code>2</code> and <code>3</code>. Both subtrees have height <code>1</code>; their difference is <code>0</code>.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>1</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — Unbalanced</h3>
+                            <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>1
+ \
+  2
+   \
+    3</code></pre>
+                            <p class="text-slate-300">This left-skewed tree has a left-subtree height of <code>2</code> and right-subtree height of <code>0</code> at node <code>1</code>.</p>
+                            <p class="my-2 text-center">\[|2-0|=2>1\]</p>
+                            <p class="font-semibold text-indigo-200">Output: <code>0</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">For every node:</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Calculate the height of its left subtree.</li>
+                        <li>Calculate the height of its right subtree.</li>
+                        <li>If the difference is greater than <code>1</code>, return <code>0</code>.</li>
+                        <li>Otherwise, repeat the same check for the left and right children.</li>
+                        <li>If all nodes are balanced, return <code>1</code>.</li>
+                    </ol>
+                    <p class="mb-4">The problem is that subtree heights are calculated repeatedly.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    // Calculates the height of a subtree.
+    private int height(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+
+        int leftHeight = height(root.left);
+        int rightHeight = height(root.right);
+
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
+
+    public int isBalanced(TreeNode A) {
+        if (A == null) {
+            return 1;
+        }
+
+        // Calculate the heights of both subtrees.
+        int leftHeight = height(A.left);
+        int rightHeight = height(A.right);
+
+        // If the difference is greater than 1, the current node is unbalanced.
+        if (Math.abs(leftHeight - rightHeight) &gt; 1) {
+            return 0;
+        }
+
+        // Both subtrees must also be balanced.
+        if (isBalanced(A.left) == 0 ||
+            isBalanced(A.right) == 0) {
+            return 0;
+        }
+
+        return 1;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3">Consider this tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>        1
+       / \
+      2   3
+     /
+    4</code></pre>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Left height</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Right height</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-4">Every node has a height difference of at most <code>1</code>. Output: <code>1</code>.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n^2)\) in the worst case. A skewed tree repeatedly recalculates heights, resulting in approximately \(n+(n-1)+\cdots+1\) work.</li>
+                        <li>Auxiliary space: \(O(h)\) for the recursive call stack, where \(h\) is the tree height.</li>
+                    </ul>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Limitation:</strong>
+                        Repeated height calculations make this approach inefficient for large trees.
+                    </div>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Height and Balance Together</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Instead of calculating height separately and then checking balance, we can do both in a single traversal.
+                        Postorder traversal processes the left subtree, then the right subtree, and finally the current node.
+                    </p>
+                    <p class="mb-3">We use a special return value:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>A non-negative integer represents the subtree's height.</li>
+                        <li><code>-1</code> means the subtree is unbalanced. A valid height cannot be negative, so this is a convenient signal.</li>
+                    </ul>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the node is <code>null</code>, return height <code>0</code>.</li>
+                        <li>Recursively calculate the left subtree's height.</li>
+                        <li>If the left subtree returns <code>-1</code>, immediately return <code>-1</code>.</li>
+                        <li>Calculate the right subtree's height.</li>
+                        <li>If the right subtree returns <code>-1</code>, immediately return <code>-1</code>.</li>
+                        <li>If the absolute difference between the two heights exceeds <code>1</code>, return <code>-1</code>.</li>
+                        <li>Otherwise, return <code>1 + max(leftHeight, rightHeight)</code>.</li>
+                        <li>In <code>isBalanced()</code>, convert the result into <code>1</code> or <code>0</code>.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — optimized solution</h3>
+                    <p class="mb-3 text-slate-300">This is the recommended interview solution for the given platform's signature.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    // Returns the subtree height, or -1 if it is unbalanced.
+    private int checkHeight(TreeNode root) {
+
+        // An empty subtree has height 0.
+        if (root == null) {
+            return 0;
+        }
+
+        // First, check the left subtree.
+        int leftHeight = checkHeight(root.left);
+
+        // No need to continue if the left subtree is unbalanced.
+        if (leftHeight == -1) {
+            return -1;
+        }
+
+        // Next, check the right subtree.
+        int rightHeight = checkHeight(root.right);
+
+        // No need to continue if the right subtree is unbalanced.
+        if (rightHeight == -1) {
+            return -1;
+        }
+
+        // The current node is unbalanced if the height difference exceeds 1.
+        if (Math.abs(leftHeight - rightHeight) &gt; 1) {
+            return -1;
+        }
+
+        // Return the height of the current subtree.
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
+
+    public int isBalanced(TreeNode A) {
+
+        // -1 means unbalanced; otherwise, the tree is balanced.
+        return checkHeight(A) == -1 ? 0 : 1;
+    }
+}</code></pre>
+                </section>
+
+                <section id="optimized-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Consider the second example:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   /
+  2
+ /
+3</code></pre>
+                    <p class="mb-3">The recursive calls first reach node <code>3</code>, then return results upward.</p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Current node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Left height</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Right height</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Height = 1</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Height = 2</td></tr>
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Difference = 2, return <code>-1</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">At node <code>1</code>, the difference is greater than <code>1</code>, so <code>checkHeight()</code> returns <code>-1</code>.</p>
+                    <p class="mb-2">The final condition is:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>return checkHeight(A) == -1 ? 0 : 1;</code></pre>
+                    <p class="mb-4">Since the result is <code>-1</code>, the method returns <code>0</code>. Output: <code>0</code>.</p>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Why check <code>leftHeight == -1</code> and <code>rightHeight == -1</code>?</strong>
+                        A parent cannot fix an imbalance in a deep subtree, so there is no need to continue calculating heights. This early return avoids unnecessary work.
+                    </div>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Comparison</h2>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[30rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">Brute force</td><td class="px-4 py-3">\(O(n^2)\) worst case</td><td class="px-4 py-3">\(O(h)\)</td></tr>
+                                <tr><td class="px-4 py-3">Optimized</td><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(h)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">Here, \(n\) is the number of nodes and \(h\) is the height of the tree.</p>
+                    <p class="mb-4">The optimized approach visits each node at most once, so its time complexity is \(O(n)\).</p>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong class="text-amber-50">Important Java consideration:</strong>
+                        Both implementations use recursion. For a highly skewed tree with up to <code>10^5</code> nodes, the recursion depth may exceed Java's stack capacity. The optimized algorithm improves time complexity but does not eliminate this risk. An iterative postorder implementation can avoid deep recursive calls if the platform requires handling such worst-case shapes reliably.
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Expected output</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
+                                <tr><td class="px-4 py-3">One node</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Both subtrees have height <code>0</code>.</td></tr>
+                                <tr><td class="px-4 py-3">Root with two children</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Height difference is <code>0</code>.</td></tr>
+                                <tr><td class="px-4 py-3">Three-node left-skewed tree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Root's height difference is <code>2</code>.</td></tr>
+                                <tr><td class="px-4 py-3">Balanced tree with several levels</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Every node satisfies the condition.</td></tr>
+                                <tr><td class="px-4 py-3">An unbalanced subtree deep in the tree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Every subtree must be balanced.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-4">These problems reinforce the same tree-recursion concepts.</p>
+                    <ol class="list-inside list-decimal space-y-2 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/balanced-binary-tree/?utm_source=chatgpt.com">110. Balanced Binary Tree</a> — Easy. The same problem.</li>
+                        <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/?utm_source=chatgpt.com">104. Maximum Depth of Binary Tree</a> — Easy. Learn how to calculate tree height recursively.</li>
+                        <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/?utm_source=chatgpt.com">543. Diameter of Binary Tree</a> — Easy. Calculate subtree heights while processing each node.</li>
+                        <li><a href="https://leetcode.com/problems/minimum-depth-of-binary-tree/?utm_source=chatgpt.com">111. Minimum Depth of Binary Tree</a> — Easy. Practice recursion and tree-depth calculations.</li>
+                        <li><a href="https://leetcode.com/problems/invert-binary-tree/?utm_source=chatgpt.com">226. Invert Binary Tree</a> — Easy. Practice recursive traversal of left and right subtrees.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Pattern to remember:</strong>
+                        Postorder traversal + subtree information + early termination.
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Checking only the root's height difference instead of checking every node.</li>
+                        <li>Recalculating heights repeatedly, leading to \(O(n^2)\) time.</li>
+                        <li>Forgetting to propagate the <code>-1</code> signal from an unbalanced subtree.</li>
+                        <li>Assuming that a tree with equal left and right subtree heights at the root must be balanced.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q1. Why use postorder traversal?</h4>
+                            <p>Because we need the heights of both children before deciding whether the current node is balanced.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q2. Can we solve this in \(O(n)\) time?</h4>
+                            <p>Yes. Calculate the height and check balance together, processing each node once.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q3. Why return <code>-1</code> instead of a boolean?</h4>
+                            <p>The recursive function needs to communicate both the height and whether the subtree is unbalanced. The sentinel value lets it communicate both using a single integer return value.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q4. What is the difference between a balanced tree and a complete binary tree?</h4>
+                            <p>A balanced tree constrains the height difference between every node's subtrees. A complete binary tree requires every level except possibly the last to be completely filled, with the last level filled from left to right.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the optimized postorder solution in interviews. It avoids repeated height calculations and achieves \(O(n)\) time.</p>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time complexity: \(O(n)\)</li>
+                        <li>Auxiliary space: \(O(h)\) for recursion</li>
+                        <li>Core intuition: Get the heights from the children, detect imbalance immediately, and pass the result upward.</li>
+                    </ul>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

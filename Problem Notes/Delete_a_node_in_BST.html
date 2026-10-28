@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Delete a Node in a BST — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Delete a Node in a BST</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Find the node with value <code>B</code>, delete it if it exists, and return the updated root of the Binary Search Tree (BST).
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Key condition:</strong>
+                    When a node has two children, replace it with its in-order predecessor—the largest value in its left subtree—not its in-order successor.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">A Binary Search Tree follows these rules:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Every value in the left subtree is smaller than the current node.</li>
+                        <li>Every value in the right subtree is greater than the current node.</li>
+                        <li>All node values are unique.</li>
+                    </ul>
+                    <p class="mb-4">Delete the node whose value equals <code>B</code> while preserving these BST properties. Deletion has three cases:</p>
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Case 1 — Leaf</h3>
+                            <p class="text-slate-300">A node with no children is deleted by returning <code>null</code> for its subtree.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Case 2 — One child</h3>
+                            <p class="text-slate-300">Replace the node with its only child, whether that child is on the left or right.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Case 3 — Two children</h3>
+                            <p class="text-slate-300">Copy the in-order predecessor's value into the node, then delete the predecessor from the left subtree.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <p class="mb-4">
+                        A straightforward alternative is to traverse the entire tree, find the target node and its parent, and handle its children according to the three deletion cases.
+                        This can take \(O(N)\) time and requires additional parent-tracking logic. A better approach uses the BST property to search only the relevant subtree.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Use BST Properties</h2>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Compare <code>B</code> with the current node's value to decide which direction to search:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>If <code>B &lt; A.val</code>, search the left subtree.</li>
+                        <li>If <code>B &gt; A.val</code>, search the right subtree.</li>
+                        <li>If <code>B == A.val</code>, the node is found; handle its deletion.</li>
+                    </ul>
+                    <p class="mb-5">For a node with two children, the predecessor is the rightmost node in the left subtree.</p>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Java Solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+public class Solution {
+    public TreeNode solve(TreeNode A, int B) {
+
+        // An empty subtree means the target was not found on this path.
+        if (A == null) {
+            return null;
+        }
+
+        // Search the left subtree when the target is smaller.
+        if (B &lt; A.val) {
+            A.left = solve(A.left, B);
+        }
+
+        // Search the right subtree when the target is greater.
+        else if (B &gt; A.val) {
+            A.right = solve(A.right, B);
+        }
+
+        // The target node has been found.
+        else {
+            // With no left child, the right child replaces this node.
+            if (A.left == null) {
+                return A.right;
+            }
+
+            // With no right child, the left child replaces this node.
+            if (A.right == null) {
+                return A.left;
+            }
+
+            // Find the in-order predecessor: the largest value in the left subtree.
+            TreeNode predecessor = A.left;
+            while (predecessor.right != null) {
+                predecessor = predecessor.right;
+            }
+
+            // Copy the predecessor value, then remove its original node.
+            A.val = predecessor.val;
+            A.left = solve(A.left, predecessor.val);
+        }
+
+        // Return this subtree's root so the parent can reconnect it.
+        return A;
+    }
+}</code></pre>
+
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950/60 p-4">
+                        <h3 class="mb-2 font-semibold text-indigo-100">Why assign the recursive result?</h3>
+                        <p class="text-indigo-200">
+                            The recursive call may delete the root of a subtree or replace it with one of its children.
+                            Assigning the result, as in <code>A.left = solve(A.left, B)</code>, ensures the parent points to the updated subtree.
+                            The same applies to the right subtree.
+                        </p>
+                    </div>
+
+                    <h3 class="mb-3 text-xl font-semibold text-slate-100">Why use the in-order predecessor?</h3>
+                    <p class="mb-3">Suppose the target node is <code>6</code>, with left child <code>1</code> and right child <code>7</code>:</p>
+                    <pre class="mb-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>    6
+   / \
+  1   7</code></pre>
+                    <p class="mb-3">The predecessor is the largest value in the left subtree, which is <code>1</code>. Replace <code>6</code> with <code>1</code>, then delete the original <code>1</code> node:</p>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>    1
+     \
+      7</code></pre>
+                    <p class="mt-3">This preserves the BST property and uses the required predecessor.</p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Consider Example 2 and delete <code>B = 6</code>:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        8
+       / \
+      6   21
+     / \
+    1   7</code></pre>
+                    <ol class="list-inside list-decimal space-y-4 text-slate-300">
+                        <li>
+                            <strong class="text-slate-100">Search for 6.</strong>
+                            At node <code>8</code>, <code>6 &lt; 8</code>, so move to the left child.
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Find the target.</strong>
+                            Node <code>6</code> is found. It has two children, so find its in-order predecessor.
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Find the predecessor.</strong>
+                            The left subtree contains only node <code>1</code>, so the predecessor is <code>1</code>.
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">Replace and delete.</strong>
+                            Copy <code>1</code> into the target node, then delete the original node <code>1</code>.
+                        </li>
+                    </ol>
+                    <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Final tree</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        8
+       / \
+      1   21
+       \
+        7</code></pre>
+                    <p class="mt-3">The root remains <code>8</code>; only the affected subtree changes.</p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) be the height of the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Approach</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Time complexity</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-medium text-slate-100">Brute-force search without BST ordering</th>
+                                    <td class="px-4 py-3">\(O(N)\)</td>
+                                    <td class="px-4 py-3">\(O(H)\)</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="px-4 py-3 font-medium text-slate-100">Optimized BST search and deletion</th>
+                                    <td class="px-4 py-3">\(O(H)\)</td>
+                                    <td class="px-4 py-3">\(O(H)\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="mt-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Searching takes \(O(H)\). Finding the predecessor and deleting it also takes at most \(O(H)\), so total time is \(O(H)\).</li>
+                        <li>Recursion uses \(O(H)\) stack space.</li>
+                        <li>For a balanced BST, \(H = O(\log N)\), so time and auxiliary space are \(O(\log N)\).</li>
+                        <li>For a skewed BST, \(H = O(N)\), so both can reach \(O(N)\).</li>
+                    </ul>
+                    <div class="mt-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Brute-force alternative</h3>
+                        <p class="text-slate-300">
+                            A brute-force search ignores BST ordering and explores both subtrees until it finds the target.
+                            It can visit every node, requiring \(O(N)\) time and \(O(H)\) recursive stack space.
+                            The optimized approach is preferable because it avoids searching irrelevant subtrees.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Important Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Case</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Expected behavior</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is a leaf</th><td class="px-4 py-3">Return <code>null</code> for that subtree.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target has only a left child</th><td class="px-4 py-3">Return its left child.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target has only a right child</th><td class="px-4 py-3">Return its right child.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target has two children</th><td class="px-4 py-3">Replace it with the in-order predecessor.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is the root</th><td class="px-4 py-3">Return the updated root after deletion.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target does not exist</th><td class="px-4 py-3">The original tree remains unchanged.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Target is the minimum or maximum value</th><td class="px-4 py-3">Delete it using its applicable child case.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Tree is skewed</th><td class="px-4 py-3">The algorithm remains correct, but recursion can reach \(O(N)\) depth.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-4">These problems reinforce BST search, insertion, deletion, and traversal.</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/delete-node-in-a-bst/">450. Delete Node in a BST</a> — Medium. The closest match; practice deleting nodes with zero, one, and two children.</li>
+                        <li><a href="https://leetcode.com/problems/search-in-a-binary-search-tree/">700. Search in a Binary Search Tree</a> — Easy. Practice using BST ordering to search efficiently.</li>
+                        <li><a href="https://leetcode.com/problems/insert-into-a-binary-search-tree/">701. Insert into a Binary Search Tree</a> — Medium. Learn how recursive calls update subtree roots.</li>
+                        <li><a href="https://leetcode.com/problems/validate-binary-search-tree/">98. Validate Binary Search Tree</a> — Medium. Understand how BST ordering must hold throughout the tree.</li>
+                        <li><a href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/">230. Kth Smallest Element in a BST</a> — Medium. Practice in-order traversal and its relationship to sorted values.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <p class="mb-3"><strong class="text-slate-100">Pattern to remember:</strong> BST search + recursive subtree updates + in-order predecessor.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Using the in-order successor when the problem explicitly requires the predecessor.</li>
+                        <li>Finding the predecessor but forgetting to delete its original node.</li>
+                        <li>Forgetting to assign <code>A.left = solve(...)</code> or <code>A.right = solve(...)</code>.</li>
+                        <li>Forgetting that deleting the root may change the root returned to the caller.</li>
+                        <li>Returning <code>null</code> when the target is absent instead of preserving the unchanged subtree.</li>
+                    </ul>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                    <dl class="space-y-4">
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q1. What is the in-order predecessor?</dt>
+                            <dd class="mt-1 text-slate-300">The largest value in a node's left subtree, found by moving as far right as possible from its left child.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q2. Why not simply remove a node with two children?</dt>
+                            <dd class="mt-1 text-slate-300">Removing it directly would leave two subtrees to reconnect. Replacing it with the predecessor preserves BST ordering while allowing the predecessor to be removed using a simpler case.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q3. What happens if <code>B</code> is not present?</dt>
+                            <dd class="mt-1 text-slate-300">The search eventually reaches <code>null</code>, and the tree remains unchanged.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-slate-100">Q4. Can this algorithm be iterative?</dt>
+                            <dd class="mt-1 text-slate-300">Yes. An iterative implementation can search for the target and predecessor while tracking parent pointers. This avoids recursive call-stack usage, though it requires more bookkeeping.</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Use the recursive BST deletion approach with the in-order predecessor. It is concise, interview-friendly, and follows the problem's explicit requirement.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(H)\), worst case \(O(N)\).</li>
+                        <li>Auxiliary space: \(O(H)\), worst case \(O(N)\).</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Memory trick:</strong>
+                        Search using BST ordering → handle zero or one child directly → for two children, copy the largest value from the left subtree → delete its original node.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
