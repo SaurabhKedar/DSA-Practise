@@ -45,60 +45,64 @@
         <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
             <header class="mb-8 border-b border-slate-700 pb-6">
                 <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
-                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Valid Binary Search Tree</h1>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Valid Binary Search Tree (BST)</h1>
                 <p class="mb-4 text-lg text-slate-300">
-                    Validate a binary tree by checking whether its values follow the strict ordering rules of a Binary Search Tree (BST).
-                    The main solution uses inorder traversal and compares each node with the previously visited node.
+                    Determine whether a binary tree satisfies the Binary Search Tree ordering rules. This guide compares four approaches, from a straightforward subtree scan to efficient inorder and range-based validations.
                 </p>
                 <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
-                    <strong class="text-indigo-100">Pattern to remember:</strong>
-                    A valid BST produces a strictly increasing sequence during inorder traversal.
+                    <strong class="text-indigo-100">Key property:</strong>
+                    A binary tree is a valid BST if and only if its inorder traversal is strictly increasing.
                 </div>
             </header>
 
             <main class="space-y-12">
                 <section id="problem-understanding">
                     <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
-                    <p class="mb-4">
-                        We are given the root <code>A</code> of a binary tree. Return <code>1</code> if it is a valid
-                        Binary Search Tree, and <code>0</code> otherwise.
-                    </p>
-                    <p class="mb-3">A valid BST follows three rules:</p>
-                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                    <p class="mb-4">We are given the root <code>A</code> of a binary tree. Return <code>1</code> if it is a valid BST; otherwise, return <code>0</code>.</p>
+                    <p class="mb-3">A valid BST follows these rules:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
                         <li>Every value in the left subtree is strictly smaller than the current node.</li>
                         <li>Every value in the right subtree is strictly greater than the current node.</li>
                         <li>Both subtrees must also be valid BSTs.</li>
-                    </ol>
+                    </ul>
+
                     <div class="grid gap-4 md:grid-cols-2">
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Invalid</h3>
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — Invalid BST</h3>
                             <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>  1
  /
 2</code></pre>
-                            <p class="mt-3 text-sm text-slate-300">The left child <code>2</code> is greater than the root <code>1</code>.</p>
+                            <p class="mt-3 text-slate-300">The left child <code>2</code> is greater than the root <code>1</code>.</p>
                             <p class="mt-2 font-semibold text-indigo-200">Output: <code>0</code></p>
                         </div>
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — Valid</h3>
-                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>  2
- / \
-1   3</code></pre>
-                            <p class="mt-3 text-sm text-slate-300">The left value is smaller and the right value is greater than the root.</p>
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — Valid BST</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>    2
+   / \
+  1   3</code></pre>
+                            <p class="mt-3 text-slate-300">Both children satisfy the BST property.</p>
                             <p class="mt-2 font-semibold text-indigo-200">Output: <code>1</code></p>
                         </div>
+                    </div>
+
+                    <div class="mt-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">Important constraints</h3>
+                        <ul class="list-inside list-disc space-y-1 text-slate-300">
+                            <li>Up to \(10^5\) nodes.</li>
+                            <li>Duplicate values are not allowed.</li>
+                            <li>The provided <code>TreeNode</code> stores values as Java <code>int</code>. If the platform truly supports values up to \(2^{32}-1\), its node type must also support that range; ordinary Java <code>int</code> cannot represent all such values.</li>
+                        </ul>
                     </div>
                 </section>
 
                 <section id="brute-force">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
-                    <p class="mb-4">
-                        At each node, find the maximum value in its left subtree and the minimum value in its right subtree.
-                        Reject the tree if the left maximum is not smaller than the node, or the right minimum is not greater.
-                        Then recursively check both subtrees.
-                    </p>
-                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Approach 1 — Brute Force</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">For every node, find the maximum value in its left subtree and the minimum value in its right subtree. Check that both satisfy the node's ordering rule, then recursively validate both subtrees.</p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
 
-    // Find the largest value anywhere in this subtree.
+    // Returns the largest value in this subtree.
     private long findMax(TreeNode node) {
         if (node == null) {
             return Long.MIN_VALUE;
@@ -108,7 +112,7 @@
                 Math.max(findMax(node.left), findMax(node.right)));
     }
 
-    // Find the smallest value anywhere in this subtree.
+    // Returns the smallest value in this subtree.
     private long findMin(TreeNode node) {
         if (node == null) {
             return Long.MAX_VALUE;
@@ -118,7 +122,7 @@
                 Math.min(findMin(node.left), findMin(node.right)));
     }
 
-    // Check this node and then validate both of its subtrees.
+    // Validates this node and both of its subtrees.
     private boolean check(TreeNode node) {
         if (node == null) {
             return true;
@@ -134,58 +138,117 @@
         return check(node.left) &amp;&amp; check(node.right);
     }
 
-    // Convert the boolean validation result to the required integer output.
     public int isValidBST(TreeNode A) {
         return check(A) ? 1 : 0;
     }
 }</code></pre>
-                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
-                        <strong class="text-amber-50">Complexity:</strong>
-                        Time is \(O(n^2)\) in the worst case because values may be scanned repeatedly.
-                        Auxiliary space is \(O(h)\) for recursion, where \(h\) is the tree height.
-                        This is inefficient for a tree with up to \(10^5\) nodes.
                     </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n^2)\) worst case, because subtree values can be scanned repeatedly.</li>
+                        <li>Auxiliary space: \(O(h)\), where \(h\) is the tree height.</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300">This is correct but inefficient for large trees.</p>
                 </section>
 
-                <section id="inorder-approach">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach 1 — Inorder Traversal</h2>
-                    <p class="mb-4">
-                        Inorder traversal visits nodes in this order:
-                        <strong class="text-slate-100">Left subtree → Current node → Right subtree</strong>.
-                        For a valid BST, the resulting values must be strictly increasing.
-                    </p>
-                    <div class="mb-5 grid gap-4 md:grid-cols-2">
+                <section id="inorder-array">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Approach 2 — Inorder Traversal + Store Values in an Array/List</h2>
+                    <p class="mb-3">The inorder traversal of a valid BST always produces values in strictly increasing order. Store the traversal in an <code>ArrayList</code>, then verify that every element is greater than the previous one.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Example</h3>
+                    <div class="grid gap-4 md:grid-cols-2">
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                            <h3 class="mb-2 font-semibold text-slate-100">Valid tree</h3>
-                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>  2
- / \
-1   3</code></pre>
-                            <p class="mt-3 text-sm text-slate-300">Inorder sequence: <code>1 → 2 → 3</code></p>
+                            <p class="mb-2 font-semibold text-slate-100">Valid BST</p>
+                            <pre class="rounded-lg bg-slate-950 p-3 text-center text-slate-200"><code>    2
+   / \
+  1   3</code></pre>
+                            <p class="mt-2 text-slate-300">Inorder traversal: <code>[1, 2, 3]</code>. The list is strictly increasing.</p>
                         </div>
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                            <h3 class="mb-2 font-semibold text-slate-100">Invalid tree</h3>
-                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>  1
- / \
-2   3</code></pre>
-                            <p class="mt-3 text-sm text-slate-300">Inorder sequence: <code>2 → 1 → 3</code>. The sequence decreases at <code>1</code>.</p>
+                            <p class="mb-2 font-semibold text-slate-100">Invalid BST</p>
+                            <pre class="rounded-lg bg-slate-950 p-3 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                            <p class="mt-2 text-slate-300">Inorder traversal: <code>[2, 1, 3]</code>. It is not strictly increasing, so the tree is invalid.</p>
                         </div>
                     </div>
-                    <h3 class="mb-2 text-lg font-semibold text-slate-100">The key idea: previous and current</h3>
-                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
-                        <li>Recursively validate the left subtree.</li>
-                        <li>Compare the current node's value with <code>prev</code>.</li>
-                        <li>If <code>current.val &lt;= prev</code>, return <code>false</code>.</li>
-                        <li>Update <code>prev = current.val</code>.</li>
-                        <li>Recursively validate the right subtree.</li>
-                    </ol>
-                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complete Java solution</h3>
-                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>import java.util.ArrayList;
 
-    // Stores the value of the previously visited node.
+public class Solution {
+
+    // Stores node values in inorder: Left -&gt; Root -&gt; Right.
+    private void inorder(TreeNode node, ArrayList&lt;Integer&gt; values) {
+        if (node == null) {
+            return;
+        }
+
+        inorder(node.left, values);
+        values.add(node.val);
+        inorder(node.right, values);
+    }
+
+    public int isValidBST(TreeNode A) {
+        ArrayList&lt;Integer&gt; values = new ArrayList&lt;&gt;();
+
+        // Store the inorder traversal.
+        inorder(A, values);
+
+        // Check whether the values are strictly increasing.
+        for (int i = 1; i &lt; values.size(); i++) {
+            // Equality is invalid because duplicates are not allowed.
+            if (values.get(i) &lt;= values.get(i - 1)) {
+                return 0;
+            }
+        }
+
+        // Every adjacent pair is strictly increasing.
+        return 1;
+    }
+}</code></pre>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3 text-slate-300">For the valid BST containing <code>1</code>, <code>2</code>, and <code>3</code>, inorder traversal creates this list:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Step</th><th scope="col" class="p-3">Visited node</th><th scope="col" class="p-3">ArrayList</th></tr></thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr><td class="p-3">1</td><td class="p-3"><code>1</code></td><td class="p-3"><code>[1]</code></td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3"><code>2</code></td><td class="p-3"><code>[1, 2]</code></td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3"><code>3</code></td><td class="p-3"><code>[1, 2, 3]</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3 mt-4 text-slate-300">Then compare adjacent elements:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[20rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Comparison</th><th scope="col" class="p-3">Result</th></tr></thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr><td class="p-3"><code>2 &lt;= 1</code></td><td class="p-3">False</td></tr>
+                                <tr><td class="p-3"><code>3 &lt;= 2</code></td><td class="p-3">False</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3 font-semibold text-indigo-200">No violation is found. Output: <code>1</code></p>
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n)\) — Every node is visited once, and the list is checked once.</li>
+                        <li>Auxiliary space: \(O(n)\) — The <code>ArrayList</code> stores all \(n\) node values. The recursive traversal also uses \(O(h)\) stack space, so total auxiliary space remains \(O(n)\).</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300"><strong class="text-slate-100">Important:</strong> We do not need to sort the array. Sorting would destroy the original traversal order and could make an invalid BST appear valid. We only check whether the inorder output is already strictly increasing.</p>
+                </section>
+
+                <section id="inorder-previous">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Approach 3 — Inorder Traversal + Previous Value</h2>
+                    <p class="mb-3">This approach uses the same property as the array method without storing all node values. Maintain <code>prev</code> as the value of the previously visited node. During inorder traversal, reject a node when its value is less than or equal to <code>prev</code>.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+
+    // Stores the previously visited node's value.
     private long prev = Long.MIN_VALUE;
 
     private boolean inorder(TreeNode node) {
-        // An empty subtree is valid.
         if (node == null) {
             return true;
         }
@@ -200,217 +263,191 @@
             return false;
         }
 
-        // Update prev only after the current value passes the check.
+        // Update prev only after the comparison succeeds.
         prev = node.val;
 
-        // Visit the right subtree.
+        // Finish the inorder traversal by visiting the right subtree.
         return inorder(node.right);
     }
 
     public int isValidBST(TreeNode A) {
-        // Reset state in case the same Solution object is reused.
+        // Reset state if this Solution instance is reused.
         prev = Long.MIN_VALUE;
-
         return inorder(A) ? 1 : 0;
     }
 }</code></pre>
-                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-100">
-                        <strong class="text-indigo-50">Why use <code>long prev = Long.MIN_VALUE</code>?</strong>
-                        The initial value must be smaller than any valid node value. The problem's values are nonnegative,
-                        so this sentinel works safely and does not mistake a valid value of <code>0</code> for an invalid value.
                     </div>
-                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run — valid tree</h3>
-                    <p class="mb-3">For the tree with root <code>2</code>, left child <code>1</code>, and right child <code>3</code>:</p>
-                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
-                        <table class="w-full min-w-[38rem] border-collapse text-left text-sm">
-                            <thead class="bg-slate-900 text-slate-100">
-                                <tr>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Current node</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Previous before check</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Check</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">New <code>prev</code></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-700">
-                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3"><code>Long.MIN_VALUE</code></td><td class="px-4 py-3">Valid</td><td class="px-4 py-3">1</td></tr>
-                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">\(2 &gt; 1\), valid</td><td class="px-4 py-3">2</td></tr>
-                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">3</td><td class="px-4 py-3">2</td><td class="px-4 py-3">\(3 &gt; 2\), valid</td><td class="px-4 py-3">3</td></tr>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3 text-slate-300">For the valid BST containing <code>1</code>, <code>2</code>, and <code>3</code>:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Current node</th><th scope="col" class="p-3">Previous value</th><th scope="col" class="p-3">Comparison</th><th scope="col" class="p-3">Updated previous</th></tr></thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr><td class="p-3"><code>1</code></td><td class="p-3"><code>Long.MIN_VALUE</code></td><td class="p-3">Valid</td><td class="p-3"><code>1</code></td></tr>
+                                <tr><td class="p-3"><code>2</code></td><td class="p-3"><code>1</code></td><td class="p-3"><code>2 &gt; 1</code></td><td class="p-3"><code>2</code></td></tr>
+                                <tr><td class="p-3"><code>3</code></td><td class="p-3"><code>2</code></td><td class="p-3"><code>3 &gt; 2</code></td><td class="p-3"><code>3</code></td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <p class="mb-5 text-slate-300">All comparisons succeed, so the output is <code>1</code>.</p>
-                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run — invalid tree</h3>
-                    <p class="mb-3">For the tree with root <code>1</code>, left child <code>2</code>, and right child <code>3</code>:</p>
-                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
-                        <table class="w-full min-w-[32rem] border-collapse text-left text-sm">
-                            <thead class="bg-slate-900 text-slate-100">
-                                <tr>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Current node</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Previous value</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Check</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-700">
-                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3"><code>Long.MIN_VALUE</code></td><td class="px-4 py-3">Valid; set <code>prev = 2</code></td></tr>
-                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">\(1 \leq 2\), invalid</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p class="mb-5 text-slate-300">The algorithm returns <code>false</code>, so the output is <code>0</code>.</p>
-                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                        <strong class="text-slate-100">Complexity:</strong>
-                        Time is \(O(n)\), since each node is visited at most once.
-                        Auxiliary space is \(O(h)\) for the recursive call stack. A balanced tree uses \(O(\log n)\) stack space,
-                        while a skewed tree may use \(O(n)\). A very deep tree can overflow the Java call stack; the iterative
-                        version mentioned below avoids recursive calls.
-                    </div>
+                    <p class="mb-3 mt-4 text-slate-300">All comparisons succeed, so the output is <code>1</code>. For an invalid tree with root <code>1</code> and left child <code>2</code>, inorder traversal visits <code>2</code> and then <code>1</code>. The comparison <code>1 &lt;= 2</code> fails, so the output is <code>0</code>.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n)\) — Each node is visited at most once.</li>
+                        <li>Auxiliary space: \(O(h)\) — Only the recursive stack and a constant number of variables are needed.</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300">This approach is more space-efficient than storing the complete inorder list.</p>
                 </section>
 
-                <section id="range-approach">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Optimized Approach 2 — Minimum and Maximum Range</h2>
-                    <p class="mb-4">
-                        Pass the allowed minimum and maximum values down the tree. Each node must satisfy the exclusive range:
-                    </p>
+                <section id="range-validation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Approach 4 — Minimum and Maximum Range Validation</h2>
+                    <p class="mb-3">Every node must satisfy the restrictions imposed by all its ancestors. Pass an exclusive minimum and maximum range to each node. A node is valid when:</p>
                     <div class="mb-4 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-center text-lg text-indigo-100">
                         \[\text{min} &lt; \text{node.val} &lt; \text{max}\]
                     </div>
-                    <p class="mb-4">
-                        The left child inherits the current node's value as its upper bound. The right child inherits it as its lower bound.
-                    </p>
-                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+                    <p class="mb-3 text-slate-300">For the left child, update the upper bound to the current node's value. For the right child, update the lower bound to the current node's value.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complete Java solution</h3>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
 
     private boolean validate(TreeNode node, long min, long max) {
-        // An empty subtree satisfies the BST rules.
         if (node == null) {
             return true;
         }
 
-        // Reject values outside the allowed exclusive range.
+        // The current value must be strictly inside the allowed range.
         if (node.val &lt;= min || node.val &gt;= max) {
             return false;
         }
 
-        // Restrict the left subtree below this value and the right above it.
-        return validate(node.left, min, node.val)
-                &amp;&amp; validate(node.right, node.val, max);
+        // Left subtree values must be smaller than this node.
+        if (!validate(node.left, min, node.val)) {
+            return false;
+        }
+
+        // Right subtree values must be greater than this node.
+        return validate(node.right, node.val, max);
     }
 
     public int isValidBST(TreeNode A) {
-        // Start with bounds wide enough to include all node values.
         return validate(A, Long.MIN_VALUE, Long.MAX_VALUE) ? 1 : 0;
     }
 }</code></pre>
-                    <p class="rounded-xl border border-slate-700 bg-slate-900 p-4">
-                        <strong class="text-slate-100">Complexity:</strong>
-                        \(O(n)\) time and \(O(h)\) auxiliary space. This approach catches violations involving distant ancestors,
-                        not just immediate parent-child relationships.
-                    </p>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(n)\).</li>
+                        <li>Auxiliary space: \(O(h)\).</li>
+                    </ul>
+                    <p class="mt-3 text-slate-300">This approach is also optimal in time complexity for checking every node.</p>
                 </section>
 
                 <section id="comparison">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Comparison of the Approaches</h2>
-                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
-                        <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Comparison of All Four Approaches</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[48rem] border-collapse text-left text-sm">
                             <thead class="bg-slate-900 text-slate-100">
-                                <tr>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Feature</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Brute force</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Inorder traversal</th>
-                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Range validation</th>
-                                </tr>
+                                <tr><th scope="col" class="p-3">Feature</th><th scope="col" class="p-3">Brute force</th><th scope="col" class="p-3">Inorder + ArrayList</th><th scope="col" class="p-3">Inorder + Previous</th><th scope="col" class="p-3">Range validation</th></tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-700">
-                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Main idea</th><td class="px-4 py-3">Repeatedly find subtree min/max</td><td class="px-4 py-3">Compare current with previous</td><td class="px-4 py-3">Enforce allowed bounds</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Time</th><td class="px-4 py-3">\(O(n^2)\) worst case</td><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(n)\)</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Auxiliary space</th><td class="px-4 py-3">\(O(h)\)</td><td class="px-4 py-3">\(O(h)\)</td><td class="px-4 py-3">\(O(h)\)</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Detects ancestor violations</th><td class="px-4 py-3">Yes</td><td class="px-4 py-3">Yes</td><td class="px-4 py-3">Yes</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-semibold text-slate-100">Recommended</th><td class="px-4 py-3">No</td><td class="px-4 py-3">Yes</td><td class="px-4 py-3">Yes</td></tr>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr><th scope="row" class="p-3 font-semibold text-slate-100">Time</th><td class="p-3">\(O(n^2)\) worst case</td><td class="p-3">\(O(n)\)</td><td class="p-3">\(O(n)\)</td><td class="p-3">\(O(n)\)</td></tr>
+                                <tr><th scope="row" class="p-3 font-semibold text-slate-100">Auxiliary space</th><td class="p-3">\(O(h)\)</td><td class="p-3">\(O(n)\)</td><td class="p-3">\(O(h)\)</td><td class="p-3">\(O(h)\)</td></tr>
+                                <tr><th scope="row" class="p-3 font-semibold text-slate-100">Stores all values?</th><td class="p-3">No</td><td class="p-3">Yes</td><td class="p-3">No</td><td class="p-3">No</td></tr>
+                                <tr><th scope="row" class="p-3 font-semibold text-slate-100">Main technique</th><td class="p-3">Subtree min/max</td><td class="p-3">Traversal + list check</td><td class="p-3">Traversal + previous value</td><td class="p-3">DFS with bounds</td></tr>
+                                <tr><th scope="row" class="p-3 font-semibold text-slate-100">Best use</th><td class="p-3">Understanding the basic solution</td><td class="p-3">Learning traversal and sorted-order properties</td><td class="p-3">Efficient inorder validation</td><td class="p-3">Explicitly enforcing ancestor constraints</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Which optimized approach should you choose?</h3>
-                    <p class="text-slate-300">
-                        Choose inorder traversal with a previous-value variable to practice tree traversals and see how traversal order
-                        solves the problem. Choose range validation when you want to enforce each node's restrictions explicitly.
-                        Both are correct and efficient.
-                    </p>
+                    <p class="mt-3 text-slate-300">Here, \(n\) is the number of nodes and \(h\) is the height of the tree. In the worst case, \(h = n\).</p>
                 </section>
 
                 <section id="edge-cases">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases to Remember</h2>
-                    <ul class="list-inside list-disc space-y-2 text-slate-300">
-                        <li><strong class="text-slate-100">Single node:</strong> Valid, so return <code>1</code>.</li>
-                        <li><strong class="text-slate-100">Duplicate values:</strong> Invalid, because the sequence must be strictly increasing.</li>
-                        <li><strong class="text-slate-100">Invalid descendant:</strong> Inorder traversal detects it when the sequence stops increasing.</li>
-                        <li><strong class="text-slate-100">Node value zero:</strong> Valid when its position satisfies the BST property.</li>
-                        <li><strong class="text-slate-100">Highly skewed tree:</strong> Recursive implementations may hit Java's stack limit. Use iterative inorder traversal for safer handling of deep trees.</li>
-                    </ul>
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Important Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100"><tr><th scope="col" class="p-3">Case</th><th scope="col" class="p-3">Expected result</th><th scope="col" class="p-3">Reason</th></tr></thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800">
+                                <tr><td class="p-3">Single node</td><td class="p-3"><code>1</code></td><td class="p-3">A single node is a valid BST.</td></tr>
+                                <tr><td class="p-3">Duplicate values</td><td class="p-3"><code>0</code></td><td class="p-3">Values must be strictly increasing.</td></tr>
+                                <tr><td class="p-3">Left child greater than root</td><td class="p-3"><code>0</code></td><td class="p-3">Violates BST ordering.</td></tr>
+                                <tr><td class="p-3">Deep descendant violates an ancestor's bound</td><td class="p-3"><code>0</code></td><td class="p-3">All ancestors' restrictions matter.</td></tr>
+                                <tr><td class="p-3">Values already in increasing inorder order</td><td class="p-3"><code>1</code></td><td class="p-3">Satisfies the BST ordering property.</td></tr>
+                                <tr><td class="p-3">Highly skewed tree</td><td class="p-3">Depends on values</td><td class="p-3">Recursive approaches may hit stack limits.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
 
                 <section id="similar-problems">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Similar LeetCode Problems</h2>
+                    <p class="mb-4">These problems help reinforce inorder traversal and BST properties.</p>
                     <ol class="list-inside list-decimal space-y-4 text-slate-300">
                         <li>
                             <strong class="text-slate-100">98. Validate Binary Search Tree — Medium</strong>
-                            <p class="ml-6 mt-1">Directly practices both BST validation and the inorder ordering property.</p>
-                            <a class="ml-6 inline-block mt-1" href="https://leetcode.com/problems/validate-binary-search-tree/">Open problem</a>
+                            <p class="ml-6">Exactly the same problem.</p>
+                            <a class="ml-6 inline-block" href="https://leetcode.com/problems/validate-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
                         </li>
                         <li>
                             <strong class="text-slate-100">230. Kth Smallest Element in a BST — Medium</strong>
-                            <p class="ml-6 mt-1">Uses inorder traversal to visit BST values in sorted order.</p>
-                            <a class="ml-6 inline-block mt-1" href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/">Open problem</a>
-                        </li>
-                        <li>
-                            <strong class="text-slate-100">700. Search in a Binary Search Tree — Easy</strong>
-                            <p class="ml-6 mt-1">Reinforces the basic BST ordering rules.</p>
-                            <a class="ml-6 inline-block mt-1" href="https://leetcode.com/problems/search-in-a-binary-search-tree/">Open problem</a>
+                            <p class="ml-6">Uses inorder traversal to obtain values in sorted order.</p>
+                            <a class="ml-6 inline-block" href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
                         </li>
                         <li>
                             <strong class="text-slate-100">530. Minimum Absolute Difference in BST — Easy</strong>
-                            <p class="ml-6 mt-1">Uses the fact that inorder traversal visits BST values in sorted order and compares neighboring values.</p>
-                            <a class="ml-6 inline-block mt-1" href="https://leetcode.com/problems/minimum-absolute-difference-in-bst/">Open problem</a>
+                            <p class="ml-6">Uses inorder traversal and comparisons between consecutive values.</p>
+                            <a class="ml-6 inline-block" href="https://leetcode.com/problems/minimum-absolute-difference-in-bst/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
+                        </li>
+                        <li>
+                            <strong class="text-slate-100">700. Search in a Binary Search Tree — Easy</strong>
+                            <p class="ml-6">Reinforces the basic ordering property of a BST.</p>
+                            <a class="ml-6 inline-block" href="https://leetcode.com/problems/search-in-a-binary-search-tree/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">Solve on LeetCode</a>
                         </li>
                     </ol>
                 </section>
 
                 <section id="interview-notes">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
-                    <p class="mb-3"><strong class="text-slate-100">Key pattern:</strong> Inorder traversal + previous node/value tracking.</p>
-                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
-                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
-                        <li>Checking only the current node against its immediate parent.</li>
-                        <li>Using <code>current.val &lt; prev</code> instead of <code>current.val &lt;= prev</code>, which would allow duplicates.</li>
-                        <li>Updating <code>prev</code> before comparing it with the current value.</li>
-                        <li>Forgetting to reset <code>prev</code> when the same <code>Solution</code> instance may be reused.</li>
-                    </ul>
-                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
-                    <ul class="list-inside list-disc space-y-2 text-slate-300">
-                        <li><strong class="text-slate-100">Why does inorder traversal work?</strong> A BST's inorder sequence is strictly increasing.</li>
-                        <li><strong class="text-slate-100">Can we stop early?</strong> Yes. Return <code>false</code> as soon as a violation is detected.</li>
-                        <li><strong class="text-slate-100">Can we use an iterative approach?</strong> Yes. Use a stack to perform inorder traversal without recursion.</li>
-                        <li><strong class="text-slate-100">What if duplicates are allowed?</strong> The comparison rules must change according to the problem's definition of where duplicates are permitted.</li>
-                    </ul>
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes to avoid</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Checking only immediate parent-child relationships instead of validating the entire BST.</li>
+                        <li>Using <code>&lt;</code> rather than <code>&lt;=</code> when comparing the current node with the previous node, which would allow duplicates.</li>
+                        <li>Sorting the inorder array before checking it. This can hide an invalid BST.</li>
+                        <li>Forgetting to reset the <code>prev</code> variable if the same solution object is reused.</li>
+                        <li>Ignoring recursion depth for a highly skewed tree with \(10^5\) nodes.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q1. Why does inorder traversal work?</h4>
+                            <p class="mt-1 text-slate-300">Because a valid BST's inorder traversal produces values in strictly increasing order.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q2. Why is the array approach less space-efficient?</h4>
+                            <p class="mt-1 text-slate-300">It stores every node's value, requiring \(O(n)\) auxiliary space. The previous-value approach stores only one value besides the recursive stack.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q3. Can we implement inorder traversal iteratively?</h4>
+                            <p class="mt-1 text-slate-300">Yes. Use an explicit stack to traverse the tree without recursive calls, which is useful for highly skewed trees.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q4. Which approach is best for an interview?</h4>
+                            <p class="mt-1 text-slate-300">The inorder-plus-previous approach is concise and efficient. The array approach is also easy to explain, particularly when first learning the connection between BSTs and sorted sequences.</p>
+                        </div>
+                    </div>
                 </section>
 
                 <section id="recommendation">
-                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
-                    <p class="mb-4">
-                        Practice the inorder traversal solution first. The core logic is that a valid BST must produce a strictly
-                        increasing sequence during inorder traversal.
-                    </p>
-                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>// Validate the left subtree before checking this node.
-if (!inorder(node.left)) return false;
-
-// Reject values that do not strictly increase.
-if (node.val &lt;= prev) return false;
-
-// Record this value before visiting the right subtree.
-prev = node.val;
-
-// Continue with the right subtree.
-return inorder(node.right);</code></pre>
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+                    <p class="mb-3">For interview preparation, understand the approaches in this order:</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Inorder + ArrayList:</strong> Easiest to visualize and debug.</li>
+                        <li><strong class="text-slate-100">Inorder + Previous:</strong> Same logic with less extra space; a strong interview solution.</li>
+                        <li><strong class="text-slate-100">Range validation:</strong> Equally efficient and directly checks every node's ancestor constraints.</li>
+                        <li><strong class="text-slate-100">Brute force:</strong> Useful for understanding why repeated subtree scans are inefficient.</li>
+                    </ol>
+                    <blockquote class="rounded-xl border-l-4 border-indigo-400 bg-slate-900 p-4 text-lg font-semibold text-indigo-100">
+                        A binary tree is a valid BST if and only if its inorder traversal is strictly increasing.
+                    </blockquote>
+                    <p class="mt-4 text-slate-300">For a production interview solution, inorder traversal with a previous-value variable is recommended, giving \(O(n)\) time and \(O(h)\) auxiliary space. For extremely deep trees, use an iterative inorder traversal with a stack to avoid Java recursion limits.</p>
                 </section>
             </main>
         </article>
