@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Group Anagrams: brute-force and HashMap solutions in Java, with examples and complexity analysis.">
+    <title>Group Anagrams — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre {
+            tab-size: 4;
+        }
+        a {
+            text-underline-offset: 3px;
+        }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+        body [class~="bg-white"], body [class~="bg-slate-50"] { background-color: #1e293b; }
+        body [class~="bg-slate-100"] { background-color: #334155; }
+        body [class~="bg-indigo-50"] { background-color: #1e1b4b; }
+        body [class~="bg-amber-50"] { background-color: #422006; }
+        body [class~="text-slate-950"], body [class~="text-slate-900"] { color: #f1f5f9; }
+        body [class~="text-slate-800"] { color: #e2e8f0; }
+        body [class~="text-slate-700"] { color: #cbd5e1; }
+        body [class~="text-slate-600"], body [class~="text-slate-500"] { color: #94a3b8; }
+        body [class~="text-indigo-900"] { color: #e0e7ff; }
+        body [class~="text-indigo-800"] { color: #c7d2fe; }
+        body [class~="text-indigo-700"] { color: #a5b4fc; }
+        body [class~="text-amber-900"] { color: #fef3c7; }
+        body [class~="border-slate-100"], body [class~="border-slate-200"] { border-color: #334155; }
+        body [class~="border-indigo-200"] { border-color: #4f46e5; }
+        body [class~="border-amber-200"] { border-color: #92400e; }
+        th, td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <header class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
+            <p class="text-sm font-semibold uppercase tracking-widest text-indigo-700 mb-3">Algorithm Notes</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">Group Anagrams — Java Solution</h1>
+            <p class="text-lg text-slate-600 mb-6">
+                Use a <code class="text-indigo-700">HashMap</code> to group strings that contain the same characters.
+                First consider a brute-force approach, then use sorted strings as canonical keys for an efficient solution.
+            </p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                <strong>Recommended pattern:</strong> Sort each word to create its group key, then store the original word under that key.
+            </div>
+        </header>
+
+        <main class="space-y-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-10">
+            <section id="problem-understanding">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">1. Problem Understanding</h2>
+                <p class="text-slate-700 mb-4">
+                    Two strings are anagrams if they contain exactly the same characters with the same frequencies,
+                    regardless of their order.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+                    <h3 class="font-semibold text-slate-900 mb-2">Examples</h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700">
+                        <li><code>"eat"</code>, <code>"tea"</code>, <code>"ate"</code> are anagrams.</li>
+                        <li><code>"tan"</code>, <code>"nat"</code> are anagrams.</li>
+                        <li><code>"bat"</code> has no matching anagram in the input.</li>
+                    </ul>
+                </div>
+                <p class="text-slate-700 mb-3">
+                    Given an array of strings <code class="text-indigo-700">A</code>, return a 2D
+                    <code>ArrayList</code> where each inner list contains all anagrams belonging to the same group.
+                </p>
+                <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 text-amber-900">
+                    <h3 class="font-semibold mb-2">Important conditions</h3>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Only lowercase English letters are allowed.</li>
+                        <li>The input can contain up to \(10^4\) strings.</li>
+                        <li>Each string can have up to 100 characters.</li>
+                        <li>The order of groups and the order of strings within each group do not matter.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="brute-force">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">2. Brute-Force Approach</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-4">
+                    For every string, compare it with the other strings to determine which ones are anagrams.
+                    To check a pair, sort both strings' characters and compare the sorted results.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+                    <p class="text-slate-700">
+                        <code>"eat"</code> sorts to <code>"aet"</code>, and <code>"tea"</code> also sorts to
+                        <code>"aet"</code>. Their sorted forms match, so they are anagrams.
+                    </p>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Algorithm</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Take the first string that has not been grouped.</li>
+                    <li>Sort its characters.</li>
+                    <li>Compare it with every other ungrouped string.</li>
+                    <li>If their sorted forms match, add that string to the current group.</li>
+                    <li>Repeat until all strings have been grouped.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Java code</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;ArrayList&lt;String&gt;&gt; groupAnagrams(
+            ArrayList&lt;String&gt; A) {
+
+        ArrayList&lt;ArrayList&lt;String&gt;&gt; result = new ArrayList&lt;&gt;();
+        boolean[] visited = new boolean[A.size()];
+
+        for (int i = 0; i &lt; A.size(); i++) {
+            if (visited[i]) {
+                continue;
+            }
+
+            ArrayList&lt;String&gt; group = new ArrayList&lt;&gt;();
+            char[] first = A.get(i).toCharArray();
+            Arrays.sort(first);
+            String key = new String(first);
+
+            group.add(A.get(i));
+            visited[i] = true;
+
+            for (int j = i + 1; j &lt; A.size(); j++) {
+                if (visited[j]) {
+                    continue;
+                }
+
+                char[] current = A.get(j).toCharArray();
+                Arrays.sort(current);
+
+                // Add this string when its sorted form matches the group's key.
+                if (key.equals(new String(current))) {
+                    group.add(A.get(j));
+                    visited[j] = true;
+                }
+            }
+
+            result.add(group);
+        }
+
+        return result;
+    }
+}</code></pre>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Complexity analysis</h3>
+                <p class="text-slate-700 mb-3">Let \(n\) be the number of strings and \(k\) the maximum string length.</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Time: \(O(n^2 k\log k)\) in the worst case, because we compare pairs and sort strings.</li>
+                    <li>Auxiliary space: \(O(n+k)\) for the visited array and temporary character arrays, excluding the returned result.</li>
+                </ul>
+                <p class="text-slate-700">
+                    This approach repeats comparisons and sorting. With \(10^4\) strings, it can become inefficient.
+                </p>
+            </section>
+
+            <section id="optimized">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">3. Optimized Approach — HashMap + Sorted String</h2>
+                <p class="text-slate-700 mb-4"><strong>This is the recommended interview solution.</strong></p>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Intuition</h3>
+                <p class="text-slate-700 mb-3">
+                    Instead of comparing every string with every other string, create a unique key for each group of anagrams.
+                    The key is the string obtained after sorting its characters.
+                </p>
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-5">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-mono text-slate-700">"eat" <span class="text-indigo-700">→</span> "aet"</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-mono text-slate-700">"tea" <span class="text-indigo-700">→</span> "aet"</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-mono text-slate-700">"ate" <span class="text-indigo-700">→</span> "aet"</p>
+                    </div>
+                </div>
+                <p class="text-slate-700 mb-5">
+                    All three strings produce the same key, so they belong in the same group. Store each key in a
+                    <code>HashMap</code>, with its value being the list of original strings in that group.
+                </p>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Step-by-step algorithm</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Create a <code>HashMap&lt;String, ArrayList&lt;String&gt;&gt;</code>.</li>
+                    <li>Iterate through every string in <code>A</code>.</li>
+                    <li>Convert the string into a character array and sort it.</li>
+                    <li>Convert the sorted characters back into a string to create the key.</li>
+                    <li>If the key does not exist in the map, create an empty list for it.</li>
+                    <li>Add the original string to the list associated with that key.</li>
+                    <li>Return all the map's values as the result.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Optimized Java code</h3>
+                <pre class="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm mb-5"><code>import java.util.*;
+
+public class Solution {
+    public ArrayList&lt;ArrayList&lt;String&gt;&gt; groupAnagrams(
+            ArrayList&lt;String&gt; A) {
+
+        // Map each sorted-character key to its original strings.
+        HashMap&lt;String, ArrayList&lt;String&gt;&gt; map = new HashMap&lt;&gt;();
+
+        for (String str : A) {
+            // Convert the string into a character array for sorting.
+            char[] chars = str.toCharArray();
+
+            // Sorting makes anagrams share the same group key.
+            Arrays.sort(chars);
+            String key = new String(chars);
+
+            // Create a group the first time this key is encountered.
+            if (!map.containsKey(key)) {
+                map.put(key, new ArrayList&lt;String&gt;());
+            }
+
+            // Keep the original string in the result group.
+            map.get(key).add(str);
+        }
+
+        // Collect the map's groups into the required 2D ArrayList.
+        return new ArrayList&lt;ArrayList&lt;String&gt;&gt;(map.values());
+    }
+}</code></pre>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <h3 class="font-semibold mb-2">Why does this work?</h3>
+                    <p>
+                        Sorting puts the characters of every anagram into the same order. Therefore, anagrams always
+                        generate the same key. Strings that are not anagrams have different sorted keys, so they end up
+                        in different groups. The original string is stored; sorting is only used to identify the group.
+                    </p>
+                </div>
+            </section>
+
+            <section id="dry-run">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">4. Dry Run of the Optimized Solution</h2>
+                <p class="text-slate-700 mb-3">Input:</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm mb-5"><code>A = ["eat", "tea", "tan", "ate", "nat", "bat"]</code></pre>
+                <p class="text-slate-700 mb-4">Initially, the map is empty.</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-200 mb-5">
+                    <table class="w-full min-w-[32rem] text-left text-sm">
+                        <thead class="bg-slate-100 text-slate-900">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 font-semibold">Original string</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Sorted key</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700">
+                            <tr><td class="px-4 py-3"><code>"eat"</code></td><td class="px-4 py-3"><code>"aet"</code></td><td class="px-4 py-3">Create group and add <code>"eat"</code></td></tr>
+                            <tr><td class="px-4 py-3"><code>"tea"</code></td><td class="px-4 py-3"><code>"aet"</code></td><td class="px-4 py-3">Add <code>"tea"</code> to existing group</td></tr>
+                            <tr><td class="px-4 py-3"><code>"tan"</code></td><td class="px-4 py-3"><code>"ant"</code></td><td class="px-4 py-3">Create a new group</td></tr>
+                            <tr><td class="px-4 py-3"><code>"ate"</code></td><td class="px-4 py-3"><code>"aet"</code></td><td class="px-4 py-3">Add <code>"ate"</code> to the first group</td></tr>
+                            <tr><td class="px-4 py-3"><code>"nat"</code></td><td class="px-4 py-3"><code>"ant"</code></td><td class="px-4 py-3">Add <code>"nat"</code> to the second group</td></tr>
+                            <tr><td class="px-4 py-3"><code>"bat"</code></td><td class="px-4 py-3"><code>"abt"</code></td><td class="px-4 py-3">Create a third group</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700 mb-3">At the end, the map contains:</p>
+                <div class="grid gap-4 md:grid-cols-3 mb-5">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-semibold text-indigo-700 mb-2">Key: <code>"aet"</code></p>
+                        <p class="text-slate-700">eat<br>tea<br>ate</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-semibold text-indigo-700 mb-2">Key: <code>"ant"</code></p>
+                        <p class="text-slate-700">tan<br>nat</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="font-semibold text-indigo-700 mb-2">Key: <code>"abt"</code></p>
+                        <p class="text-slate-700">bat</p>
+                    </div>
+                </div>
+                <p class="text-slate-700 mb-3">The returned output can be:</p>
+                <pre class="bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto text-sm"><code>[
+    ["eat", "tea", "ate"],
+    ["tan", "nat"],
+    ["bat"]
+]</code></pre>
+                <p class="text-sm text-slate-600 mt-3">
+                    The order may differ because <code>HashMap</code> does not guarantee iteration order.
+                </p>
+            </section>
+
+            <section id="complexity">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">5. Complexity Analysis</h2>
+                <p class="text-slate-700 mb-4">Let \(n\) be the number of strings and \(k\) the maximum string length.</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-200 mb-5">
+                    <table class="w-full min-w-[32rem] text-left text-sm">
+                        <thead class="bg-slate-100 text-slate-900">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 font-semibold">Approach</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Time complexity</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Auxiliary space</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700">
+                            <tr>
+                                <td class="px-4 py-3 font-medium">Brute force</td>
+                                <td class="px-4 py-3">\(O(n^2 k\log k)\)</td>
+                                <td class="px-4 py-3">\(O(n+k)\), excluding output</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">HashMap + sorting</td>
+                                <td class="px-4 py-3">\(O(nk\log k)\)</td>
+                                <td class="px-4 py-3">\(O(nk)\), including map keys and group storage</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Why is the optimized time complexity \(O(nk\log k)\)?</h3>
+                <p class="text-slate-700 mb-3">For each of the \(n\) strings:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Converting to a character array takes \(O(k)\).</li>
+                    <li>Sorting its characters takes \(O(k\log k)\).</li>
+                    <li>Creating the key takes \(O(k)\), plus expected \(O(1)\) map operations aside from hashing the key.</li>
+                </ul>
+                <p class="text-slate-700 mb-3">Therefore, the overall expected time complexity is:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center text-lg text-slate-900">
+                    \[\boxed{O(nk\log k)}\]
+                </div>
+                <p class="text-slate-700 mt-4">
+                    The map stores the keys and grouped strings, requiring \(O(nk)\) space in the worst case.
+                    The returned result also contains all \(n\) strings, requiring \(O(nk)\) output space.
+                </p>
+            </section>
+
+            <section id="edge-cases">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">6. Edge Cases</h2>
+                <div class="overflow-x-auto rounded-xl border border-slate-200 mb-4">
+                    <table class="w-full min-w-[34rem] text-left text-sm">
+                        <thead class="bg-slate-100 text-slate-900">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 font-semibold">Input</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Expected grouping</th>
+                                <th scope="col" class="px-4 py-3 font-semibold">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700">
+                            <tr><td class="px-4 py-3"><code>["a"]</code></td><td class="px-4 py-3"><code>[["a"]]</code></td><td class="px-4 py-3">Single string</td></tr>
+                            <tr><td class="px-4 py-3"><code>["abc", "bca", "cab"]</code></td><td class="px-4 py-3"><code>[["abc", "bca", "cab"]]</code></td><td class="px-4 py-3">All sorted keys are <code>"abc"</code></td></tr>
+                            <tr><td class="px-4 py-3"><code>["abc", "def"]</code></td><td class="px-4 py-3"><code>[["abc"], ["def"]]</code></td><td class="px-4 py-3">Different keys</td></tr>
+                            <tr><td class="px-4 py-3"><code>["ab", "ab", "ba"]</code></td><td class="px-4 py-3"><code>[["ab", "ab", "ba"]]</code></td><td class="px-4 py-3">Duplicate strings are preserved</td></tr>
+                            <tr><td class="px-4 py-3"><code>["a", "b", "c"]</code></td><td class="px-4 py-3"><code>[["a"], ["b"], ["c"]]</code></td><td class="px-4 py-3">Every string has a different key</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-slate-700">
+                    The constraints guarantee at least one string, and each string contains only lowercase English letters.
+                    The solution handles all these valid cases.
+                </p>
+            </section>
+
+            <section id="similar-problems">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">7. Similar LeetCode Problems</h2>
+                <p class="text-slate-700 mb-5">
+                    These problems reinforce anagram detection, character counting, and hashing.
+                </p>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-1">1. Group Anagrams</h3>
+                        <p class="text-sm text-slate-600 mb-2">Medium · #49</p>
+                        <p class="text-slate-700 mb-3">Directly practices grouping strings using sorted keys or character frequencies.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/group-anagrams/">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-1">2. Valid Anagram</h3>
+                        <p class="text-sm text-slate-600 mb-2">Easy · #242</p>
+                        <p class="text-slate-700 mb-3">Teaches how to determine whether two strings have identical character frequencies.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/valid-anagram/">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-1">3. Find All Anagrams in a String</h3>
+                        <p class="text-sm text-slate-600 mb-2">Medium · #438</p>
+                        <p class="text-slate-700 mb-3">Extends anagram detection to a sliding-window problem.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/find-all-anagrams-in-a-string/">Solve on LeetCode</a>
+                    </article>
+                    <article class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-900 mb-1">4. Permutation in String</h3>
+                        <p class="text-sm text-slate-600 mb-2">Medium · #567</p>
+                        <p class="text-slate-700 mb-3">Uses character frequencies and sliding windows to check whether a permutation exists.</p>
+                        <a class="font-semibold text-indigo-700 hover:text-indigo-800 underline" href="https://leetcode.com/problems/permutation-in-string/">Solve on LeetCode</a>
+                    </article>
+                </div>
+            </section>
+
+            <section id="interview-notes">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">8. Interview Preparation Notes</h2>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Key concepts to remember</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Pattern: hashing + canonical representation.</li>
+                    <li>Canonical representation: a standardized form that makes equivalent items share the same key. Here, it is the sorted string.</li>
+                    <li><code>HashMap</code>: efficiently associates each key with its group.</li>
+                    <li>Alternative optimization: because the input contains only lowercase English letters, a 26-element frequency array can replace sorting. This can reduce the expected time to \(O(nk)\), though the key must be encoded unambiguously.</li>
+                </ul>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Common mistakes</h3>
+                <ol class="list-decimal list-inside space-y-1 text-slate-700 mb-5">
+                    <li>Adding the sorted key instead of the original string. The output must contain the original words.</li>
+                    <li>Comparing only string lengths. Equal lengths do not mean two strings are anagrams.</li>
+                    <li>Overwriting existing groups. Use the existing list when a key is already present.</li>
+                    <li>Assuming output order matters. The problem explicitly allows any order.</li>
+                </ol>
+
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Likely follow-up questions</h3>
+                <div class="space-y-4 text-slate-700">
+                    <div>
+                        <h4 class="font-semibold text-slate-900">Q1. Can we solve this without sorting each string?</h4>
+                        <p>Yes. Count the occurrences of all 26 lowercase letters and use that frequency representation as the key.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-900">Q2. Why use a HashMap?</h4>
+                        <p>It lets us find and update the appropriate anagram group efficiently without repeatedly comparing strings.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-900">Q3. What if uppercase letters or Unicode characters are allowed?</h4>
+                        <p>The key-generation method must support the expanded character set. Sorting characters remains a straightforward general solution, with appropriate handling of the character encoding.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-900">Q4. What happens if two identical strings appear?</h4>
+                        <p>Both are added to the same group. The algorithm preserves duplicates.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="recommendation">
+                <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-4">9. Final Recommendation</h2>
+                <p class="text-slate-700 mb-4">
+                    For an interview, implement HashMap + sorted string first. It is simple, reliable, and easy to explain.
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                    <li>Time: \(O(nk\log k)\) expected.</li>
+                    <li>Auxiliary space: \(O(nk)\) for the map and stored groups, excluding the returned result.</li>
+                </ul>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-900">
+                    <strong>Core intuition:</strong> Sort each word to get its key, use that key to find its group, and store the original word in that group.
+                </div>
+            </section>
+        </main>
+        <footer class="text-center text-sm text-slate-600 mt-8">
+            Group Anagrams · Java Algorithm Notes
+        </footer>
+    </div>
+</body>
+</html>

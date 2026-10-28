@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Vertical Order Traversal — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Vertical Order Traversal</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Group the nodes of a binary tree by their vertical columns, from left to right.
+                    Breadth-First Search (BFS) with horizontal distance processes nodes top to bottom within each column.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Assign each node a horizontal distance, traverse level by level, and append each value to its column.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">We need to group the nodes of a binary tree according to their vertical columns, from left to right.</p>
+                    <p class="mb-2">Assign each node a horizontal distance (HD):</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>The root has HD <code>0</code>.</li>
+                        <li>A left child has HD <code>parent HD - 1</code>.</li>
+                        <li>A right child has HD <code>parent HD + 1</code>.</li>
+                    </ul>
+                    <p class="mb-3">Nodes with the same horizontal distance belong to the same column.</p>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example columns</h3>
+                        <p class="mb-3 text-slate-300">The columns from left to right are:</p>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-slate-200"><code>[[2], [3], [6, 5], [7], [9]]</code></pre>
+                        <p class="mt-3 text-slate-300">
+                            Nodes <code>6</code> and <code>5</code> share a column. Since <code>6</code> is at a smaller depth, it appears first.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-4">Traverse the entire tree and store each node together with its horizontal distance and depth.</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Record <code>(horizontal distance, depth, value)</code> for every node.</li>
+                        <li>Sort all records by horizontal distance.</li>
+                        <li>For equal horizontal distances, sort by depth.</li>
+                        <li>Group the values by horizontal distance.</li>
+                    </ol>
+                    <p class="mb-4 text-slate-300">
+                        Sorting places columns from left to right and nodes from top to bottom within each column.
+                        Sorting all nodes takes \(O(N\log N)\) time and requires storing the traversal records.
+                    </p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Brute-force Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    // Stores each node's position and value.
+    static class NodeInfo {
+        int hd;
+        int depth;
+        int value;
+
+        NodeInfo(int hd, int depth, int value) {
+            this.hd = hd;
+            this.depth = depth;
+            this.value = value;
+        }
+    }
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; verticalOrderTraversal(TreeNode A) {
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        if (A == null) {
+            return result;
+        }
+
+        ArrayList&lt;NodeInfo&gt; nodes = new ArrayList&lt;&gt;();
+
+        // Collect all nodes with their horizontal distance and depth.
+        collect(A, 0, 0, nodes);
+
+        // Sort by column first, then by depth.
+        nodes.sort((a, b) -&gt; {
+            if (a.hd != b.hd) {
+                return Integer.compare(a.hd, b.hd);
+            }
+            return Integer.compare(a.depth, b.depth);
+        });
+
+        int previousHD = Integer.MIN_VALUE;
+
+        for (NodeInfo node : nodes) {
+            // Start a new column when horizontal distance changes.
+            if (node.hd != previousHD) {
+                result.add(new ArrayList&lt;&gt;());
+                previousHD = node.hd;
+            }
+
+            result.get(result.size() - 1).add(node.value);
+        }
+
+        return result;
+    }
+
+    private void collect(TreeNode node, int hd, int depth,
+                         ArrayList&lt;NodeInfo&gt; nodes) {
+        if (node == null) {
+            return;
+        }
+
+        nodes.add(new NodeInfo(hd, depth, node.val));
+
+        collect(node.left, hd - 1, depth + 1, nodes);
+        collect(node.right, hd + 1, depth + 1, nodes);
+    }
+}</code></pre>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time complexity</h3>
+                            <p>\(O(N\log N)\), because all \(N\) node records are sorted.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Auxiliary space</h3>
+                            <p>\(O(N)\) for node records and \(O(H)\) for recursion, where \(H\) is the tree height.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        If two nodes have the same horizontal distance and depth, this sorting approach does not explicitly define their order.
+                        The BFS solution below preserves their natural left-to-right traversal order.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BFS + HashMap</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        BFS visits nodes level by level: the root first, then its children, then the next level.
+                        Store each node in the list for its horizontal distance. A <code>HashMap</code> stores column values,
+                        while <code>minHD</code> and <code>maxHD</code> track the leftmost and rightmost columns.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the root is <code>null</code>, return an empty result.</li>
+                        <li>Insert the root into a queue with horizontal distance <code>0</code>.</li>
+                        <li>Remove nodes one at a time and append each value to its column.</li>
+                        <li>Give a left child HD <code>hd - 1</code> and a right child HD <code>hd + 1</code>.</li>
+                        <li>Update the minimum and maximum horizontal distances.</li>
+                        <li>After BFS, collect columns in increasing horizontal-distance order.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Interview-ready Java code</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    // Stores a tree node along with its horizontal distance.
+    static class Pair {
+        TreeNode node;
+        int hd;
+
+        Pair(TreeNode node, int hd) {
+            this.node = node;
+            this.hd = hd;
+        }
+    }
+
+    public ArrayList&lt;ArrayList&lt;Integer&gt;&gt; verticalOrderTraversal(TreeNode A) {
+
+        ArrayList&lt;ArrayList&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+
+        // Handle an empty tree.
+        if (A == null) {
+            return result;
+        }
+
+        // Maps each horizontal distance to its column values.
+        HashMap&lt;Integer, ArrayList&lt;Integer&gt;&gt; columns = new HashMap&lt;&gt;();
+
+        // BFS queue stores both the node and its horizontal distance.
+        Queue&lt;Pair&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(new Pair(A, 0));
+
+        int minHD = 0;
+        int maxHD = 0;
+
+        while (!queue.isEmpty()) {
+
+            Pair current = queue.poll();
+            TreeNode node = current.node;
+            int hd = current.hd;
+
+            // Create a column if this horizontal distance is new.
+            columns.putIfAbsent(hd, new ArrayList&lt;&gt;());
+
+            // BFS guarantees shallower nodes are processed first.
+            columns.get(hd).add(node.val);
+
+            // Track the leftmost and rightmost columns.
+            minHD = Math.min(minHD, hd);
+            maxHD = Math.max(maxHD, hd);
+
+            // Left child belongs to the previous column.
+            if (node.left != null) {
+                queue.offer(new Pair(node.left, hd - 1));
+            }
+
+            // Right child belongs to the next column.
+            if (node.right != null) {
+                queue.offer(new Pair(node.right, hd + 1));
+            }
+        }
+
+        // Build the answer from leftmost column to rightmost.
+        for (int hd = minHD; hd &lt;= maxHD; hd++) {
+            result.add(columns.get(hd));
+        }
+
+        return result;
+    }
+}</code></pre>
+                </section>
+
+                <section id="bfs-depth-order">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">Why Does BFS Solve the Depth-Order Requirement?</h2>
+                    <p class="mb-4">Consider this tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>       6
+      / \
+     3   7
+    / \
+   2   5</code></pre>
+                    <p class="mb-4">
+                        BFS processes nodes in this order: <code>6 → 3 → 7 → 2 → 5</code>.
+                        Node <code>6</code> is at depth <code>0</code> with HD <code>0</code>; node <code>5</code> is at depth <code>2</code> with HD <code>0</code>.
+                        Therefore, column <code>0</code> receives <code>6</code> before <code>5</code>.
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Node</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Depth</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">HD</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Column</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60">
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td></tr>
+                                <tr><td class="px-4 py-3">7</td><td class="px-4 py-3">1</td><td class="px-4 py-3">+1</td><td class="px-4 py-3">+1</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td><td class="px-4 py-3">-2</td><td class="px-4 py-3">-2</td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">2</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">BFS naturally preserves the required depth order without sorting individual nodes.</p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Input tree:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>       6
+      / \
+     3   7
+    / \   \
+   2   5   9</code></pre>
+                    <div class="mb-5 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Initial queue</h3>
+                            <p><code>[(6, 0)]</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Initial bounds</h3>
+                            <p><code>minHD = 0</code>, <code>maxHD = 0</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Initial columns</h3>
+                            <p><code>{}</code></p>
+                        </div>
+                    </div>
+                    <p class="mb-4 text-slate-300"><code>(6, 0)</code> means node value <code>6</code> with horizontal distance <code>0</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Step</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Node processed</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">HD</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3">Columns after processing</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/60">
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">6</td><td class="px-4 py-3">0</td><td class="px-4 py-3"><code>{0: [6]}</code></td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">3</td><td class="px-4 py-3">-1</td><td class="px-4 py-3"><code>{0: [6], -1: [3]}</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">7</td><td class="px-4 py-3">+1</td><td class="px-4 py-3"><code>{-1: [3], 0: [6], 1: [7]}</code></td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">2</td><td class="px-4 py-3">-2</td><td class="px-4 py-3"><code>{-2: [2], -1: [3], 0: [6], 1: [7]}</code></td></tr>
+                                <tr><td class="px-4 py-3">5</td><td class="px-4 py-3">5</td><td class="px-4 py-3">0</td><td class="px-4 py-3"><code>{-2: [2], -1: [3], 0: [6, 5], 1: [7]}</code></td></tr>
+                                <tr><td class="px-4 py-3">6</td><td class="px-4 py-3">9</td><td class="px-4 py-3">+2</td><td class="px-4 py-3"><code>{-2: [2], -1: [3], 0: [6, 5], 1: [7], 2: [9]}</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="my-4 text-slate-300">The minimum HD is <code>-2</code> and the maximum is <code>+2</code>. Iterating from <code>-2</code> through <code>+2</code> gives:</p>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[
+    [2],
+    [3],
+    [6, 5],
+    [7],
+    [9]
+]</code></pre>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

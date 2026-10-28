@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Next Pointer Binary Tree — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Next Pointer Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The key idea is to connect nodes level by level using the <code>next</code> pointer. Since the problem guarantees a perfect binary tree,
+                    we can solve it in \(O(N)\) time and \(O(1)\) auxiliary space without recursion, a queue, or a stack.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Connect siblings, connect across parents, and traverse each level using its existing <code>next</code> pointers.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-3">For every node in the binary tree, set its <code>next</code> pointer to the node immediately to its right on the same level.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>If a node has a right neighbor, point <code>next</code> to that neighbor.</li>
+                        <li>If it is the last node on its level, <code>next</code> must be <code>null</code>.</li>
+                        <li>A perfect binary tree has two children for every non-leaf node, and all leaves are at the same depth.</li>
+                    </ul>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Before connecting</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                            <p class="mt-3 text-slate-300">All <code>next</code> pointers are <code>null</code>.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">After connecting</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>1 → null
+2 → 3 → null</code></pre>
+                            <p class="mt-3 text-slate-300">Each level is linked from left to right, ending in <code>null</code>.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-force approach</h2>
+                    <p class="mb-3">Use a queue to perform level-order traversal (BFS).</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Add the root to the queue.</li>
+                        <li>Process all nodes at the current level.</li>
+                        <li>Connect each node to the next node in that level.</li>
+                        <li>Set the last node's <code>next</code> to <code>null</code>.</li>
+                        <li>Add the current node's children to the queue.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity</h3>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Time</h4>
+                            <p>\(O(N)\), because each node is processed once.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Auxiliary space</h4>
+                            <p>\(O(N)\) in the worst case for the queue.</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-slate-300">This works, but we can do better on space because the tree is guaranteed to be perfect.</p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized approach — Constant extra space</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">Because the tree is perfect, every parent has both a left and a right child. This gives us two simple connection rules.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Rule 1: Connect siblings</h4>
+                            <p class="mb-3 text-slate-300">Connect the left child to the right child of the same parent.</p>
+                            <p class="rounded-lg bg-slate-950 p-3 text-center font-mono text-lg text-indigo-200">2 → 3</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Rule 2: Connect across parents</h4>
+                            <p class="mb-3 text-slate-300">If the parent has a <code>next</code> node, connect its right child to the next parent's left child.</p>
+                            <p class="rounded-lg bg-slate-950 p-3 text-center font-mono text-lg text-indigo-200">4 → 6</p>
+                        </div>
+                    </div>
+                    <p class="my-4 text-slate-300">We use the already-established <code>next</code> pointers to move horizontally across each level. This eliminates the need for a queue.</p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java solution</h3>
+                    <p class="mb-3 text-slate-300">Use the exact method signature provided by the platform.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Definition for binary tree with next pointer.
+ * public class TreeLinkNode {
+ *     int val;
+ *     TreeLinkNode left, right, next;
+ *     TreeLinkNode(int x) { val = x; }
+ * }
+ */
+public class Solution {
+    public void connect(TreeLinkNode root) {
+
+        // An empty tree needs no connections.
+        if (root == null) {
+            return;
+        }
+
+        // Points to the first node of the current level.
+        TreeLinkNode levelStart = root;
+
+        // Continue while the current level has children.
+        while (levelStart.left != null) {
+
+            // Start traversing this level using next pointers.
+            TreeLinkNode current = levelStart;
+
+            while (current != null) {
+
+                // Rule 1: Connect the left child to its sibling.
+                current.left.next = current.right;
+
+                // Rule 2: Connect across adjacent parents.
+                if (current.next != null) {
+                    current.right.next = current.next.left;
+                }
+
+                // Move to the next parent in the same level.
+                current = current.next;
+            }
+
+            // Move down to the first node of the next level.
+            levelStart = levelStart.left;
+        }
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Understanding the important lines</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li><code>levelStart = root</code>: identifies the beginning of the current level.</li>
+                        <li><code>current.left.next = current.right</code>: connects sibling nodes.</li>
+                        <li><code>current.right.next = current.next.left</code>: connects nodes belonging to adjacent parents.</li>
+                        <li><code>current = current.next</code>: traverses horizontally using the pointers we have created.</li>
+                        <li><code>levelStart = levelStart.left</code>: moves down one level.</li>
+                        <li><code>while (levelStart.left != null)</code>: stops when the current level contains only leaf nodes.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-100">
+                        <h3 class="mb-2 font-semibold">Why don't we explicitly set the last node's <code>next</code> to <code>null</code>?</h3>
+                        <p>Initially, every <code>next</code> pointer is <code>null</code>. The algorithm assigns a <code>next</code> pointer to a node only when its right neighbor exists. Therefore, the rightmost node on each level remains connected to <code>null</code>.</p>
+                    </div>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry run of the optimized solution</h2>
+                    <p class="mb-3">Consider this tree:</p>
+                    <div class="mb-5 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
+                            <h3 class="mb-2 font-semibold text-slate-100">Level 0</h3>
+                            <p class="font-mono text-indigo-200">1 → null</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
+                            <h3 class="mb-2 font-semibold text-slate-100">Level 1</h3>
+                            <p class="font-mono text-indigo-200">2 → 3 → null</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-center">
+                            <h3 class="mb-2 font-semibold text-slate-100">Level 2</h3>
+                            <p class="font-mono text-indigo-200">4 → 5 → 6 → 7 → null</p>
+                        </div>
+                    </div>
+                    <p class="mb-3 text-slate-300">For clarity, the tree's structure is:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>        1
+       / \
+      2   3
+     / \ / \
+    4  5 6  7</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Step-by-step execution</h3>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <caption class="sr-only">Connections made while processing each current parent</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Current parent</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Connection made</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>2 → 3</code></td><td class="px-4 py-3">Siblings</td></tr>
+                                <tr><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>4 → 5</code></td><td class="px-4 py-3">Siblings</td></tr>
+                                <tr><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>5 → 6</code></td><td class="px-4 py-3">Across parents</td></tr>
+                                <tr><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>6 → 7</code></td><td class="px-4 py-3">Siblings</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">After processing node <code>3</code>, its <code>next</code> is <code>null</code>, so the algorithm does not try to connect <code>7</code> to another node.</p>
+                    <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Final connections</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-slate-200"><code>1 → null
+2 → 3 → null
+4 → 5 → 6 → 7 → null</code></pre>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(H\) the height of the tree.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <caption class="sr-only">Time and auxiliary-space complexities of the two approaches</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">BFS using a queue</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">Optimized <code>next</code> pointers</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Why is the optimized time \(O(N)\)?</h3>
+                            <p class="text-slate-300">Each node is visited once as <code>current</code>, and each visit performs a constant number of pointer operations.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Why is auxiliary space \(O(1)\)?</h3>
+                            <p class="text-slate-300">We use only two references, <code>levelStart</code> and <code>current</code>, regardless of the number of nodes. We don't allocate a queue, stack, or recursive call stack.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Single node:</strong> The root is already correctly connected to <code>null</code>. No loop iteration is needed.</li>
+                        <li><strong class="text-slate-100">Two nodes:</strong> The root's left child is connected to its right child.</li>
+                        <li><strong class="text-slate-100">Maximum \(100{,}000\) nodes:</strong> The algorithm remains linear and uses constant auxiliary space.</li>
+                        <li><strong class="text-slate-100">Rightmost node on any level:</strong> Its <code>next</code> remains <code>null</code>.</li>
+                        <li><strong class="text-slate-100">Empty tree:</strong> The null check returns immediately, although an empty tree is outside the stated constraints.</li>
+                    </ul>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode problems</h2>
+                    <p class="mb-4 text-slate-300">These problems reinforce the same tree-traversal and pointer-connection concepts.</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li>Populating Next Right Pointers in Each Node — <a href="https://leetcode.com/problems/populating-next-right-pointers-in-each-node/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 116</a> — Medium. The closest match; it also guarantees a perfect binary tree.</li>
+                        <li>Populating Next Right Pointers in Each Node II — <a href="https://leetcode.com/problems/populating-next-right-pointers-in-each-node-ii/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 117</a> — Medium. Extends the problem to trees that are not necessarily perfect.</li>
+                        <li>Binary Tree Level Order Traversal — <a href="https://leetcode.com/problems/binary-tree-level-order-traversal/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 102</a> — Medium. Practices level-by-level tree traversal using BFS.</li>
+                        <li>Binary Tree Right Side View — <a href="https://leetcode.com/problems/binary-tree-right-side-view/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">LeetCode 199</a> — Medium. Reinforces understanding of nodes at each level.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview preparation notes</h2>
+                    <p class="mb-3"><strong class="text-slate-100">Pattern to remember:</strong> Level-by-level traversal using existing pointers.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Connecting <code>current.right.next</code> to <code>current.next</code> instead of <code>current.next.left</code>.</li>
+                        <li>Forgetting the <code>current.next != null</code> condition.</li>
+                        <li>Using the queue-based approach when the interviewer specifically asks for constant extra space.</li>
+                        <li>Assuming this exact implementation works for arbitrary binary trees. It relies on the perfect-tree guarantee.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q1. Can this solution handle an imperfect binary tree?</h4>
+                            <p class="text-slate-300">Not in its current form. Missing children can break the direct left/right connections. A different constant-space approach can handle arbitrary trees, as in LeetCode 117.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q2. Why do we process levels from top to bottom?</h4>
+                            <p class="text-slate-300">The <code>next</code> pointers of a level let us traverse its parents horizontally, allowing us to connect the children on the level below.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Q3. Can we solve it recursively?</h4>
+                            <p class="text-slate-300">Yes, but recursion uses \(O(H)\) call-stack space in the worst case. The iterative approach avoids that extra space.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final recommendation</h2>
+                    <p class="mb-4">Implement the optimized iterative solution for this problem. It satisfies the perfect binary tree constraint, preserves the required <code>void connect(TreeLinkNode root)</code> signature, and achieves:</p>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(1)\)</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        Remember the core intuition: connect siblings first, connect across parents second, and use <code>next</code> pointers to traverse each level.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Top View of a Binary Tree — Java</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Top View of a Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    The top view contains the nodes visible when a binary tree is viewed from above.
+                    Breadth-First Search (BFS) with horizontal distance finds the shallowest node at each position.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Recommended approach:</strong>
+                    Traverse level by level, keep the first node seen at each horizontal distance, and return values from left to right.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        Assign every node a horizontal distance (HD): the root has HD <code>0</code>, a left child has
+                        its parent's HD minus one, and a right child has its parent's HD plus one. For each HD, only
+                        the first node visible from above is included.
+                    </p>
+                    <div class="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example 1</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-base text-slate-200"><code>          1
+        /   \
+       2     3
+      / \   / \
+     4   5 6   7
+    /
+   8</code></pre>
+                        <p class="mt-3 text-sm text-slate-400">
+                            The visible nodes from left to right are <code>[8, 4, 2, 1, 3, 7]</code>.
+                            The problem permits any order, so <code>[1, 2, 4, 8, 3, 7]</code> contains the same top-view nodes.
+                        </p>
+                    </div>
+                    <p class="mb-4">
+                        Nodes <code>5</code> and <code>6</code> share HD <code>0</code> with the root, but are deeper and hidden.
+                        In another example, nodes <code>4</code> and <code>5</code> are hidden behind node <code>3</code>,
+                        giving top view <code>[1, 2, 3]</code>.
+                    </p>
+                    <p class="text-sm text-slate-400">
+                        The example is also discussed in
+                        <a href="https://www.scaler.com/topics/top-view-of-binary-tree/" target="_blank" rel="noopener noreferrer">Scaler's Top View of Binary Tree guide</a>.
+                    </p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <p class="mb-4">
+                        Visit every node and record its horizontal distance, depth, and value. For each horizontal distance,
+                        keep the node with the minimum depth. Then sort the distinct horizontal distances and collect their values.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+    // Store the shallowest node found at each horizontal distance.
+    private Map&lt;Integer, int[]&gt; topNodes = new HashMap&lt;&gt;();
+
+    private void dfs(TreeNode node, int hd, int depth) {
+        if (node == null) {
+            return;
+        }
+
+        // Keep this node if its HD is new or it is closer to the root.
+        if (!topNodes.containsKey(hd)
+                || depth &lt; topNodes.get(hd)[1]) {
+            topNodes.put(hd, new int[]{node.val, depth});
+        }
+
+        // Move one HD left and one level deeper.
+        dfs(node.left, hd - 1, depth + 1);
+        // Move one HD right and one level deeper.
+        dfs(node.right, hd + 1, depth + 1);
+    }
+
+    public ArrayList&lt;Integer&gt; solve(TreeNode A) {
+        topNodes.clear();
+
+        dfs(A, 0, 0);
+
+        // Sort HDs so the output runs from left to right.
+        ArrayList&lt;Integer&gt; distances =
+                new ArrayList&lt;&gt;(topNodes.keySet());
+        Collections.sort(distances);
+
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+        for (int hd : distances) {
+            result.add(topNodes.get(hd)[0]);
+        }
+
+        return result;
+    }
+}</code></pre>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-2 font-semibold text-slate-100">Complexity</h3>
+                            <ul class="list-inside list-disc space-y-1 text-slate-300">
+                                <li>Time: \(O(N + K\log K)\), where \(K\) is the number of distinct horizontal distances.</li>
+                                <li>Auxiliary space: \(O(N)\) for the map and recursion stack in the worst case.</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-xl border border-indigo-800 bg-indigo-950/60 p-4 text-indigo-100">
+                            <strong>Limitation:</strong> The recursive approach may use a deep call stack on a highly skewed tree.
+                            BFS avoids that recursion risk and makes shallowest-first selection direct.
+                        </div>
+                    </div>
+                </section>
+
+                <section id="optimized-bfs">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BFS</h2>
+                    <p class="mb-4">
+                        BFS visits nodes in nondecreasing depth order. Therefore, the first node encountered at any horizontal
+                        distance is at the shallowest possible depth. A <code>TreeMap</code> keeps the recorded distances sorted.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Put the root in a queue with HD <code>0</code>.</li>
+                        <li>Remove the next node from the queue.</li>
+                        <li>If its HD is not recorded, store its value.</li>
+                        <li>Add its left child with HD minus one and its right child with HD plus one.</li>
+                        <li>Continue until the queue is empty, then collect values in increasing HD order.</li>
+                    </ol>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Interview-ready Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    // Pair each queued tree node with its horizontal distance.
+    class Pair {
+        TreeNode node;
+        int hd;
+
+        Pair(TreeNode node, int hd) {
+            this.node = node;
+            this.hd = hd;
+        }
+    }
+
+    public ArrayList&lt;Integer&gt; solve(TreeNode A) {
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // An empty tree has no nodes in its top view.
+        if (A == null) {
+            return result;
+        }
+
+        // TreeMap keeps horizontal distances ordered from left to right.
+        TreeMap&lt;Integer, Integer&gt; topView = new TreeMap&lt;&gt;();
+        Queue&lt;Pair&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(new Pair(A, 0));
+
+        while (!queue.isEmpty()) {
+            Pair current = queue.poll();
+            TreeNode node = current.node;
+            int hd = current.hd;
+
+            // BFS reaches the shallowest node at this HD first.
+            if (!topView.containsKey(hd)) {
+                topView.put(hd, node.val);
+            }
+
+            // Enqueue children with their corresponding HD values.
+            if (node.left != null) {
+                queue.offer(new Pair(node.left, hd - 1));
+            }
+            if (node.right != null) {
+                queue.offer(new Pair(node.right, hd + 1));
+            }
+        }
+
+        // TreeMap values follow ascending horizontal distance.
+        result.addAll(topView.values());
+        return result;
+    }
+}</code></pre>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 text-lg font-semibold text-slate-100">Why BFS works</h3>
+                        <p class="text-slate-300">
+                            BFS visits nodes in nondecreasing order of depth. Once an HD is first recorded, no later node
+                            at that HD can be closer to the root. Processing left children before right children also makes
+                            selection consistent when nodes share both depth and HD.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">For Example 1, the horizontal distances are:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Root <code>1</code>: HD <code>0</code>.</li>
+                        <li>Nodes <code>2</code> and <code>3</code>: HD <code>-1</code> and <code>+1</code>.</li>
+                        <li>Nodes <code>4</code>, <code>5</code>, <code>6</code>, and <code>7</code>: HD <code>-2</code>, <code>0</code>, <code>0</code>, and <code>+2</code>.</li>
+                        <li>Node <code>8</code>: HD <code>-3</code>.</li>
+                    </ul>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full divide-y divide-slate-700 text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Node visited</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">HD</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Store <code>0 → 1</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>2</code></td><td class="px-4 py-3"><code>-1</code></td><td class="px-4 py-3">Store <code>-1 → 2</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>3</code></td><td class="px-4 py-3"><code>+1</code></td><td class="px-4 py-3">Store <code>1 → 3</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>4</code></td><td class="px-4 py-3"><code>-2</code></td><td class="px-4 py-3">Store <code>-2 → 4</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>5</code></td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Skip; HD <code>0</code> is already recorded</td></tr>
+                                <tr><td class="px-4 py-3"><code>6</code></td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Skip; HD <code>0</code> is already recorded</td></tr>
+                                <tr><td class="px-4 py-3"><code>7</code></td><td class="px-4 py-3"><code>+2</code></td><td class="px-4 py-3">Store <code>2 → 7</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>8</code></td><td class="px-4 py-3"><code>-3</code></td><td class="px-4 py-3">Store <code>-3 → 8</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3">The final map, in ascending HD order, is:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>HD:    -3  -2  -1   0  +1  +2
+Value:  8   4   2   1   3   7</code></pre>
+                    <p class="mb-3">Therefore, the left-to-right output is:</p>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>[8, 4, 2, 1, 3, 7]</code></pre>
+                    <p class="mt-4 text-slate-300">
+                        Nodes <code>5</code> and <code>6</code> are skipped because they share HD <code>0</code> with the root,
+                        which is at depth <code>0</code> and appears above them.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the number of nodes and \(K\) the number of distinct horizontal distances.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="min-w-full divide-y divide-slate-700 text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Approach</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Time complexity</th>
+                                    <th scope="col" class="px-4 py-3 font-semibold">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><td class="px-4 py-3">DFS + map + sorting</td><td class="px-4 py-3">\(O(N + K\log K)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                                <tr><td class="px-4 py-3">BFS + <code>TreeMap</code></td><td class="px-4 py-3">\(O(N\log K)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                                <tr><td class="px-4 py-3">BFS + <code>HashMap</code> + sorting</td><td class="px-4 py-3">Expected \(O(N + K\log K)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-slate-300">
+                        BFS with a <code>HashMap</code>, followed by sorting the horizontal distances, gives expected linear
+                        traversal time plus sorting. The <code>TreeMap</code> version is also correct and keeps the implementation
+                        straightforward. Queue, map, and stored distances use \(O(N)\) auxiliary space in the worst case;
+                        the returned list is output space.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Important Edge Cases</h2>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li><strong class="text-slate-100">Single node:</strong> The root is the entire top view.</li>
+                        <li><strong class="text-slate-100">Left-skewed tree:</strong> Every node has a distinct HD, so every node appears.</li>
+                        <li><strong class="text-slate-100">Right-skewed tree:</strong> Every node appears as well.</li>
+                        <li><strong class="text-slate-100">Complete or balanced tree:</strong> Multiple nodes can share an HD; retain only the shallowest.</li>
+                        <li><strong class="text-slate-100">Same depth and same HD:</strong> Left-first BFS consistently selects the first node encountered.</li>
+                        <li><strong class="text-slate-100">Up to 100,000 nodes:</strong> Iterative BFS avoids recursion stack overflow on a deep tree.</li>
+                        <li><strong class="text-slate-100">Null root:</strong> The code returns an empty list, although the given constraints require at least one node.</li>
+                    </ul>
+                </section>
+
+                <section id="related-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar LeetCode Problems</h2>
+                    <p class="mb-4">These problems reinforce tree traversal and horizontal-distance techniques.</p>
+                    <ol class="list-inside list-decimal space-y-2 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/binary-tree-right-side-view/" target="_blank" rel="noopener noreferrer">199. Binary Tree Right Side View</a> — Medium. Similar level-order traversal, but keeps the rightmost node at each depth.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener noreferrer">102. Binary Tree Level Order Traversal</a> — Medium. Builds the BFS foundation.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-vertical-order-traversal/" target="_blank" rel="noopener noreferrer">314. Binary Tree Vertical Order Traversal</a> — Medium. Groups nodes by horizontal distance; this problem is listed as a premium problem on LeetCode.</li>
+                        <li><a href="https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree/" target="_blank" rel="noopener noreferrer">987. Vertical Order Traversal of a Binary Tree</a> — Hard. Extends horizontal-distance grouping with depth and node-value sorting.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" target="_blank" rel="noopener noreferrer">103. Binary Tree Zigzag Level Order Traversal</a> — Medium. Another useful BFS variation.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-100">
+                        <strong class="text-indigo-50">Pattern to remember:</strong>
+                        Binary tree + top view → BFS + horizontal distance + first occurrence.
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Replacing a stored node with a deeper node at the same HD.</li>
+                        <li>Assigning the left and right children the wrong horizontal distances.</li>
+                        <li>Returning nodes in arbitrary map iteration order when left-to-right order is expected.</li>
+                        <li>Using DFS without comparing depths, which can retain a deeper node incorrectly.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Why is BFS preferred over DFS?</h4>
+                            <p class="text-slate-300">BFS visits shallower nodes first, so the first node at each HD is automatically the correct top-view candidate.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Can we solve it with DFS?</h4>
+                            <p class="text-slate-300">Yes. Track the minimum depth for each HD and replace a stored node only when a shallower one is found.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">What is the difference between top view and vertical order traversal?</h4>
+                            <p class="text-slate-300">Top view retains only one visible node per HD. Vertical order traversal groups all nodes by HD, usually with additional ordering rules.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-1 font-semibold text-slate-100">Can we achieve expected \(O(N)\) time?</h4>
+                            <p class="text-slate-300">
+                                Use BFS with a <code>HashMap</code> to record the first node at each HD, then sort the \(K\)
+                                distinct distances. The total is \(O(N + K\log K)\); sorting cost should be accounted for separately.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">
+                        For interviews, use BFS with a <code>HashMap</code> and sorted horizontal distances. It avoids recursive
+                        stack issues and runs in expected \(O(N + K\log K)\) time.
+                    </p>
+                    <blockquote class="rounded-xl border-l-4 border-indigo-400 bg-slate-900 p-4 text-slate-200">
+                        Assign each node a horizontal distance. Traverse level by level, keep the first node at each distance,
+                        and return those nodes in horizontal-distance order.
+                    </blockquote>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>

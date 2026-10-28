@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Custom HashMap (Chaining) — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        a {
+            text-decoration: underline;
+            text-decoration-color: #6366f1;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: #c7d2fe;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-200 antialiased leading-relaxed">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <header class="mb-8 rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl shadow-black/20 sm:p-8">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wider text-indigo-300">Data structures · Java</p>
+        <h1 class="mb-4 text-3xl font-extrabold tracking-tight text-slate-50 sm:text-4xl">Custom HashMap (Chaining)</h1>
+        <p class="mb-6 max-w-3xl text-lg text-slate-300">
+            The key concepts in this problem are hashing, separate chaining using linked lists, and rehashing when the load factor exceeds 2.0.
+        </p>
+        <p class="rounded-xl border border-indigo-400/30 bg-indigo-950/50 p-4 text-indigo-100">
+            We will implement the HashMap from scratch without using Java's built-in <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">HashMap</code>,
+            <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">Dictionary</code>, or similar classes.
+        </p>
+    </header>
+
+    <main class="space-y-10 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-xl shadow-black/20 sm:p-8 lg:p-10">
+        <section id="problem-understanding">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">1. Problem understanding</h2>
+            <p class="mb-4 text-slate-300">We need to create a class <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">CustomHashMap</code> that stores integer key–value pairs and supports four operations.</p>
+            <div class="mb-6 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[32rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Operation</th><th scope="col" class="p-3 font-semibold">Expected behavior</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono text-indigo-200">put(key, value)</td><td class="p-3">Insert a new pair or update an existing key</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">get(key)</td><td class="p-3">Return the value, or <code>-1</code> if absent</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">remove(key)</td><td class="p-3">Delete the key and return its old value, or <code>-1</code> if absent</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">size()</td><td class="p-3">Return the number of stored key–value pairs</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-3 text-slate-300">The initial number of buckets is <code>4</code>. The bucket index is:</p>
+            <div class="mb-4 overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-center text-indigo-100">
+                \[\text{index} = |\text{key}| \bmod \text{bucketCount}\]
+            </div>
+            <p class="mb-3 text-slate-300">When the load factor exceeds <code>2.0</code>, double the number of buckets and reinsert all existing entries.</p>
+            <div class="mb-6 overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-center text-indigo-100">
+                \[\lambda = \frac{\text{number of elements}}{\text{number of buckets}}\]
+            </div>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">What is chaining?</h3>
+            <p class="mb-4 text-slate-300">Different keys can produce the same bucket index. Instead of overwriting an entry, we store all entries assigned to that bucket in a linked list.</p>
+            <p class="mb-3 text-slate-300">Example: bucket count = 4</p>
+            <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <div class="grid min-w-[24rem] grid-cols-[7rem_1fr] gap-y-2 font-mono text-sm">
+                    <span class="text-slate-400">Bucket 0</span><span class="text-slate-200">null</span>
+                    <span class="text-slate-400">Bucket 1</span><span class="text-slate-200">null</span>
+                    <span class="text-slate-400">Bucket 2</span><span class="text-indigo-200">(2, 100) → (6, 200) → (10, 300) → null</span>
+                    <span class="text-slate-400">Bucket 3</span><span class="text-slate-200">null</span>
+                </div>
+            </div>
+            <p class="mt-4 text-slate-300">Keys <code>2</code>, <code>6</code>, and <code>10</code> all map to bucket <code>2</code> because their remainders when divided by <code>4</code> are identical.</p>
+        </section>
+
+        <section id="brute-force">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">2. Brute-force approach</h2>
+            <p class="mb-4 text-slate-300">The simplest possible approach is to store all key–value pairs in a linked list and search through the entire list for every operation.</p>
+            <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+                <li><code>put</code>: traverse the list to check whether the key exists; update it or append a new node.</li>
+                <li><code>get</code>: scan all nodes until the key is found.</li>
+                <li><code>remove</code>: scan the list, unlink the matching node, and return its value.</li>
+                <li><code>size</code>: maintain a counter.</li>
+            </ul>
+            <div class="rounded-xl border-l-4 border-amber-400 bg-amber-950/40 p-4 text-amber-100">
+                <strong>Why not use this as the final solution?</strong> It takes \(O(N)\) time for lookups and updates, where \(N\) is the number of stored pairs. The problem specifically requires hashing with chaining, so the bucket array is necessary to make operations faster on average.
+            </div>
+        </section>
+
+        <section id="optimized-approach">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">3. Optimized approach — Hashing + Separate Chaining</h2>
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+            <p class="mb-4 text-slate-300">Instead of searching every key, calculate its bucket index and search only the linked list in that bucket.</p>
+            <p class="mb-3 text-slate-300">We need three components:</p>
+            <ol class="mb-6 list-decimal space-y-2 pl-6 text-slate-300">
+                <li><strong class="text-slate-100">Bucket array:</strong> An array of linked-list heads, initially of length <code>4</code>.</li>
+                <li><strong class="text-slate-100">Node:</strong> Stores a <code>key</code>, <code>value</code>, and pointer to the <code>next</code> node.</li>
+                <li><strong class="text-slate-100">Size counter:</strong> Tracks how many unique key–value pairs currently exist.</li>
+            </ol>
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm step by step</h3>
+            <div class="space-y-4">
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-mono font-semibold text-indigo-200">put(key, value)</h4>
+                    <ol class="list-decimal space-y-1 pl-6 text-slate-300">
+                        <li>Calculate the bucket index.</li><li>Traverse the linked list in that bucket.</li><li>If the key exists, update its value and return.</li><li>Otherwise, insert a new node at the head of the list and increment <code>size</code>.</li><li>If <code>size / bucketCount &gt; 2.0</code>, rehash.</li>
+                    </ol>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-mono font-semibold text-indigo-200">get(key)</h4>
+                    <ol class="list-decimal space-y-1 pl-6 text-slate-300">
+                        <li>Calculate the bucket index.</li><li>Search only that bucket's linked list.</li><li>Return the matching value or <code>-1</code>.</li>
+                    </ol>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-mono font-semibold text-indigo-200">remove(key)</h4>
+                    <ol class="list-decimal space-y-1 pl-6 text-slate-300">
+                        <li>Calculate the bucket index.</li><li>Search the linked list while keeping track of the previous node.</li><li>If found, unlink the node, decrement <code>size</code>, and return its previous value.</li><li>Otherwise, return <code>-1</code>.</li>
+                    </ol>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-mono font-semibold text-indigo-200">rehash()</h4>
+                    <ol class="list-decimal space-y-1 pl-6 text-slate-300">
+                        <li>Save the old bucket array.</li><li>Create a new array with twice as many buckets.</li><li>Recalculate the bucket index of every existing key.</li><li>Insert every existing entry into its new bucket.</li>
+                    </ol>
+                    <p class="mt-3 text-sm text-slate-400">Rehashing must not change the number of stored entries.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="java-solution">
+            <h2 class="mb-4 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">4. Complete Java solution</h2>
+            <p class="mb-4 text-slate-300">The following code preserves the required <code>CustomHashMap</code> class name and method signatures.</p>
+            <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 shadow-inner sm:p-5">
+<pre><code class="text-sm leading-6 text-slate-100">class CustomHashMap {
+
+    // A node in a bucket's linked list.
+    private static class Node {
+        int key;
+        int value;
+        Node next;
+
+        Node(int key, int value) {
+            this.key = key;
+            this.value = value;
+            this.next = null;
+        }
+    }
+
+    private Node[] buckets;
+    private int size;
+
+    private static final int INITIAL_CAPACITY = 4;
+    private static final double MAX_LOAD_FACTOR = 2.0;
+
+    public CustomHashMap() {
+        buckets = new Node[INITIAL_CAPACITY];
+        size = 0;
+    }
+
+    // Calculate the bucket index for a key.
+    private int getIndex(int key) {
+        return Math.abs(key) % buckets.length;
+    }
+
+    public void put(int key, int value) {
+        int index = getIndex(key);
+        Node current = buckets[index];
+
+        // Update an existing entry without changing the size.
+        while (current != null) {
+            if (current.key == key) {
+                current.value = value;
+                return;
+            }
+            current = current.next;
+        }
+
+        // Insert a new entry at the head of this bucket's list.
+        Node newNode = new Node(key, value);
+        newNode.next = buckets[index];
+        buckets[index] = newNode;
+        size++;
+
+        // Rehash only after adding a new key and exceeding the limit.
+        double loadFactor = (double) size / buckets.length;
+        if (loadFactor &gt; MAX_LOAD_FACTOR) {
+            rehash();
+        }
+    }
+
+    public int get(int key) {
+        int index = getIndex(key);
+        Node current = buckets[index];
+
+        // Search only the linked list in the calculated bucket.
+        while (current != null) {
+            if (current.key == key) {
+                return current.value;
+            }
+            current = current.next;
+        }
+
+        return -1; // The key was not found.
+    }
+
+    public int remove(int key) {
+        int index = getIndex(key);
+        Node current = buckets[index];
+        Node previous = null;
+
+        while (current != null) {
+            if (current.key == key) {
+                int oldValue = current.value;
+
+                // Removing the first node requires updating the bucket head.
+                if (previous == null) {
+                    buckets[index] = current.next;
+                } else {
+                    // Removing a middle or last node links around it.
+                    previous.next = current.next;
+                }
+
+                size--;
+                return oldValue;
+            }
+
+            previous = current;
+            current = current.next;
+        }
+
+        return -1; // The key was not found.
+    }
+
+    public int size() {
+        return size;
+    }
+
+    // Double the bucket count and redistribute every existing entry.
+    private void rehash() {
+        Node[] oldBuckets = buckets;
+
+        // The new length is twice the old capacity.
+        buckets = new Node[oldBuckets.length * 2];
+
+        // Reinsert entries using indices calculated for the new capacity.
+        for (Node head : oldBuckets) {
+            Node current = head;
+            while (current != null) {
+                int index = getIndex(current.key);
+                Node newNode = new Node(current.key, current.value);
+
+                // Add each copied entry at the head of its new bucket.
+                newNode.next = buckets[index];
+                buckets[index] = newNode;
+                current = current.next;
+            }
+        }
+
+        // Do not change size during rehashing.
+    }
+}</code></pre>
+            </div>
+
+            <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Important implementation details</h3>
+            <ul class="list-disc space-y-2 pl-6 text-slate-300">
+                <li><strong class="text-slate-100">Updating an existing key:</strong> We return immediately without incrementing <code>size</code> or unnecessarily rehashing.</li>
+                <li><strong class="text-slate-100">Removing a node:</strong> We handle the bucket head separately because it has no previous node.</li>
+                <li><strong class="text-slate-100">Rehashing:</strong> We create new nodes so the old linked lists remain untouched during traversal.</li>
+                <li><strong class="text-slate-100">Negative keys:</strong> <code>Math.abs(key)</code> works under the given constraint \(|key| \leq 10^9\), which excludes <code>Integer.MIN_VALUE</code>.</li>
+                <li><strong class="text-slate-100">Load factor:</strong> Rehash only when it is strictly greater than <code>2.0</code>, not equal to it.</li>
+            </ul>
+        </section>
+
+        <section id="dry-run">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">5. Dry run of the optimized solution</h2>
+            <p class="mb-3 text-slate-300">Consider these operations:</p>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4">
+                <pre><code class="font-mono text-sm leading-6 text-indigo-200">put(2, 100)
+put(6, 200)
+put(10, 300)
+get(6)
+remove(2)
+get(2)
+size()</code></pre>
+            </div>
+            <p class="mb-4 text-slate-300">Initially, <code>bucketCount = 4</code> and <code>size = 0</code>.</p>
+            <div class="mb-6 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[44rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3">Operation</th><th scope="col" class="p-3">Bucket 2 after operation</th><th scope="col" class="p-3">Size</th><th scope="col" class="p-3">Result</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono text-indigo-200">put(2, 100)</td><td class="p-3 font-mono">2 → 100</td><td class="p-3">1</td><td class="p-3">—</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">put(6, 200)</td><td class="p-3 font-mono">6 → 200 → 2 → 100</td><td class="p-3">2</td><td class="p-3">—</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">put(10, 300)</td><td class="p-3 font-mono">10 → 300 → 6 → 200 → 2 → 100</td><td class="p-3">3</td><td class="p-3">—</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">get(6)</td><td class="p-3">Unchanged</td><td class="p-3">3</td><td class="p-3 font-mono">200</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">remove(2)</td><td class="p-3 font-mono">10 → 300 → 6 → 200</td><td class="p-3">2</td><td class="p-3 font-mono">100</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">get(2)</td><td class="p-3">Unchanged</td><td class="p-3">2</td><td class="p-3 font-mono">-1</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">size()</td><td class="p-3">Unchanged</td><td class="p-3">2</td><td class="p-3 font-mono">2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-6 text-slate-300">The linked-list order is reversed because each new node is inserted at the head.</p>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">When does rehashing happen?</h3>
+            <p class="mb-3 text-slate-300">With four buckets, the maximum permitted number of elements before rehashing is eight.</p>
+            <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[28rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100"><tr><th scope="col" class="p-3">New element count</th><th scope="col" class="p-3">Load factor</th><th scope="col" class="p-3">Action</th></tr></thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3">7</td><td class="p-3">1.75</td><td class="p-3">No rehash</td></tr>
+                    <tr><td class="p-3">8</td><td class="p-3">2.00</td><td class="p-3">No rehash</td></tr>
+                    <tr><td class="p-3">9</td><td class="p-3">2.25</td><td class="p-3">Double bucket count from 4 to 8</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-slate-300">After the ninth unique insertion, all existing entries are redistributed using <code>% 8</code> instead of <code>% 4</code>. Updating an existing key does not trigger rehashing because the element count does not change.</p>
+        </section>
+
+        <section id="complexity">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">6. Complexity analysis</h2>
+            <p class="mb-3 text-slate-300">Let \(N\) be the number of stored key–value pairs and \(B\) the number of buckets.</p>
+            <div class="mb-6 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[34rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100"><tr><th scope="col" class="p-3">Operation</th><th scope="col" class="p-3">Average time</th><th scope="col" class="p-3">Worst-case time</th></tr></thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono text-indigo-200">put</td><td class="p-3">\(O(1)\) amortized</td><td class="p-3">\(O(N)\)</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">get</td><td class="p-3">\(O(1)\)</td><td class="p-3">\(O(N)\)</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">remove</td><td class="p-3">\(O(1)\)</td><td class="p-3">\(O(N)\)</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">size</td><td class="p-3">\(O(1)\)</td><td class="p-3">\(O(1)\)</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">rehash</td><td class="p-3">\(O(N+B)\)</td><td class="p-3">\(O(N+B)\)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is the average time \(O(1)\)?</h3>
+            <p class="mb-5 text-slate-300">The load factor is kept at or below <code>2.0</code> after each insertion, so the average number of entries per bucket stays bounded. Assuming keys are distributed reasonably across buckets, each operation examines only a small linked list on average.</p>
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is the worst case \(O(N)\)?</h3>
+            <p class="mb-5 text-slate-300">If every key maps to the same bucket, that bucket's linked list can contain all \(N\) entries. Searching, updating, or removing a key may then require traversing the entire list.</p>
+            <p class="mb-5 text-slate-300">Rehashing is \(O(N+B)\) because we must visit the old buckets and redistribute every entry. Since it occurs only occasionally as the table grows, insertion is \(O(1)\) amortized under ordinary hashing assumptions.</p>
+            <p class="rounded-xl border border-slate-700 bg-slate-800/70 p-4 text-slate-300"><strong class="text-slate-100">Space complexity:</strong> \(O(B+N)\) total space for the bucket array and linked-list nodes. Auxiliary space during rehashing is \(O(N+B)\) because the implementation temporarily retains the old array and creates new nodes in the new array.</p>
+        </section>
+
+        <section id="edge-cases">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">7. Edge cases</h2>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[34rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100"><tr><th scope="col" class="p-3">Case</th><th scope="col" class="p-3">Expected behavior</th></tr></thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3">Get a missing key</td><td class="p-3">Return <code>-1</code></td></tr>
+                    <tr><td class="p-3">Remove a missing key</td><td class="p-3">Return <code>-1</code>; size stays unchanged</td></tr>
+                    <tr><td class="p-3">Insert the same key twice</td><td class="p-3">Update the value; do not increase size</td></tr>
+                    <tr><td class="p-3">Multiple keys collide</td><td class="p-3">Store them in the same linked list</td></tr>
+                    <tr><td class="p-3">Remove the bucket's first node</td><td class="p-3">Update the bucket head</td></tr>
+                    <tr><td class="p-3">Remove a middle or last node</td><td class="p-3">Link the previous node to the next node</td></tr>
+                    <tr><td class="p-3">Insert the ninth unique entry</td><td class="p-3">Rehash from 4 buckets to 8</td></tr>
+                    <tr><td class="p-3">Negative key</td><td class="p-3">Compute the index using its absolute value</td></tr>
+                    <tr><td class="p-3">Large positive or negative key</td><td class="p-3">Correctly calculate the bucket index within the stated constraints</td></tr>
+                    <tr><td class="p-3">Remove all entries</td><td class="p-3">Size becomes zero; buckets remain allocated</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="rounded-xl border-l-4 border-amber-400 bg-amber-950/40 p-4 text-amber-100">One important detail: <code>-1</code> is the required missing-key result. The API therefore uses <code>-1</code> as the not-found indicator, even though negative values are valid values.</p>
+        </section>
+
+        <section id="related-resources">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">8. Similar problems and related resources</h2>
+            <p class="mb-4 text-slate-300">These resources and problems help reinforce custom hashing and hash-table design.</p>
+            <ul class="space-y-4 text-slate-300">
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://images.openai.com/static-rsc-4/bjC6Wi52eVPH8GBI6tpLTxePLnUPeGzMGk6j6oFQoqtdCqvgEAv5SKdBXOQ3wo6aFq8sRDaTDtLIUj0IPrL6VFm_uoZHNSn4j2H7GennC5_vJAm3xH_IdMiXlDghryH0LsRkrL9y9JJZ12YfInrCZ_-O7q1bdt3C0oUIrnaRz6U?purpose=inline" class="font-semibold text-indigo-300">Understanding HashMap Data Structure With Examples</a>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://leetcode.com/problems/design-hashmap/?utm_source=chatgpt.com" class="font-semibold text-indigo-300">706. Design HashMap</a>
+                    <p class="mt-1 text-sm">Easy. The closest match. Implement a HashMap with <code>put</code>, <code>get</code>, and <code>remove</code> without using built-in hash maps.</p>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://images.openai.com/static-rsc-4/qSekYsALKRLDf6YSPc3trBOW9kGomNJW_DerbY0kUURrTArZg1e5dftC7gPmLyK-YMp0fOMLJwl4HfQCtwXSfp_78v3kVlz5rXtfiXjJgYQgL9G-TvXI46lOPhy4ypmZEDPzdYiaFVE1ZW9kMkJ75tkxaNfZ8t9q8k4P_t_90EM?purpose=inline" class="font-semibold text-indigo-300">Leetcode 706. Design HashMap | SnailTyan</a>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://leetcode.com/problems/design-hashset/?utm_source=chatgpt.com" class="font-semibold text-indigo-300">705. Design HashSet</a>
+                    <p class="mt-1 text-sm">Easy. Practice hashing, collision handling, and implementing a collection without built-in hash structures.</p>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://images.openai.com/static-rsc-4/UnBtE4oCKV8vP8hKZxJXQFgaW6kpBeywPLTVGw3AGYnoAuBJnFeVAoJI4B7eZKj5-MpG9IzVHpnVLK7FoSbUJamkdMAp_rYuFAFHM4VzGRpRyfUD0sNTZkAQ4IuVZUzPpOQTfm7u-ZXV07TSGISTViJaLaVkXMdwSx7cCPtjW7rU?purpose=inline" class="font-semibold text-indigo-300">Java Concurrent Collections | codeWithAryan</a>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://leetcode.com/problems/contains-duplicate/?utm_source=chatgpt.com" class="font-semibold text-indigo-300">217. Contains Duplicate</a>
+                    <p class="mt-1 text-sm">Easy. Reinforces using hash-based structures to achieve efficient average-time lookups.</p>
+                </li>
+                <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <a href="https://leetcode.com/problems/lru-cache/?utm_source=chatgpt.com" class="font-semibold text-indigo-300">146. LRU Cache</a>
+                    <p class="mt-1 text-sm">Medium. Combines a hash table with a doubly linked list to support efficient lookup and eviction.</p>
+                </li>
+            </ul>
+        </section>
+
+        <section id="interview-notes">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">9. Interview preparation notes</h2>
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concepts to remember</h3>
+            <ul class="mb-6 list-disc space-y-2 pl-6 text-slate-300">
+                <li><strong class="text-slate-100">Separate chaining:</strong> Each bucket contains a linked list of entries that collide.</li>
+                <li><strong class="text-slate-100">Load factor:</strong> Measures how full the hash table is relative to its bucket count.</li>
+                <li><strong class="text-slate-100">Rehashing:</strong> Expands the bucket array and redistributes entries using the new capacity.</li>
+                <li><strong class="text-slate-100">Amortized complexity:</strong> Occasional expensive rehashes are spread across many insertions.</li>
+                <li><strong class="text-slate-100">Size tracking:</strong> Increase only on a new key; decrease only on a successful removal.</li>
+            </ul>
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+            <ol class="mb-6 list-decimal space-y-2 pl-6 text-slate-300">
+                <li>Incrementing <code>size</code> when updating an existing key.</li>
+                <li>Forgetting to handle removal of the head node.</li>
+                <li>Rehashing when the load factor is exactly <code>2.0</code>.</li>
+                <li>Using the old bucket count to calculate indices after rehashing.</li>
+                <li>Resetting <code>size</code> incorrectly or incrementing it during rehashing.</li>
+                <li>Using <code>Math.abs()</code> without considering the minimum integer edge case in problems with unrestricted integer keys. The given constraints exclude that value.</li>
+            </ol>
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+            <div class="space-y-4">
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-semibold text-indigo-200">Q1. Why use chaining instead of open addressing?</h4>
+                    <p class="text-slate-300">Chaining allows multiple entries to occupy the same bucket through a linked list. Deletion is straightforward, and the table can hold more entries than buckets.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-semibold text-indigo-200">Q2. Why double the bucket count?</h4>
+                    <p class="text-slate-300">Doubling reduces the load factor significantly and avoids resizing too frequently. It is a common resizing strategy for hash tables.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-semibold text-indigo-200">Q3. What if every key maps to the same bucket?</h4>
+                    <p class="text-slate-300">Operations may degrade to \(O(N)\). A better hash distribution helps avoid this, although chaining still handles collisions correctly.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h4 class="mb-2 font-semibold text-indigo-200">Q4. Why is insertion amortized \(O(1)\) rather than always \(O(1)\)?</h4>
+                    <p class="text-slate-300">Most insertions take constant time on average, but an insertion that triggers rehashing must redistribute all existing entries. Over many insertions, the occasional resizing cost averages out.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="final-recommendation">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">10. Final recommendation</h2>
+            <p class="mb-5 text-slate-300">For this problem, implement the bucket array + singly linked list + load-factor-based rehashing solution above. It directly satisfies the requirements and is suitable for an interview.</p>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[34rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100"><tr><th scope="col" class="p-3">Approach</th><th scope="col" class="p-3">Average operation time</th><th scope="col" class="p-3">Uses required chaining?</th></tr></thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3">Single linked list</td><td class="p-3">\(O(N)\)</td><td class="p-3">No bucket array</td></tr>
+                    <tr><td class="p-3">Custom HashMap with chaining</td><td class="p-3">\(O(1)\) average, amortized for insertion</td><td class="p-3">Yes</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+                <li>Final average time: \(O(1)\) per ordinary operation, with amortized \(O(1)\) insertion under reasonable hashing assumptions.</li>
+                <li>Worst-case lookup/update/removal: \(O(N)\).</li>
+                <li>Space: \(O(N+B)\).</li>
+            </ul>
+            <p class="rounded-xl border border-indigo-400/30 bg-indigo-950/50 p-4 font-medium text-indigo-100">Remember this intuition: Hash to find the bucket, chain to resolve collisions, track the number of unique keys, and resize when the load factor becomes greater than <code>2.0</code>.</p>
+        </section>
+    </main>
+    <footer class="px-2 py-6 text-center text-sm text-slate-500">
+        Custom HashMap with separate chaining
+    </footer>
+</div>
+</body>
+</html>

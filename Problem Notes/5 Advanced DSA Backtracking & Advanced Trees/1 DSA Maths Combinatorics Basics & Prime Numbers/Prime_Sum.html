@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Prime Sum — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .content-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .section-rule {
+            border-color: #334155;
+        }
+
+        .note-panel {
+            background: #1e1b4b;
+            border-color: #3730a3;
+        }
+
+        .code-panel {
+            background: #0b1220;
+            border: 1px solid #334155;
+        }
+
+        code {
+            color: #c7d2fe;
+        }
+
+        pre code {
+            color: #e2e8f0;
+        }
+
+        a {
+            color: #a5b4fc;
+        }
+
+        a:hover {
+            color: #c7d2fe;
+        }
+
+        th {
+            background: #334155;
+        }
+
+        td, th {
+            border-color: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed sm:px-6 sm:py-12">
+    <article class="content-card mx-auto my-2 max-w-4xl rounded-2xl border px-5 py-7 shadow-2xl sm:px-8 sm:py-10">
+        <header class="mb-9 border-b border-slate-700 pb-7">
+            <span class="inline-flex rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+            <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-50 sm:text-4xl">Prime Sum — Java Solution</h1>
+            <p class="mt-3 text-lg text-slate-300">Find two prime numbers that add up to a given even integer, returning the lexicographically smallest pair.</p>
+        </header>
+
+        <main class="space-y-10">
+            <section aria-labelledby="problem-understanding">
+                <h2 id="problem-understanding" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">1. Problem Understanding</h2>
+                <p class="mb-4">You are given an even integer <code>A</code> greater than <code>2</code>. Find two prime numbers whose sum equals <code>A</code>.</p>
+                <p class="mb-4">If multiple pairs are possible, return the lexicographically smallest pair: the pair with the smallest first number. Check candidate first numbers in ascending order to find it.</p>
+                <h3 class="mb-3 text-lg font-semibold text-slate-100">Example: <code>A = 10</code></h3>
+                <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                    <li><code>[3, 7]</code> is valid because both numbers are prime and <code>3 + 7 = 10</code>.</li>
+                    <li><code>[5, 5]</code> is also valid.</li>
+                    <li><code>[3, 7]</code> is lexicographically smaller, so return <code>[3, 7]</code>.</li>
+                </ul>
+            </section>
+
+            <section aria-labelledby="brute-force">
+                <h2 id="brute-force" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">2. Brute Force Approach</h2>
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                <p class="mb-4">Try every possible first number <code>i</code>, starting from <code>2</code>. Calculate the second number as <code>A - i</code>. If both are prime, return the pair.</p>
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                    <li>Loop through <code>i</code> from <code>2</code> to <code>A - 2</code>.</li>
+                    <li>Check whether <code>i</code> is prime.</li>
+                    <li>Check whether <code>A - i</code> is prime.</li>
+                    <li>Return <code>[i, A - i]</code> as soon as both are prime.</li>
+                </ol>
+                <p class="mb-4 text-slate-300">Because <code>i</code> is checked in ascending order, the first valid pair is lexicographically smallest.</p>
+                <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+                <pre class="code-panel mb-5 overflow-x-auto rounded-xl p-4 text-sm leading-6"><code>public class Solution {
+
+    // Checks whether a number is prime.
+    private boolean isPrime(int n) {
+        if (n &lt; 2) {
+            return false;
+        }
+
+        // Only check divisors up to the square root of n.
+        for (int i = 2; i * i &lt;= n; i++) {
+            if (n % i == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public int[] primesum(int A) {
+        for (int i = 2; i &lt;= A - 2; i++) {
+            int j = A - i;
+
+            if (isPrime(i) &amp;&amp; isPrime(j)) {
+                return new int[]{i, j};
+            }
+        }
+
+        return new int[0]; // Unreachable under the given guarantee.
+    }
+}</code></pre>
+                <div class="note-panel rounded-xl border p-4 text-slate-200">
+                    <h3 class="mb-2 font-semibold text-indigo-200">Complexity and limitation</h3>
+                    <ul class="list-inside list-disc space-y-1">
+                        <li>Time: \(O(A\sqrt{A})\) in the worst case, because many candidates may be tested and each primality test takes up to \(O(\sqrt{A})\).</li>
+                        <li>Auxiliary space: \(O(1)\), using only a few variables.</li>
+                    </ul>
+                    <p class="mt-3">With <code>A</code> as large as <code>2 × 10<sup>7</sup></code>, repeatedly checking divisors can be slow.</p>
+                </div>
+            </section>
+
+            <section aria-labelledby="sieve">
+                <h2 id="sieve" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">3. Optimized Approach — Sieve of Eratosthenes</h2>
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                <p class="mb-4">Instead of checking each number for primality repeatedly, precompute which numbers are prime using the Sieve of Eratosthenes.</p>
+                <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                    <li><code>isPrime[x] = true</code> means <code>x</code> is prime.</li>
+                    <li><code>isPrime[x] = false</code> means <code>x</code> is not prime.</li>
+                    <li>Once the sieve is ready, checking whether a number is prime takes \(O(1)\) time.</li>
+                </ul>
+
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">How the sieve works</h3>
+                <p class="mb-3">Suppose we want to find all primes up to <code>20</code>:</p>
+                <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                    <li>Initially, mark every number as prime.</li>
+                    <li>Mark <code>0</code> and <code>1</code> as non-prime.</li>
+                    <li>Starting from <code>2</code>, mark its multiples (<code>4, 6, 8, ...</code>) as non-prime.</li>
+                    <li>Move to the next number still marked prime, <code>3</code>, and mark its multiples as non-prime.</li>
+                    <li>Continue until the current number squared exceeds the limit.</li>
+                </ol>
+                <h3 class="mb-3 text-lg font-semibold text-slate-100">Example: prime numbers up to 20</h3>
+                <div class="overflow-x-auto rounded-xl border border-slate-700">
+                    <table class="w-full min-w-[18rem] border-collapse text-left text-sm">
+                        <thead>
+                            <tr><th scope="col" class="border px-4 py-2 text-slate-100">Number</th><th scope="col" class="border px-4 py-2 text-slate-100">Status</th></tr>
+                        </thead>
+                        <tbody class="text-slate-300">
+                            <tr><td class="border px-4 py-2">1</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">3</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">5</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">7</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">9</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">10</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">11</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">12</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">13</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">14</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">15</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">16</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">17</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">18</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                            <tr><td class="border px-4 py-2">19</td><td class="border px-4 py-2 text-emerald-300">Prime</td></tr>
+                            <tr><td class="border px-4 py-2">20</td><td class="border px-4 py-2 text-rose-300">Not prime</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-3 text-sm text-slate-400">Green indicates prime; red indicates not prime. The number 1 is not prime.</p>
+
+                <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Optimized Java code</h3>
+                <pre class="code-panel mb-5 overflow-x-auto rounded-xl p-4 text-sm leading-6"><code>public class Solution {
+
+    public int[] primesum(int A) {
+
+        // isPrime[i] tells us whether i is prime.
+        boolean[] isPrime = new boolean[A + 1];
+
+        // Initially, assume every number is prime.
+        for (int i = 2; i &lt;= A; i++) {
+            isPrime[i] = true;
+        }
+
+        // Mark multiples of each prime as non-prime.
+        for (int i = 2; i * i &lt;= A; i++) {
+            if (isPrime[i]) {
+                // Start from i * i because smaller multiples
+                // have already been handled.
+                for (int j = i * i; j &lt;= A; j += i) {
+                    isPrime[j] = false;
+                }
+            }
+        }
+
+        // Find the first valid pair in ascending order.
+        for (int i = 2; i &lt;= A / 2; i++) {
+            int j = A - i;
+
+            if (isPrime[i] &amp;&amp; isPrime[j]) {
+                return new int[]{i, j};
+            }
+        }
+
+        // A solution is guaranteed to exist.
+        return new int[0];
+    }
+}</code></pre>
+
+                <div class="note-panel mb-5 rounded-xl border p-4">
+                    <h3 class="mb-2 font-semibold text-indigo-200">Why check only up to <code>A / 2</code>?</h3>
+                    <p class="text-slate-200">Suppose <code>A = 20</code>. If the first prime is <code>13</code>, the second number must be <code>7</code>. We would already have considered the pair <code>[7, 13]</code>.</p>
+                    <p class="mt-2 text-slate-200">Therefore, every pair can be found by checking the first number from <code>2</code> through <code>A / 2</code>. This guarantees the returned pair satisfies <code>i &lt;= j</code>.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Why start marking from <code>i * i</code>?</h3>
+                    <p class="text-slate-300">For example, when processing <code>5</code>, we do not need to mark <code>10</code>, <code>15</code>, or <code>20</code> again. Those multiples have already been marked while processing <code>2</code> or <code>3</code>. The first multiple that might still need marking is <code>5 * 5 = 25</code>, which reduces unnecessary work.</p>
+                </div>
+            </section>
+
+            <section aria-labelledby="dry-run">
+                <h2 id="dry-run" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">4. Dry Run of the Optimized Solution</h2>
+                <p class="mb-4">Input: <code>A = 10</code></p>
+                <p class="mb-4 text-slate-300">After applying the sieve, the relevant prime numbers are <code>2, 3, 5, 7</code>. Now find the first valid pair:</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-700">
+                    <table class="w-full min-w-[30rem] border-collapse text-left text-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="border px-4 py-2 text-slate-100">i</th>
+                                <th scope="col" class="border px-4 py-2 text-slate-100">j = A - i</th>
+                                <th scope="col" class="border px-4 py-2 text-slate-100">Both prime?</th>
+                                <th scope="col" class="border px-4 py-2 text-slate-100">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-300">
+                            <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">8</td><td class="border px-4 py-2">No</td><td class="border px-4 py-2">Continue</td></tr>
+                            <tr><td class="border px-4 py-2">3</td><td class="border px-4 py-2">7</td><td class="border px-4 py-2">Yes</td><td class="border px-4 py-2">Return <code>[3, 7]</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-4">Output: <code>[3, 7]</code></p>
+                <p class="mt-2 text-slate-300">Notice that <code>[5, 5]</code> is also a valid answer, but the algorithm returns <code>[3, 7]</code> first because <code>3</code> is smaller than <code>5</code>.</p>
+            </section>
+
+            <section aria-labelledby="complexity">
+                <h2 id="complexity" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">5. Complexity Analysis</h2>
+                <p class="mb-4">Let <code>A</code> be the given even number.</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-700">
+                    <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+                        <thead>
+                            <tr><th scope="col" class="border px-4 py-3 text-slate-100">Approach</th><th scope="col" class="border px-4 py-3 text-slate-100">Time complexity</th><th scope="col" class="border px-4 py-3 text-slate-100">Auxiliary space</th></tr>
+                        </thead>
+                        <tbody class="text-slate-300">
+                            <tr><td class="border px-4 py-3">Brute force</td><td class="border px-4 py-3">\(O(A\sqrt{A})\)</td><td class="border px-4 py-3">\(O(1)\)</td></tr>
+                            <tr><td class="border px-4 py-3">Sieve optimization</td><td class="border px-4 py-3">\(O(A\log\log A)\)</td><td class="border px-4 py-3">\(O(A)\)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Why is the optimized time complexity \(O(A\log\log A)\)?</h3>
+                <ul class="list-inside list-disc space-y-2 text-slate-300">
+                    <li>Building the sieve takes \(O(A\log\log A)\).</li>
+                    <li>Searching for a valid pair takes at most \(O(A)\).</li>
+                    <li>The sieve dominates the overall time complexity.</li>
+                </ul>
+                <p class="mt-4 text-slate-300">The boolean array requires \(O(A)\) auxiliary space. The returned array contains just two integers, so its output space is \(O(1)\).</p>
+            </section>
+
+            <section aria-labelledby="edge-cases">
+                <h2 id="edge-cases" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">6. Edge Cases</h2>
+                <div class="overflow-x-auto rounded-xl border border-slate-700">
+                    <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                        <thead>
+                            <tr><th scope="col" class="border px-4 py-3 text-slate-100">Input</th><th scope="col" class="border px-4 py-3 text-slate-100">Output</th><th scope="col" class="border px-4 py-3 text-slate-100">Explanation</th></tr>
+                        </thead>
+                        <tbody class="text-slate-300">
+                            <tr><td class="border px-4 py-3"><code>4</code></td><td class="border px-4 py-3"><code>[2, 2]</code></td><td class="border px-4 py-3">Smallest permitted input</td></tr>
+                            <tr><td class="border px-4 py-3"><code>6</code></td><td class="border px-4 py-3"><code>[3, 3]</code></td><td class="border px-4 py-3">Both numbers are prime</td></tr>
+                            <tr><td class="border px-4 py-3"><code>8</code></td><td class="border px-4 py-3"><code>[3, 5]</code></td><td class="border px-4 py-3"><code>[2, 6]</code> is invalid because 6 is not prime</td></tr>
+                            <tr><td class="border px-4 py-3"><code>10</code></td><td class="border px-4 py-3"><code>[3, 7]</code></td><td class="border px-4 py-3">Smaller first number than <code>[5, 5]</code></td></tr>
+                            <tr><td class="border px-4 py-3"><code>100</code></td><td class="border px-4 py-3"><code>[3, 97]</code></td><td class="border px-4 py-3">Both are prime and sum to 100</td></tr>
+                            <tr><td class="border px-4 py-3"><code>20000000</code></td><td class="border px-4 py-3">A valid pair is found by the sieve</td><td class="border px-4 py-3">Maximum constraint; the sieve avoids repeated primality checks</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-4 text-slate-300">The problem guarantees a solution exists, so the empty-array fallback is never reached for valid inputs.</p>
+            </section>
+
+            <section aria-labelledby="similar-problems">
+                <h2 id="similar-problems" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">7. Similar Problems on LeetCode</h2>
+                <p class="mb-4 text-slate-300">These problems help you practice prime checking, sieves, and number-theory patterns.</p>
+                <ol class="list-inside list-decimal space-y-4 text-slate-300">
+                    <li><a href="https://leetcode.com/problems/count-primes/" target="_blank" rel="noopener noreferrer">204. Count Primes</a> — Medium. Uses the Sieve of Eratosthenes to count prime numbers below a given limit.</li>
+                    <li><a href="https://leetcode.com/problems/closest-prime-numbers-in-range/" target="_blank" rel="noopener noreferrer">2523. Closest Prime Numbers in Range</a> — Medium. Uses prime precomputation to find prime pairs within a specified range.</li>
+                    <li><a href="https://leetcode.com/problems/prime-subtraction-operation/" target="_blank" rel="noopener noreferrer">2601. Prime Subtraction Operation</a> — Reinforces prime-number generation and reasoning about valid prime choices.</li>
+                    <li><a href="https://leetcode.com/problems/prime-palindrome/" target="_blank" rel="noopener noreferrer">866. Prime Palindrome</a> — Practices primality checking combined with another numerical property.</li>
+                </ol>
+            </section>
+
+            <section aria-labelledby="interview-notes">
+                <h2 id="interview-notes" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">8. Interview Preparation Notes</h2>
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concepts to remember</h3>
+                <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                    <li><strong class="text-slate-100">Sieve of Eratosthenes:</strong> Efficiently precomputes primes up to a limit.</li>
+                    <li><strong class="text-slate-100">Lexicographical ordering:</strong> Check possible first numbers in ascending order.</li>
+                    <li><strong class="text-slate-100">Symmetry:</strong> Since the sum is fixed, checking first numbers up to <code>A / 2</code> is sufficient.</li>
+                    <li><strong class="text-slate-100">Early return:</strong> The first valid pair is the required answer.</li>
+                </ul>
+
+                <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                    <li>Checking every divisor repeatedly leads to the slower brute-force approach.</li>
+                    <li>Starting the sieve from <code>2 * i</code> is correct but performs redundant work; use <code>i * i</code>.</li>
+                    <li>Searching beyond <code>A / 2</code> is unnecessary because the pair can be reversed.</li>
+                    <li>Returning any valid pair misses the requirement to return the lexicographically smallest pair.</li>
+                </ol>
+
+                <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                <dl class="space-y-4 text-slate-300">
+                    <div><dt class="font-semibold text-slate-100">Q1. Why is 1 not prime?</dt><dd>A prime number has exactly two positive divisors: 1 and itself. The number 1 has only one positive divisor.</dd></div>
+                    <div><dt class="font-semibold text-slate-100">Q2. Can we optimize the space complexity?</dt><dd>Yes, more specialized approaches can reduce memory usage, but the standard sieve is simple and practical for \(A \le 2 \times 10^7\).</dd></div>
+                    <div><dt class="font-semibold text-slate-100">Q3. Why does the first valid pair give the smallest answer?</dt><dd>Because we examine <code>i</code> in ascending order. No pair with a smaller first element can be skipped.</dd></div>
+                    <div><dt class="font-semibold text-slate-100">Q4. Why does the sieve start its outer loop only while <code>i * i &lt;= A</code>?</dt><dd>Every composite number at most <code>A</code> has a prime factor no greater than \(\sqrt{A}\). Therefore, larger outer-loop values are unnecessary.</dd></div>
+                </dl>
+            </section>
+
+            <section aria-labelledby="recommendation">
+                <h2 id="recommendation" class="section-rule mb-4 border-b pb-2 text-2xl font-bold text-slate-50">9. Final Recommendation</h2>
+                <p class="mb-4">Use the Sieve of Eratosthenes in an interview. It avoids repeated primality checks and comfortably suits the given constraint.</p>
+                <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                    <li>Time: \(O(A\log\log A)\)</li>
+                    <li>Auxiliary space: \(O(A)\)</li>
+                    <li>Pattern: Number theory + sieve + greedy ascending search</li>
+                </ul>
+                <div class="note-panel rounded-xl border p-4 font-medium text-indigo-100">Remember: Precompute primes once, then scan from <code>2</code> upward and return the first pair for which both <code>i</code> and <code>A - i</code> are prime.</div>
+            </section>
+        </main>
+    </article>
+</body>
+</html>

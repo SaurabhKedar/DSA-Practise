@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Diameter of Binary Tree — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Diameter of Binary Tree</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Find the longest path between any two nodes in a binary tree, counting its edges. The optimized solution computes subtree heights in one postorder traversal while tracking the best diameter found.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Postorder DFS + subtree heights + a global maximum.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">The diameter of a binary tree is the number of edges in the longest path between any two nodes.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>The longest path can pass through the root, but it does not have to.</li>
+                        <li>Count edges, not nodes.</li>
+                        <li>An empty tree has diameter <code>0</code>.</li>
+                    </ul>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Example 1</h3>
+                        <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>        1
+       / \
+      2   3
+     /
+    4</code></pre>
+                        <p class="text-slate-300">One longest path is <code>4 → 2 → 1 → 3</code>.</p>
+                        <p class="mt-2 font-semibold text-indigo-200">Diameter: <code>3</code> edges</p>
+                    </div>
+                    <p class="text-slate-300">There are two approaches:</p>
+                    <ol class="mt-2 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Brute force: Recalculate subtree heights at each node.</li>
+                        <li>Optimized: Calculate each subtree height once and update the diameter during postorder traversal.</li>
+                    </ol>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+                    <p class="mb-3">At every node, calculate the height of its left and right subtrees. Their sum gives the length in edges of the path passing through that node. Then compare it with the best diameter inside either subtree.</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Find the height of the left subtree.</li>
+                        <li>Find the height of the right subtree.</li>
+                        <li>Calculate <code>leftHeight + rightHeight</code>.</li>
+                        <li>Repeat for every node and keep the maximum.</li>
+                    </ol>
+                    <p class="mb-4">In this implementation, <code>height()</code> counts nodes and returns <code>0</code> for a null node. A leaf therefore has height <code>1</code>; the sum of its child heights still counts the path through a node in edges.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Brute-force approach: O(N^2) worst-case time.
+ */
+public class Solution {
+
+    // Returns the subtree height measured in nodes.
+    private int height(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+
+        return 1 + Math.max(height(node.left), height(node.right));
+    }
+
+    // Calculates the diameter independently at each node.
+    private int diameter(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+
+        int leftHeight = height(node.left);
+        int rightHeight = height(node.right);
+
+        // The child heights count the edges on each side of this node.
+        int throughNode = leftHeight + rightHeight;
+
+        // Also consider paths contained entirely in either subtree.
+        int leftDiameter = diameter(node.left);
+        int rightDiameter = diameter(node.right);
+
+        return Math.max(throughNode,
+               Math.max(leftDiameter, rightDiameter));
+    }
+
+    public int solve(TreeNode A) {
+        return diameter(A);
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is brute force inefficient?</h3>
+                    <p class="text-slate-300">The <code>height()</code> method revisits nodes that earlier height calculations already visited. For a skewed tree, this repeated work can take <code>O(N^2)</code> time. We can avoid it by calculating height and diameter together in one traversal.</p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Postorder DFS</h2>
+                    <p class="mb-4">At each node, calculate the left and right subtree heights once, then use their sum to update the maximum diameter.</p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4 text-center text-lg">
+                        \[\text{diameter through node}=\text{left height}+\text{right height}\]
+                    </div>
+                    <p class="mb-4 text-slate-300">The helper returns subtree height in nodes (with null height <code>0</code>). These child heights represent the numbers of edges extending from the current node down each branch, so their sum is the number of edges on the path through it.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Initialize <code>maxDiameter = 0</code>.</li>
+                        <li>Recursively calculate the left subtree height.</li>
+                        <li>Recursively calculate the right subtree height.</li>
+                        <li>Update <code>maxDiameter</code> with <code>leftHeight + rightHeight</code>.</li>
+                        <li>Return <code>1 + max(leftHeight, rightHeight)</code> as the current subtree height.</li>
+                        <li>Return <code>maxDiameter</code> from <code>solve()</code>.</li>
+                    </ol>
+                    <p class="mb-4 text-slate-300">This is postorder traversal because both children are processed before the current node.</p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+                    <p class="mb-3 text-slate-300">This solution uses the class name and method signature <code>Solution.solve(TreeNode A)</code>.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
+ * Definition for binary tree:
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+
+    // Stores the maximum diameter found anywhere in the tree.
+    private int maxDiameter;
+
+    // Returns the height of a subtree, measured in nodes.
+    private int height(TreeNode node) {
+
+        // An empty subtree has height 0.
+        if (node == null) {
+            return 0;
+        }
+
+        // Calculate child heights before processing this node.
+        int leftHeight = height(node.left);
+        int rightHeight = height(node.right);
+
+        // The path through this node contains this many edges.
+        int diameterThroughNode = leftHeight + rightHeight;
+
+        // Keep the largest diameter found so far.
+        maxDiameter = Math.max(maxDiameter, diameterThroughNode);
+
+        // Return the height needed by the parent node.
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
+
+    public int solve(TreeNode A) {
+        maxDiameter = 0;
+
+        height(A);
+
+        return maxDiameter;
+    }
+}</code></pre>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">How the important variables work</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>leftHeight</code>: height of the left subtree.</li>
+                        <li><code>rightHeight</code>: height of the right subtree.</li>
+                        <li><code>diameterThroughNode</code>: longest path that passes through the current node.</li>
+                        <li><code>maxDiameter</code>: maximum path length found anywhere in the tree.</li>
+                        <li><code>1 + Math.max(...)</code>: height of the current subtree, including the current node.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Important distinction:</strong>
+                        Return the height to the parent, but update the diameter separately. The diameter might lie entirely inside a subtree and never pass through the root.
+                    </div>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Consider the example tree:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>        1
+       / \
+      2   3
+     / \
+    4   5</code></pre>
+                    <p class="mb-4 text-slate-300">Initially, <code>maxDiameter = 0</code>. The recursive calls process children before their parents.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm text-slate-300">
+                            <caption class="sr-only">Subtree heights and diameter updates during postorder traversal</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Node</th>
+                                    <th scope="col" class="px-4 py-3">Left height</th>
+                                    <th scope="col" class="px-4 py-3">Right height</th>
+                                    <th scope="col" class="px-4 py-3">Diameter through node</th>
+                                    <th scope="col" class="px-4 py-3">Returned height</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">4</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">5</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">2</th><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">3</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">1</th><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">3</td><td class="px-4 py-3">3</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Node 4: Both children are null. Its height is <code>1 + max(0, 0) = 1</code>, and its diameter through the node is <code>0</code>.</li>
+                        <li>Node 5: Similarly, its height is <code>1</code>, and its diameter through the node is <code>0</code>.</li>
+                        <li>Node 2: Both child heights are <code>1</code>. Its diameter is <code>1 + 1 = 2</code> edges along <code>4 → 2 → 5</code>.</li>
+                        <li>Node 3: It is a leaf, so its height is <code>1</code>.</li>
+                        <li>Node 1: Its left subtree height is <code>2</code> and right subtree height is <code>1</code>. Its diameter through the node is <code>2 + 1 = 3</code>.</li>
+                    </ol>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Final result:</strong>
+                        <code>3</code> edges — longest path: <code>4 → 2 → 1 → 3</code>.
+                    </div>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4 text-slate-300">Let <code>N</code> be the number of nodes and <code>H</code> the height of the tree.</p>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] text-left text-sm text-slate-300">
+                            <caption class="sr-only">Time and auxiliary space complexity by approach</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Approach</th>
+                                    <th scope="col" class="px-4 py-3">Time complexity</th>
+                                    <th scope="col" class="px-4 py-3">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Brute force</th><td class="px-4 py-3">\(O(N^2)\) worst case</td><td class="px-4 py-3">\(O(H)\), worst case \(O(N)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Optimized DFS</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(H)\), worst case \(O(N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="list-inside list-disc space-y-2 text-slate-300">
+                        <li>Brute force can calculate height in \(O(N)\) per node, resulting in \(O(N^2)\) time on a skewed tree.</li>
+                        <li>The optimized solution visits each node once, so it takes \(O(N)\) time.</li>
+                        <li>Recursive calls use \(O(H)\) stack space: \(O(\log N)\) for a balanced tree and \(O(N)\) for a skewed tree.</li>
+                        <li>The optimized solution therefore uses \(O(N)\) worst-case auxiliary stack space. The returned integer uses \(O(1)\) additional space.</li>
+                    </ul>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm text-slate-300">
+                            <caption class="sr-only">Diameter values for important binary-tree cases</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Case</th>
+                                    <th scope="col" class="px-4 py-3">Expected diameter</th>
+                                    <th scope="col" class="px-4 py-3">Why</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700">
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Empty tree</th><td class="px-4 py-3">0</td><td class="px-4 py-3">No nodes or edges.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Single node</th><td class="px-4 py-3">0</td><td class="px-4 py-3">There are no edges.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Two connected nodes</th><td class="px-4 py-3">1</td><td class="px-4 py-3">One edge connects them.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Completely skewed tree with 5 nodes</th><td class="px-4 py-3">4</td><td class="px-4 py-3">The longest path has four edges.</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">Balanced tree with 7 nodes</th><td class="px-4 py-3">4</td><td class="px-4 py-3">The longest path is between opposite leaves.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The solution handles these cases because <code>maxDiameter</code> starts at zero, null subtrees return height zero, and the diameter is updated at every node.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce the same tree-recursion pattern.</p>
+                    <ol class="list-inside list-decimal space-y-3 text-slate-300">
+                        <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/">543. Diameter of Binary Tree</a> — Easy. The same problem; practice the optimized solution.</li>
+                        <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/">104. Maximum Depth of Binary Tree</a> — Easy. Practice returning subtree height using recursion.</li>
+                        <li><a href="https://leetcode.com/problems/balanced-binary-tree/">110. Balanced Binary Tree</a> — Easy. Reuse subtree heights to check whether each node is balanced.</li>
+                        <li><a href="https://leetcode.com/problems/binary-tree-maximum-path-sum/">124. Binary Tree Maximum Path Sum</a> — Hard. Calculate contributions from child subtrees while tracking a global answer.</li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <div class="mb-5 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Pattern to remember:</strong>
+                        Tree DFS + postorder traversal + global maximum.
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Counting nodes instead of edges. A path with <code>k</code> nodes has <code>k - 1</code> edges.</li>
+                        <li>Assuming the diameter must pass through the root.</li>
+                        <li>Recalculating subtree heights repeatedly instead of computing them once.</li>
+                        <li>Returning the diameter from the recursive helper when the parent actually needs the subtree height.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
+                    <div class="space-y-4 text-slate-300">
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q1. Why do we use a global variable?</h4>
+                            <p>It preserves the best diameter found across all nodes, including paths that do not pass through the root.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q2. Can the diameter pass through a leaf?</h4>
+                            <p>Yes, but a leaf contributes zero to the diameter through itself because it has no child branches.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q3. Can we solve this iteratively?</h4>
+                            <p>Yes. A postorder traversal using an explicit stack can avoid recursive stack overflow on highly skewed trees.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-100">Q4. What if the problem asks for the number of nodes on the longest path?</h4>
+                            <p>The answer is the diameter in edges plus one, because a path with <code>d</code> edges contains <code>d + 1</code> nodes.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4">Implement the optimized postorder DFS solution in interviews.</p>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time: \(O(N)\)</li>
+                        <li>Auxiliary space: \(O(H)\), worst case \(O(N)\)</li>
+                        <li>Core intuition: At every node, combine the left and right subtree heights to calculate the longest path through that node, and keep track of the maximum across the tree.</li>
+                    </ul>
+                    <p class="font-semibold text-indigo-200">Remember this distinction: return height, update diameter. That is the central idea behind the solution.</p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
