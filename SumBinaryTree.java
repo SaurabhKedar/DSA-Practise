@@ -1,5 +1,5 @@
 //Advanced DSA 3: Backtracking & Advanced Trees
-// Lecture 7 | DSA: Trees 1: Structure & Traversal
+// Lecture 6 | DSA: Trees 1: Structure & Traversal
 
 public class SumBinaryTree {
     static int solve(TreeNode A) {
