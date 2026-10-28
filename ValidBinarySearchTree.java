@@ -1,8 +1,6 @@
 //Advanced DSA 3: Backtracking & Advanced Trees
 // Lecture 7 | DSA: Trees 2: BST
 
-import java.util.ArrayList;
-
 public class ValidBinarySearchTree {
     // Stores the previously visited node's value.
     static long prev = Long.MIN_VALUE;
