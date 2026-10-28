@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>BST Nodes in a Range — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">BST Nodes in a Range</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Count the nodes in a Binary Search Tree whose values fall within an inclusive range.
+                    Compare a straightforward traversal with a pruned traversal that uses the BST ordering property.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Key pattern:</strong>
+                    Too small means go right. Too large means go left. Inside the range means count the node and search both sides.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">
+                        You are given the root of a Binary Search Tree (BST) and two integers, <code>B</code> and <code>C</code>.
+                        Count the nodes whose values are in the inclusive range <code>[B, C]</code>.
+                    </p>
+                    <p class="mb-3">A node is counted exactly when:</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-lg text-slate-100">
+                        \[B \leq \text{node.val} \leq C\]
+                    </div>
+                    <p class="mb-3">Remember the BST property:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>All values in the left subtree are smaller than the current node.</li>
+                        <li>All values in the right subtree are greater than the current node.</li>
+                    </ul>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1</h3>
+                            <p class="mb-3 text-slate-300">Range: <code>B = 12</code>, <code>C = 20</code></p>
+                            <p class="text-slate-300">The values in the range are <code>12, 14, 15, 16, 20</code>.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>5</code></p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2</h3>
+                            <p class="mb-3 text-slate-300">BST values: <code>8, 6, 21, 1, 7</code></p>
+                            <p class="text-slate-300">For the range <code>2</code> to <code>20</code>, the values in range are <code>6, 7, 8</code>.</p>
+                            <p class="mt-2 font-semibold text-indigo-200">Output: <code>3</code></p>
+                        </div>
+                    </div>
+                    <p class="mt-5 rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-300">
+                        The range includes both boundaries, so values equal to <code>B</code> or <code>C</code> must also be counted.
+                    </p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach — Traverse Every Node</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-4">
+                        Visit every node in the tree, regardless of its value. For each node, check whether its value lies between
+                        <code>B</code> and <code>C</code>. If it does, increment the count. A recursive traversal can visit every node.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Java code</h3>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+
+    public int solve(TreeNode A, int B, int C) {
+        // An empty subtree contains no nodes.
+        if (A == null) {
+            return 0;
+        }
+
+        // Count the current node if it lies in the range.
+        int count = 0;
+        if (A.val &gt;= B &amp;&amp; A.val &lt;= C) {
+            count = 1;
+        }
+
+        // Count valid nodes in both subtrees.
+        count += solve(A.left, B, C);
+        count += solve(A.right, B, C);
+
+        return count;
+    }
+}</code></pre>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why does it work?</h3>
+                    <p class="mb-4">
+                        Every node is visited exactly once. For each node, we check the range condition and add <code>1</code> only
+                        if the condition is satisfied. Therefore, the final count is correct.
+                    </p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\), because every node is visited.</li>
+                        <li>Auxiliary space: \(O(H)\), due to recursive call stack space, where \(H\) is the tree height. In the worst case, this can be \(O(N)\).</li>
+                    </ul>
+                    <p class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong>Limitation:</strong> Even if a node's value is outside the range, we still visit both of its subtrees.
+                        This wastes work because a BST lets us skip certain subtrees.
+                    </p>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Use BST Properties (Pruning)</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Since the tree is a BST, we do not need to visit every node:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>If <code>A.val &lt; B</code>, the current node and its entire left subtree are smaller than <code>B</code>. Ignore them and search only the right subtree.</li>
+                        <li>If <code>A.val &gt; C</code>, the current node and its entire right subtree are greater than <code>C</code>. Ignore them and search only the left subtree.</li>
+                        <li>Otherwise, the current node is within the range. Count it and search both subtrees.</li>
+                    </ul>
+                    <p class="mb-5">
+                        This technique is called BST pruning because we avoid traversing subtrees that cannot contain valid answers.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm step by step</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If the current node is <code>null</code>, return <code>0</code>.</li>
+                        <li>If its value is smaller than <code>B</code>, recursively search the right subtree.</li>
+                        <li>If its value is greater than <code>C</code>, recursively search the left subtree.</li>
+                        <li>Otherwise, count the current node and add the counts from both subtrees.</li>
+                    </ol>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized Java code</h3>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950">
+                        <pre class="p-4 text-sm leading-6 text-slate-200"><code>/**
+ * Definition for binary tree
+ * class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) {
+ *         val = x;
+ *         left = null;
+ *         right = null;
+ *     }
+ * }
+ */
+
+public class Solution {
+
+    public int solve(TreeNode A, int B, int C) {
+
+        // Base case: no node means no valid value.
+        if (A == null) {
+            return 0;
+        }
+
+        int count = 0;
+
+        // Current node is in range.
+        if (A.val &gt;= B &amp;&amp; A.val &lt;= C) {
+            count++;
+        }
+
+        // Left subtree contains smaller values.
+        if (A.val &gt; B) {
+            count += solve(A.left, B, C);
+        }
+
+        // Right subtree contains larger values.
+        if (A.val &lt; C) {
+            count += solve(A.right, B, C);
+        }
+
+        return count;
+    }
+}</code></pre>
+                    </div>
+                    <p class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Important:</strong> Use <code>&lt; B</code> and <code>&gt; C</code>, not
+                        <code>&lt;= B</code> or <code>&gt;= C</code>, because the range is inclusive.
+                    </p>
+                </section>
+
+                <section id="dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider the first example, with range <code>[12, 20]</code>:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-base text-slate-200"><code>        15
+       /  \
+     12    20
+    / \    / \
+   10 14  16 27
+  /
+ 8</code></pre>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Current node</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Condition</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Action</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Count contributed</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                                <tr><td class="p-3">15</td><td class="p-3">Within range</td><td class="p-3">Count and explore both sides</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">12</td><td class="p-3">Within range</td><td class="p-3">Count and explore both sides</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">10</td><td class="p-3">Less than 12</td><td class="p-3">Skip left subtree; go right</td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">14</td><td class="p-3">Within range</td><td class="p-3">Count and explore both sides</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">8</td><td class="p-3">Less than 12</td><td class="p-3">Skip left subtree; go right</td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">20</td><td class="p-3">Within range</td><td class="p-3">Count and explore both sides</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">16</td><td class="p-3">Within range</td><td class="p-3">Count and explore both sides</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">27</td><td class="p-3">Greater than 20</td><td class="p-3">Skip right subtree; go left</td><td class="p-3">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        The valid nodes are <code>12, 14, 15, 16, 20</code>. Final output: <strong class="text-indigo-200">5</strong>.
+                    </p>
+                    <p class="mt-3 text-slate-300">
+                        When the algorithm encounters <code>10</code>, it skips the left subtree containing <code>8</code>.
+                        Similarly, when it encounters <code>27</code>, it skips its right subtree. Neither subtree can contain a value in the range.
+                    </p>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4">Let \(N\) be the total number of nodes, \(H\) the height of the BST, and \(K\) the number of nodes visited by the optimized algorithm.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Approach</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Time complexity</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Auxiliary space</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Brute force</th><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(H)\)</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Optimized pruning</th><td class="p-3">\(O(K)\), worst case \(O(N)\)</td><td class="p-3">\(O(H)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">
+                        The optimized approach is often faster because it skips irrelevant subtrees. However, its worst-case time complexity
+                        is still \(O(N)\), for example when the range includes every node.
+                    </p>
+                    <p class="mt-3 text-slate-300">
+                        For a balanced BST, the height is \(O(\log N)\). The recursive stack uses \(O(H)\) space, so it is \(O(\log N)\)
+                        for a balanced tree and \(O(N)\) for a highly skewed tree.
+                    </p>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Important Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] border-collapse text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Case</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Example</th>
+                                    <th scope="col" class="border-b border-slate-700 p-3 font-semibold">Expected result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-900/50 text-slate-300">
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Single node inside range</th><td class="p-3">Node <code>5</code>, range <code>[5, 5]</code></td><td class="p-3">1</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Single node outside range</th><td class="p-3">Node <code>5</code>, range <code>[6, 8]</code></td><td class="p-3">0</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">All nodes inside range</th><td class="p-3">Range covers all tree values</td><td class="p-3">\(N\)</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">All nodes smaller than range</th><td class="p-3">Tree values below <code>B</code></td><td class="p-3">0</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">All nodes greater than range</th><td class="p-3">Tree values above <code>C</code></td><td class="p-3">0</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Boundary values</th><td class="p-3">Node equals <code>B</code> or <code>C</code></td><td class="p-3">Count it</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Minimum valid range</th><td class="p-3"><code>B = C = 0</code></td><td class="p-3">Count nodes equal to 0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        The constraints permit up to 100,000 nodes. A highly skewed tree can also produce 100,000 recursive calls, which may
+                        risk a Java <code>StackOverflowError</code>. The recursive solution is standard and concise, but an iterative traversal
+                        using an explicit stack is worth considering if extreme tree height must be handled safely.
+                    </p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5 text-slate-300">These problems reinforce BST traversal, range queries, and pruning.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">1. Range Sum of BST</h3>
+                            <p class="mt-1 text-sm text-indigo-200">LeetCode 938 · Easy</p>
+                            <p class="mt-3 text-slate-300">Find the sum of values in a range instead of counting nodes. Uses almost exactly the same pruning logic.</p>
+                            <a class="mt-3 inline-block font-medium" href="https://leetcode.com/problems/range-sum-of-bst/">Solve on LeetCode <span aria-hidden="true">→</span></a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">2. Kth Smallest Element in a BST</h3>
+                            <p class="mt-1 text-sm text-indigo-200">LeetCode 230 · Medium</p>
+                            <p class="mt-3 text-slate-300">Practice BST traversal and using the ordering property to find a particular value.</p>
+                            <a class="mt-3 inline-block font-medium" href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/">Solve on LeetCode <span aria-hidden="true">→</span></a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">3. Search in a Binary Search Tree</h3>
+                            <p class="mt-1 text-sm text-indigo-200">LeetCode 700 · Easy</p>
+                            <p class="mt-3 text-slate-300">Practice choosing just one subtree based on the current node's value.</p>
+                            <a class="mt-3 inline-block font-medium" href="https://leetcode.com/problems/search-in-a-binary-search-tree/">Solve on LeetCode <span aria-hidden="true">→</span></a>
+                        </article>
+                        <article class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">4. Lowest Common Ancestor of a Binary Search Tree</h3>
+                            <p class="mt-1 text-sm text-indigo-200">LeetCode 235 · Medium</p>
+                            <p class="mt-3 text-slate-300">Learn how the BST ordering property helps eliminate unnecessary searches.</p>
+                            <a class="mt-3 inline-block font-medium" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/">Solve on LeetCode <span aria-hidden="true">→</span></a>
+                        </article>
+                    </div>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-5 text-slate-300">
+                        BST pruning: If the current node is smaller than the lower boundary, go right. If it is greater than the upper boundary,
+                        go left. Otherwise, count it and explore both sides.
+                    </p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Excluding the boundary values by using the wrong comparison operators.</li>
+                        <li>Traversing both subtrees even when one can be eliminated.</li>
+                        <li>Forgetting the <code>null</code> base case.</li>
+                        <li>Claiming the optimized solution always runs in \(O(\log N)\). That is not guaranteed for an arbitrary BST.</li>
+                    </ul>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q1. Why can we skip the left subtree when <code>A.val &lt; B</code>?</h4>
+                            <p class="mt-2 text-slate-300">Every value in the left subtree is less than <code>A.val</code>, so all those values are also less than <code>B</code>.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q2. What if the range includes all nodes?</h4>
+                            <p class="mt-2 text-slate-300">The algorithm may visit every node, so the worst-case time complexity remains \(O(N)\).</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q3. Can we solve this iteratively?</h4>
+                            <p class="mt-2 text-slate-300">Yes. Use a stack to traverse the tree, pushing only the subtrees that could contain valid values. This avoids relying on the Java call stack.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q4. Is this approach applicable to a normal binary tree?</h4>
+                            <p class="mt-2 text-slate-300">Not directly. The pruning logic depends on the BST ordering property. Without that property, we generally need to examine every node.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4 text-slate-300">
+                        For an interview, implement the optimized recursive solution because it is concise, easy to explain, and uses the BST property to avoid unnecessary traversal.
+                    </p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N)\) worst case, often better due to pruning.</li>
+                        <li>Auxiliary space: \(O(H)\) for the recursive call stack.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Memory trick:</strong>
+                        Too small → go right. Too large → go left. Inside range → count and explore both sides.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
