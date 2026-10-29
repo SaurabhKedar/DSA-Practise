@@ -45,6 +45,39 @@ public class EqualTreePartition {
                 getTreeSum(node.right);
     }
     static void main() {
+        // Example 1: Equal partition exists.
+        // Tree:
+        //       5
+        //      / \
+        //     10  10
+        //         / \
+        //        2   3
+        //
+        // Total sum = 30
+        // Right subtree sum = 15? No.
+        // Use a tree with an equal-sum subtree instead.
 
+        TreeNode root1 = new TreeNode(5);
+        root1.left = new TreeNode(10);
+        root1.right = new TreeNode(10);
+        root1.right.left = new TreeNode(2);
+        root1.right.right = new TreeNode(3);
+
+        System.out.println("Example 1: " + solve(root1));
+
+
+        // Example 2: Equal partition does not exist.
+        // Tree:
+        //       1
+        //      / \
+        //     2   4
+        //
+        // Total sum = 7 (odd), so equal partition is impossible.
+
+        TreeNode root2 = new TreeNode(1);
+        root2.left = new TreeNode(2);
+        root2.right = new TreeNode(4);
+
+        System.out.println("Example 2: " + solve(root2));
     }
 }

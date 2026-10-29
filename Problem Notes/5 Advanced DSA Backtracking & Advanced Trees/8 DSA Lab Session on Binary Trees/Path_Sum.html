@@ -181,8 +181,54 @@ public class Solution {
         </p>
       </section>
 
+      <section id="recursive-solution">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Optimized Recursive Solution — Carry the Remaining Sum</h2>
+        <p class="mb-4">
+          Instead of storing each path and summing it again at a leaf, pass the remaining target down the tree. Subtract each
+          visited node's value and return <code>1</code> only when a leaf uses the entire target.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+
+    public int hasPathSum(TreeNode A, int B) {
+        return hasPathSum(A, (long) B);
+    }
+
+    private int hasPathSum(TreeNode node, long remaining) {
+        if (node == null) {
+            return 0;
+        }
+
+        // Subtract this node before checking whether the path ends here.
+        remaining -= node.val;
+
+        // A matching sum counts only when this node is a leaf.
+        if (node.left == null &amp;&amp; node.right == null) {
+            return remaining == 0 ? 1 : 0;
+        }
+
+        // Stop as soon as either subtree contains a matching path.
+        if (hasPathSum(node.left, remaining) == 1
+                || hasPathSum(node.right, remaining) == 1) {
+            return 1;
+        }
+
+        return 0;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity and trade-off</h3>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\) worst case, because each node is visited at most once.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H)\) for the recursive call stack, where \(H\) is the tree height.</li>
+        </ul>
+        <p class="text-slate-300">
+          This is an optimized solution, not brute force: it avoids explicitly storing paths and repeatedly summing them.
+          However, a highly skewed tree can have \(H = N\), which may cause a <code>StackOverflowError</code> in Java.
+          Use the iterative DFS below when avoiding recursion-depth limits is important.
+        </p>
+      </section>
+
       <section id="optimized-approach">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Optimized Approach — Iterative DFS</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Optimized Approach — Iterative DFS</h2>
         <p class="mb-4">Instead of storing paths and repeatedly adding their values, carry the remaining sum as you traverse the tree.</p>
         <p class="mb-3 text-slate-300">For example, if the target is <code class="text-indigo-300">22</code> and the path is <code>5 → 4 → 11 → 2</code>:</p>
         <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
@@ -269,7 +315,7 @@ public class Solution {
       </section>
 
       <section id="dry-run">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Dry Run of the Optimized Solution</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Dry Run of the Optimized Solution</h2>
         <p class="mb-4">Consider the first example with <code class="text-indigo-300">B = 22</code>. We follow the path <code>5 → 4 → 11 → 2</code>.</p>
         <p class="mb-4 text-sm text-slate-400">
           Reference:
@@ -305,7 +351,7 @@ public class Solution {
       </section>
 
       <section id="complexity-analysis">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Complexity Analysis</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Complexity Analysis</h2>
         <div class="overflow-x-auto rounded-xl border border-slate-700">
           <table>
             <thead class="bg-slate-900/80">
@@ -324,6 +370,12 @@ public class Solution {
                 <td>Recalculates sums</td>
               </tr>
               <tr>
+                <td>Optimized: recursive DFS</td>
+                <td>\(O(N)\)</td>
+                <td>\(O(H)\)</td>
+                <td>May overflow the call stack on a deep tree</td>
+              </tr>
+              <tr>
                 <td>Optimized: iterative DFS</td>
                 <td>\(O(N)\)</td>
                 <td>\(O(N)\) worst case</td>
@@ -335,13 +387,13 @@ public class Solution {
         <p class="mb-3 mt-4 text-slate-300">Here, \(N\) is the number of nodes and \(H\) is the tree height.</p>
         <ul class="list-inside list-disc space-y-2 text-slate-300">
           <li><strong class="text-slate-100">Brute force:</strong> A path can contain \(H\) nodes, and summing paths at the leaves may require \(O(NH)\) time.</li>
-          <li><strong class="text-slate-100">Optimized:</strong> Each node is processed at most once, giving \(O(N)\) time.</li>
-          <li><strong class="text-slate-100">Space:</strong> The iterative stack can hold up to \(O(N)\) nodes in a highly branching tree. This extra memory avoids deep recursive calls.</li>
+          <li><strong class="text-slate-100">Recursive DFS:</strong> Each node is processed at most once, giving \(O(N)\) time, with \(O(H)\) call-stack space.</li>
+          <li><strong class="text-slate-100">Iterative DFS:</strong> Each node is processed at most once, giving \(O(N)\) time. Its explicit stack can hold up to \(O(N)\) entries, but it avoids deep recursive calls.</li>
         </ul>
       </section>
 
       <section id="edge-cases">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Edge Cases</h2>
         <div class="overflow-x-auto rounded-xl border border-slate-700">
           <table>
             <thead class="bg-slate-900/80">
@@ -364,7 +416,7 @@ public class Solution {
       </section>
 
       <section id="similar-problems">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Similar LeetCode Problems</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Similar LeetCode Problems</h2>
         <p class="mb-4 text-slate-300">These problems reinforce the same tree-traversal pattern.</p>
         <ol class="list-inside list-decimal space-y-3 text-slate-300">
           <li>
@@ -391,7 +443,7 @@ public class Solution {
       </section>
 
       <section id="interview-notes">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">10. Interview Preparation Notes</h2>
         <p class="mb-4 text-slate-300"><strong class="text-slate-100">Pattern to remember:</strong> Binary tree DFS with a running sum.</p>
         <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
         <ul class="mb-6 list-inside list-disc space-y-2 text-slate-300">
@@ -422,7 +474,7 @@ public class Solution {
       </section>
 
       <section id="final-recommendation">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">11. Final Recommendation</h2>
         <p class="mb-4 text-slate-300">
           For this problem's constraint of up to \(10^5\) nodes, use iterative DFS because it processes every node at most once
           and avoids recursion-depth issues.
