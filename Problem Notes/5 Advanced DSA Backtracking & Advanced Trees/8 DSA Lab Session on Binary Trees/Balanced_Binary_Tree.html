@@ -63,6 +63,7 @@
                     <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4 text-center text-lg">
                         \[\left|\text{height(left)}-\text{height(right)}\right|\leq 1\]
                     </div>
+                    <p class="mb-5">Throughout this guide, height means the number of edges on the longest path from a node to a leaf. Therefore, an empty subtree has height <code>-1</code> and a leaf has height <code>0</code>.</p>
                     <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
                         <li>If every node satisfies this condition, return <code>1</code>.</li>
                         <li>If even one node violates it, return <code>0</code>.</li>
@@ -80,7 +81,7 @@
                             <pre class="mb-3 overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>    1
    / \
   2   3</code></pre>
-                            <p class="text-slate-300">Root <code>1</code> has children <code>2</code> and <code>3</code>. Both subtrees have height <code>1</code>; their difference is <code>0</code>.</p>
+                            <p class="text-slate-300">Root <code>1</code> has two leaf children. Each subtree has height <code>0</code>; their difference is <code>0</code>.</p>
                             <p class="mt-2 font-semibold text-indigo-200">Output: <code>1</code></p>
                         </div>
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
@@ -90,8 +91,8 @@
   2
    \
     3</code></pre>
-                            <p class="text-slate-300">This left-skewed tree has a left-subtree height of <code>2</code> and right-subtree height of <code>0</code> at node <code>1</code>.</p>
-                            <p class="my-2 text-center">\[|2-0|=2>1\]</p>
+                            <p class="text-slate-300">This right-skewed tree has a left-subtree height of <code>-1</code> and right-subtree height of <code>1</code> at node <code>1</code>.</p>
+                            <p class="my-2 text-center">\[|1-(-1)|=2>1\]</p>
                             <p class="font-semibold text-indigo-200">Output: <code>0</code></p>
                         </div>
                     </div>
@@ -115,7 +116,7 @@
     // Calculates the height of a subtree.
     private int height(TreeNode root) {
         if (root == null) {
-            return 0;
+        return -1;
         }
 
         int leftHeight = height(root.left);
@@ -166,17 +167,17 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
-                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
-                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
-                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
-                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td></tr>
+                                <tr><td class="px-4 py-3">4</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">0</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">0</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">1</td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">0</td></tr>
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
                             </tbody>
                         </table>
                     </div>
                     <p class="mb-4">Every node has a height difference of at most <code>1</code>. Output: <code>1</code>.</p>
                     <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
                     <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
-                        <li>Time: \(O(n^2)\) in the worst case. A skewed tree repeatedly recalculates heights, resulting in approximately \(n+(n-1)+\cdots+1\) work.</li>
+                        <li>Time: \(O(n\log n)\) in the worst case for this early-exit implementation. A balanced tree recalculates subtree heights at each level, giving \(O(n)\) work per level across \(O(\log n)\) levels. An unbalanced node stops the recursive balance checks early.</li>
                         <li>Auxiliary space: \(O(h)\) for the recursive call stack, where \(h\) is the tree height.</li>
                     </ul>
                     <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
@@ -194,17 +195,18 @@
                     </p>
                     <p class="mb-3">We use a special return value:</p>
                     <ul class="mb-4 list-inside list-disc space-y-1 text-slate-300">
-                        <li>A non-negative integer represents the subtree's height.</li>
-                        <li><code>-1</code> means the subtree is unbalanced. A valid height cannot be negative, so this is a convenient signal.</li>
+                        <li>An integer greater than or equal to <code>-1</code> represents the subtree's height.</li>
+                        <li><code>-1</code> is the height of an empty subtree.</li>
+                        <li><code>-2</code> means the subtree is unbalanced; no valid subtree height is less than <code>-1</code>.</li>
                     </ul>
                     <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
                     <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
-                        <li>If the node is <code>null</code>, return height <code>0</code>.</li>
+                        <li>If the node is <code>null</code>, return height <code>-1</code>.</li>
                         <li>Recursively calculate the left subtree's height.</li>
-                        <li>If the left subtree returns <code>-1</code>, immediately return <code>-1</code>.</li>
+                        <li>If the left subtree returns the unbalanced sentinel <code>-2</code>, immediately return <code>-2</code>.</li>
                         <li>Calculate the right subtree's height.</li>
-                        <li>If the right subtree returns <code>-1</code>, immediately return <code>-1</code>.</li>
-                        <li>If the absolute difference between the two heights exceeds <code>1</code>, return <code>-1</code>.</li>
+                        <li>If the right subtree returns <code>-2</code>, immediately return <code>-2</code>.</li>
+                        <li>If the absolute difference between the two heights exceeds <code>1</code>, return <code>-2</code>.</li>
                         <li>Otherwise, return <code>1 + max(leftHeight, rightHeight)</code>.</li>
                         <li>In <code>isBalanced()</code>, convert the result into <code>1</code> or <code>0</code>.</li>
                     </ol>
@@ -212,33 +214,33 @@
                     <p class="mb-3 text-slate-300">This is the recommended interview solution for the given platform's signature.</p>
                     <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
 
-    // Returns the subtree height, or -1 if it is unbalanced.
+    // Returns the subtree height, or -2 if it is unbalanced.
     private int checkHeight(TreeNode root) {
 
-        // An empty subtree has height 0.
+        // An empty subtree has height -1, so a leaf has height 0.
         if (root == null) {
-            return 0;
+            return -1;
         }
 
         // First, check the left subtree.
         int leftHeight = checkHeight(root.left);
 
         // No need to continue if the left subtree is unbalanced.
-        if (leftHeight == -1) {
-            return -1;
+        if (leftHeight == -2) {
+            return -2;
         }
 
         // Next, check the right subtree.
         int rightHeight = checkHeight(root.right);
 
         // No need to continue if the right subtree is unbalanced.
-        if (rightHeight == -1) {
-            return -1;
+        if (rightHeight == -2) {
+            return -2;
         }
 
         // The current node is unbalanced if the height difference exceeds 1.
         if (Math.abs(leftHeight - rightHeight) &gt; 1) {
-            return -1;
+            return -2;
         }
 
         // Return the height of the current subtree.
@@ -247,10 +249,49 @@
 
     public int isBalanced(TreeNode A) {
 
-        // -1 means unbalanced; otherwise, the tree is balanced.
-        return checkHeight(A) == -1 ? 0 : 1;
+        // -2 means unbalanced; otherwise, the tree is balanced.
+        return checkHeight(A) == -2 ? 0 : 1;
     }
 }</code></pre>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Alternative optimized solution — shared flag</h3>
+                    <p class="mb-3 text-slate-300">
+                        This version tracks imbalance with a shared boolean instead of returning a sentinel height.
+                        Reset the flag at the start of every top-level call so results from a previous tree do not affect the next one.
+                    </p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    private static boolean balanced;
+
+    // Returns the edge-based height of this subtree; an empty subtree has height -1.
+    private static int height(TreeNode node) {
+        if (node == null) {
+            return -1;
+        }
+
+        // Visit both subtrees before checking this node (postorder traversal).
+        int leftHeight = height(node.left);
+        int rightHeight = height(node.right);
+
+        // Record an imbalance, but keep computing heights for the parent nodes.
+        if (Math.abs(leftHeight - rightHeight) &gt; 1) {
+            balanced = false;
+        }
+
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
+
+    public static int isBalanced(TreeNode root) {
+        // Reset shared state for each independent invocation.
+        balanced = true;
+        height(root);
+        return balanced ? 1 : 0;
+    }
+}</code></pre>
+                    <p class="mb-5 text-slate-300">
+                        This also runs in \(O(n)\) time and uses \(O(h)\) recursive stack space. Because it uses shared static state,
+                        it is not safe for concurrent calls; use the sentinel-returning version above in that case. Match the method's
+                        <code>static</code> modifier and visibility to the platform's required signature.
+                    </p>
                 </section>
 
                 <section id="optimized-dry-run">
@@ -273,18 +314,18 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
-                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Height = 1</td></tr>
-                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Height = 2</td></tr>
-                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">0</td><td class="px-4 py-3">Difference = 2, return <code>-1</code></td></tr>
+                                <tr><td class="px-4 py-3">3</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">Height = 0</td></tr>
+                                <tr><td class="px-4 py-3">2</td><td class="px-4 py-3">0</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">Height = 1</td></tr>
+                                <tr><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">Difference = 2, return <code>-2</code></td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <p class="mb-3">At node <code>1</code>, the difference is greater than <code>1</code>, so <code>checkHeight()</code> returns <code>-1</code>.</p>
+                    <p class="mb-3">At node <code>1</code>, the difference is greater than <code>1</code>, so <code>checkHeight()</code> returns <code>-2</code>.</p>
                     <p class="mb-2">The final condition is:</p>
-                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>return checkHeight(A) == -1 ? 0 : 1;</code></pre>
-                    <p class="mb-4">Since the result is <code>-1</code>, the method returns <code>0</code>. Output: <code>0</code>.</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>return checkHeight(A) == -2 ? 0 : 1;</code></pre>
+                    <p class="mb-4">Since the result is <code>-2</code>, the method returns <code>0</code>. Output: <code>0</code>.</p>
                     <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
-                        <strong class="text-indigo-100">Why check <code>leftHeight == -1</code> and <code>rightHeight == -1</code>?</strong>
+                        <strong class="text-indigo-100">Why check <code>leftHeight == -2</code> and <code>rightHeight == -2</code>?</strong>
                         A parent cannot fix an imbalance in a deep subtree, so there is no need to continue calculating heights. This early return avoids unnecessary work.
                     </div>
                 </section>
@@ -301,7 +342,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
-                                <tr><td class="px-4 py-3">Brute force</td><td class="px-4 py-3">\(O(n^2)\) worst case</td><td class="px-4 py-3">\(O(h)\)</td></tr>
+                                <tr><td class="px-4 py-3">Brute force with early exit</td><td class="px-4 py-3">\(O(n\log n)\) worst case</td><td class="px-4 py-3">\(O(h)\)</td></tr>
                                 <tr><td class="px-4 py-3">Optimized</td><td class="px-4 py-3">\(O(n)\)</td><td class="px-4 py-3">\(O(h)\)</td></tr>
                             </tbody>
                         </table>
@@ -326,9 +367,9 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700 bg-slate-900/60 text-slate-300">
-                                <tr><td class="px-4 py-3">One node</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Both subtrees have height <code>0</code>.</td></tr>
+                                <tr><td class="px-4 py-3">One node</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Both empty subtrees have height <code>-1</code>.</td></tr>
                                 <tr><td class="px-4 py-3">Root with two children</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Height difference is <code>0</code>.</td></tr>
-                                <tr><td class="px-4 py-3">Three-node left-skewed tree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Root's height difference is <code>2</code>.</td></tr>
+                                <tr><td class="px-4 py-3">Three-node left-skewed tree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Root's child-subtree heights are <code>1</code> and <code>-1</code>, a difference of <code>2</code>.</td></tr>
                                 <tr><td class="px-4 py-3">Balanced tree with several levels</td><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3">Every node satisfies the condition.</td></tr>
                                 <tr><td class="px-4 py-3">An unbalanced subtree deep in the tree</td><td class="px-4 py-3"><code>0</code></td><td class="px-4 py-3">Every subtree must be balanced.</td></tr>
                             </tbody>
@@ -357,8 +398,8 @@
                     <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
                     <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
                         <li>Checking only the root's height difference instead of checking every node.</li>
-                        <li>Recalculating heights repeatedly, leading to \(O(n^2)\) time.</li>
-                        <li>Forgetting to propagate the <code>-1</code> signal from an unbalanced subtree.</li>
+                        <li>Recalculating heights repeatedly, leading to \(O(n\log n)\) worst-case time with this implementation's early exit.</li>
+                        <li>Forgetting to propagate the <code>-2</code> signal from an unbalanced subtree.</li>
                         <li>Assuming that a tree with equal left and right subtree heights at the root must be balanced.</li>
                     </ul>
                     <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-ups</h3>
@@ -372,7 +413,7 @@
                             <p>Yes. Calculate the height and check balance together, processing each node once.</p>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-slate-100">Q3. Why return <code>-1</code> instead of a boolean?</h4>
+                            <h4 class="font-semibold text-slate-100">Q3. Why return <code>-2</code> instead of a boolean?</h4>
                             <p>The recursive function needs to communicate both the height and whether the subtree is unbalanced. The sentinel value lets it communicate both using a single integer return value.</p>
                         </div>
                         <div>
