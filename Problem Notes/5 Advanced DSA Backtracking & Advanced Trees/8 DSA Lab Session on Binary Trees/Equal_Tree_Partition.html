@@ -114,12 +114,12 @@
       </section>
 
       <section id="brute-force-approach">
-        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force and Recursive Alternative</h2>
         <p class="mb-4">Consider removing each edge one at a time and calculate the sum of the detached subtree.</p>
         <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
           <li>Calculate the total sum of the tree.</li>
           <li>For every non-root node, calculate the sum of its subtree.</li>
-          <li>Check whether <code class="text-indigo-300">subtreeSum == totalSum - subtreeSum</code>.</li>
+          <li>Check whether <code class="text-indigo-300">subtreeSum == totalSum / 2</code>.</li>
           <li>Return <code>1</code> if any edge gives equal sums; otherwise, return <code>0</code>.</li>
         </ol>
         <p class="mb-4 text-slate-300">
@@ -137,6 +137,118 @@
             </tbody>
           </table>
         </div>
+        <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Brute-force Java solution — repeated subtree sums</h3>
+        <p class="mb-4 text-slate-300">
+          This version recalculates the subtree sum for each non-root node. The platform provides the
+          <code>TreeNode</code> class.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    public int solve(TreeNode A) {
+        // An empty tree has no edge that can be removed.
+        if (A == null) {
+            return 0;
+        }
+
+        // Calculate the total once, then test every non-root subtree.
+        long totalSum = calculateSubtreeSum(A);
+        if (totalSum % 2 != 0) {
+            return 0;
+        }
+
+        return hasEqualPartition(A, A, totalSum) ? 1 : 0;
+    }
+
+    private boolean hasEqualPartition(TreeNode node, TreeNode root, long totalSum) {
+        if (node == null) {
+            return false;
+        }
+
+        // The root has no parent edge, so it cannot be detached.
+        if (node != root) {
+            long subtreeSum = calculateSubtreeSum(node);
+            if (subtreeSum == totalSum / 2) {
+                return true;
+            }
+        }
+
+        // Continue checking the remaining nodes in the tree.
+        return hasEqualPartition(node.left, root, totalSum)
+                || hasEqualPartition(node.right, root, totalSum);
+    }
+
+    private long calculateSubtreeSum(TreeNode node) {
+        if (node == null) {
+            return 0L;
+        }
+
+        // Recompute each candidate subtree's sum recursively.
+        return node.val
+                + calculateSubtreeSum(node.left)
+                + calculateSubtreeSum(node.right);
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-8 text-lg font-semibold text-slate-100">Recursive postorder alternative — linear time</h3>
+        <p class="mb-4 text-slate-300">
+          This is not a brute-force solution: it calculates the total in one traversal and all candidate subtree sums in a second,
+          so it runs in \(O(N)\) time. Compared with the iterative solution below, it uses recursion and can reach \(O(H)\) stack space.
+          The platform provides the <code>TreeNode</code> class.
+        </p>
+        <p class="mb-4 text-slate-300">
+          The original snippet's <code>totalSum / 2 == 1</code> check is not a valid odd-sum test. This version checks
+          <code>totalSum % 2 != 0</code>, uses <code>long</code> to prevent overflow, skips the root as a partition candidate,
+          and resets an instance-level result flag at the start of every call so previous results do not leak into later calls.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    private boolean foundHalf;
+
+    public int solve(TreeNode A) {
+        // Reset the instance field so repeated calls are independent.
+        foundHalf = false;
+
+        // An empty tree has no edge that can be removed.
+        if (A == null) {
+            return 0;
+        }
+
+        // Calculate the total sum before checking whether it can be split evenly.
+        long totalSum = calculateTotalSum(A);
+        if (totalSum % 2 != 0) {
+            return 0;
+        }
+
+        calculateSubtreeSumsAndFindHalf(A, A, totalSum);
+        return foundHalf ? 1 : 0;
+    }
+
+    private long calculateTotalSum(TreeNode node) {
+        if (node == null) {
+            return 0L;
+        }
+
+        return node.val
+                + calculateTotalSum(node.left)
+                + calculateTotalSum(node.right);
+    }
+
+    private long calculateSubtreeSumsAndFindHalf(
+            TreeNode node, TreeNode root, long totalSum) {
+        if (node == null) {
+            return 0L;
+        }
+
+        // Postorder: calculate both child sums before this node's subtree sum.
+        long leftSum = calculateSubtreeSumsAndFindHalf(node.left, root, totalSum);
+        long rightSum = calculateSubtreeSumsAndFindHalf(node.right, root, totalSum);
+        long currentSum = node.val + leftSum + rightSum;
+
+        // Only a non-root subtree corresponds to an edge that can be removed.
+        if (node != root && currentSum == totalSum / 2) {
+            foundHalf = true;
+        }
+
+        return currentSum;
+    }
+}</code></pre>
       </section>
 
       <section id="optimized-approach">
