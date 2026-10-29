@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Binary Tree From Inorder And Preorder — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Binary Tree From Inorder And Preorder</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    Reconstruct a binary tree from its preorder and inorder traversals.
+                    Preorder tells us the root of each subtree, while inorder divides that subtree into its left and right parts.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Pick the root from preorder, locate it in inorder, then build the left subtree before the right subtree.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-4">You are given two arrays:</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>A</code> — preorder traversal of a binary tree.</li>
+                        <li><code>B</code> — inorder traversal of the same binary tree.</li>
+                    </ul>
+                    <p class="mb-4">Reconstruct the original binary tree and return its root.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Understand the traversals</h3>
+                            <ul class="space-y-2 text-slate-300">
+                                <li><strong class="text-slate-100">Preorder:</strong> Root → Left → Right</li>
+                                <li><strong class="text-slate-100">Inorder:</strong> Left → Root → Right</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>A = [1, 2, 3]  // Preorder
+B = [2, 1, 3]  // Inorder</code></pre>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">How the traversals determine the tree</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>The first preorder element is <code>1</code>, so <code>1</code> is the root.</li>
+                        <li>Find <code>1</code> in inorder: <code>[2, 1, 3]</code>.</li>
+                        <li>Values to the left of <code>1</code> belong to its left subtree: <code>[2]</code>. Values to the right belong to its right subtree: <code>[3]</code>.</li>
+                        <li>Repeat the same process for each subtree.</li>
+                    </ol>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Inorder split</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>[2, 1, 3]
+    ↑
+   Root</code></pre>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Resulting tree</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-slate-300">Because duplicate values do not exist, the root's position in the inorder traversal uniquely identifies the left and right subtrees.</p>
+                </section>
+
+                <section id="brute-force">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">Repeatedly find the root in the inorder array and recursively build the corresponding subtrees.</p>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Take the first preorder element as the root.</li>
+                        <li>Search for that root in the inorder array.</li>
+                        <li>Split inorder into left and right portions.</li>
+                        <li>Use the corresponding preorder portions to recursively build both subtrees.</li>
+                        <li>Return the root.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public TreeNode buildTree(int[] A, int[] B) {
+        return build(A, 0, A.length - 1,
+                     B, 0, B.length - 1);
+    }
+
+    private TreeNode build(int[] preorder, int ps, int pe,
+                           int[] inorder, int is, int ie) {
+        // No elements means no subtree.
+        if (ps &gt; pe || is &gt; ie) {
+            return null;
+        }
+
+        // The first preorder element is the root.
+        int rootValue = preorder[ps];
+        TreeNode root = new TreeNode(rootValue);
+
+        // Find the root's position in inorder.
+        int index = is;
+        while (index &lt;= ie &amp;&amp; inorder[index] != rootValue) {
+            index++;
+        }
+
+        // Count the nodes in the left subtree.
+        int leftSize = index - is;
+
+        // Build the left subtree.
+        root.left = build(preorder, ps + 1, ps + leftSize,
+                          inorder, is, index - 1);
+
+        // Build the right subtree.
+        root.right = build(preorder, ps + leftSize + 1, pe,
+                           inorder, index + 1, ie);
+
+        return root;
+    }
+}</code></pre>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3">For <code>A = [1, 2, 3]</code> and <code>B = [2, 1, 3]</code>:</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Step</th><th scope="col" class="p-3">Root</th><th scope="col" class="p-3">Inorder split</th><th scope="col" class="p-3">Action</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">1</td><td class="p-3">1</td><td class="p-3"><code>[2]</code>, <code>1</code>, <code>[3]</code></td><td class="p-3">Create root <code>1</code></td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3">2</td><td class="p-3"><code>2</code></td><td class="p-3">Create left child <code>2</code></td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3">3</td><td class="p-3"><code>3</code></td><td class="p-3">Create right child <code>3</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-5 text-slate-300">The final tree has <code>1</code> as the root, <code>2</code> as its left child, and <code>3</code> as its right child.</p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time: \(O(N^2)\) in the worst case. Each recursive call may scan most of its inorder segment to find the root.</li>
+                        <li>Auxiliary space: \(O(N)\) for recursion in the worst case, excluding the tree and temporary arrays. This implementation uses index ranges rather than allocating new arrays.</li>
+                    </ul>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong>Limitation:</strong> For up to <code>10^5</code> nodes, repeatedly scanning inorder can be too slow, especially for a skewed tree.
+                    </div>
+                </section>
+
+                <section id="optimized-approach">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — HashMap + Recursion</h2>
+                    <p class="mb-4 text-indigo-200">Recommended approach for interviews.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Why do we need optimization?</h3>
+                    <p class="mb-4 text-slate-300">The brute-force approach searches for the root in the inorder array during every recursive call, which can take \(O(N^2)\) time. Store each inorder value's index in a <code>HashMap</code> to avoid repeated searching.</p>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+                    <p class="mb-3">For the same example:</p>
+                    <pre class="mb-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-slate-200"><code>Preorder = [1, 2, 3]
+Inorder  = [2, 1, 3]</code></pre>
+                    <p class="mb-3 text-slate-300">Create a map from each value to its inorder index:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-slate-200"><code>Value → Inorder index
+
+2 → 0
+1 → 1
+3 → 2</code></pre>
+                    <p class="mb-5 text-slate-300">This lets us find any root's inorder position in \(O(1)\) average time instead of searching the array. We also maintain <code>preIndex</code>, which points to the next root in preorder.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm: Step by step</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Store every inorder element and its index in a <code>HashMap</code>.</li>
+                        <li>Initialize <code>preIndex = 0</code>.</li>
+                        <li>Take <code>A[preIndex]</code> as the current root and increment <code>preIndex</code>.</li>
+                        <li>Look up the root's position in the inorder map.</li>
+                        <li>Recursively construct the left subtree using the inorder range before the root.</li>
+                        <li>Recursively construct the right subtree using the inorder range after the root.</li>
+                        <li>Return the root when the subtree is complete.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.HashMap;
+import java.util.Map;
+
+public class Solution {
+
+    private Map&lt;Integer, Integer&gt; inorderMap;
+    private int preIndex;
+
+    public TreeNode buildTree(int[] A, int[] B) {
+
+        // Store each inorder value and its index.
+        inorderMap = new HashMap&lt;&gt;();
+
+        for (int i = 0; i &lt; B.length; i++) {
+            inorderMap.put(B[i], i);
+        }
+
+        // Points to the next root in preorder.
+        preIndex = 0;
+
+        // Initially, the entire inorder range is available.
+        return build(A, 0, B.length - 1);
+    }
+
+    private TreeNode build(int[] preorder, int inStart, int inEnd) {
+
+        // No elements remain in this subtree.
+        if (inStart &gt; inEnd) {
+            return null;
+        }
+
+        // Preorder visits the root before its children.
+        int rootValue = preorder[preIndex];
+        preIndex++;
+        TreeNode root = new TreeNode(rootValue);
+
+        // Find the root position in O(1) average time.
+        int rootIndex = inorderMap.get(rootValue);
+
+        // Build the left subtree first.
+        root.left = build(preorder, inStart, rootIndex - 1);
+
+        // Then build the right subtree.
+        root.right = build(preorder, rootIndex + 1, inEnd);
+
+        return root;
+    }
+}</code></pre>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 text-slate-300">
+                        <strong class="text-slate-100">Why build the left subtree first?</strong>
+                        <p class="mt-2">Preorder follows Root → Left → Right. After consuming the root, the next preorder values belong to the left subtree before the right subtree, so the recursive calls must process the left subtree first.</p>
+                    </div>
+                </section>
+
+                <section id="optimized-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-3">Input:</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-slate-200"><code>A = [1, 2, 3]
+B = [2, 1, 3]</code></pre>
+                    <p class="mb-3 text-slate-300">The inorder map is <code>{2=0, 1=1, 3=2}</code>. Initially, <code>preIndex = 0</code>.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Call</th><th scope="col" class="p-3"><code>preorder[preIndex]</code></th><th scope="col" class="p-3">Inorder range</th><th scope="col" class="p-3">Action</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">1</td><td class="p-3">1</td><td class="p-3"><code>0 to 2</code></td><td class="p-3">Create root <code>1</code></td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3">2</td><td class="p-3"><code>0 to 0</code></td><td class="p-3">Create left child <code>2</code></td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3">—</td><td class="p-3"><code>0 to -1</code></td><td class="p-3">Return <code>null</code></td></tr>
+                                <tr><td class="p-3">4</td><td class="p-3">—</td><td class="p-3"><code>1 to 0</code></td><td class="p-3">Return <code>null</code></td></tr>
+                                <tr><td class="p-3">5</td><td class="p-3">3</td><td class="p-3"><code>2 to 2</code></td><td class="p-3">Create right child <code>3</code></td></tr>
+                                <tr><td class="p-3">6</td><td class="p-3">—</td><td class="p-3"><code>2 to 1</code></td><td class="p-3">Return <code>null</code></td></tr>
+                                <tr><td class="p-3">7</td><td class="p-3">—</td><td class="p-3"><code>3 to 2</code></td><td class="p-3">Return <code>null</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Important variable changes</h3>
+                    <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+                        <li>First call: <code>preIndex = 0</code>. Select <code>1</code>, then increment it to <code>1</code>. The map gives <code>rootIndex = 1</code>.</li>
+                        <li>Left subtree: Select <code>2</code>, then increment <code>preIndex</code> to <code>2</code>. Its inorder range contains only index <code>0</code>, so it is a leaf.</li>
+                        <li>Right subtree: Select <code>3</code>, then increment <code>preIndex</code> to <code>3</code>. Its inorder range contains only index <code>2</code>, so it is a leaf.</li>
+                        <li>Empty ranges return <code>null</code>.</li>
+                    </ul>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Final tree</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3</code></pre>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <p class="mb-4 text-slate-300">Let \(N\) be the number of nodes.</p>
+                    <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Operation</th><th scope="col" class="p-3">Brute force</th><th scope="col" class="p-3">Optimized</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Build inorder lookup</th><td class="p-3">Not needed</td><td class="p-3">\(O(N)\)</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Find each root</th><td class="p-3">Up to \(O(N)\) per call</td><td class="p-3">\(O(1)\) average</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Total time</th><td class="p-3">\(O(N^2)\) worst case</td><td class="p-3">\(O(N)\) average</td></tr>
+                                <tr><th scope="row" class="p-3 font-medium text-slate-100">Auxiliary space</th><td class="p-3">\(O(N)\)</td><td class="p-3">\(O(N)\)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Optimized complexity explained</h3>
+                    <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+                        <li>Time: \(O(N)\) average. Each node is created once, each <code>HashMap</code> lookup takes \(O(1)\) average time, and building the map takes \(O(N)\).</li>
+                        <li>Auxiliary space: \(O(N)\). The <code>HashMap</code> uses \(O(N)\), and the recursion stack uses up to \(O(N)\) in a skewed tree.</li>
+                        <li>Output space: The resulting tree contains \(N\) nodes and requires \(O(N)\) space.</li>
+                    </ul>
+                    <div class="rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-amber-100">
+                        <strong>Practical Java consideration:</strong> A highly skewed tree with <code>10^5</code> nodes can cause a <code>StackOverflowError</code> with recursive solutions. The algorithm is optimal in time, but an iterative construction can avoid deep recursion for that extreme case.
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Case</th><th scope="col" class="p-3">Expected behavior</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Single node: <code>A = [5]</code>, <code>B = [5]</code></td><td class="p-3">Return node <code>5</code></td></tr>
+                                <tr><td class="p-3">Left-skewed tree: <code>A = [3, 2, 1]</code>, <code>B = [1, 2, 3]</code></td><td class="p-3">Construct a chain of left children</td></tr>
+                                <tr><td class="p-3">Right-skewed tree: <code>A = [1, 2, 3]</code>, <code>B = [1, 2, 3]</code></td><td class="p-3">Construct a chain of right children</td></tr>
+                                <tr><td class="p-3">Negative or zero values</td><td class="p-3"><code>HashMap</code> supports them</td></tr>
+                                <tr><td class="p-3">Maximum <code>10^5</code> nodes</td><td class="p-3">The linear-time approach avoids repeated searching</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The problem guarantees valid traversals of the same tree and distinct values, so the solution does not need extra validation for inconsistent arrays or duplicate values.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+                    <p class="mb-5 text-slate-300">These problems reinforce tree construction and traversal patterns.</p>
+                    <ol class="space-y-4">
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">1. Construct Binary Tree from Preorder and Inorder Traversal</h3>
+                            <p class="mt-1 text-slate-300">LeetCode 105 · Medium</p>
+                            <p class="mt-2 text-slate-300">The same problem, using the standard LeetCode interface.</p>
+                            <a class="mt-2 inline-block" href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/">Practice on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">2. Construct Binary Tree from Inorder and Postorder Traversal</h3>
+                            <p class="mt-1 text-slate-300">LeetCode 106 · Medium</p>
+                            <p class="mt-2 text-slate-300">A similar construction, but postorder processes the root last. This changes how the traversal index is managed.</p>
+                            <a class="mt-2 inline-block" href="https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/">Practice on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">3. Construct Binary Tree from Preorder and Postorder Traversal</h3>
+                            <p class="mt-1 text-slate-300">LeetCode 889 · Medium</p>
+                            <p class="mt-2 text-slate-300">Builds a tree using two different traversals and introduces an important uniqueness limitation.</p>
+                            <a class="mt-2 inline-block" href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/">Practice on LeetCode</a>
+                        </li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="font-semibold text-slate-100">4. Construct Binary Search Tree from Preorder Traversal</h3>
+                            <p class="mt-1 text-slate-300">LeetCode 1008 · Medium</p>
+                            <p class="mt-2 text-slate-300">Constructs a BST from preorder alone by using BST ordering rules and subtree boundaries.</p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-3 text-slate-300">Preorder identifies the root; inorder identifies the left and right subtrees. The <code>HashMap</code> makes it efficient to locate each root's position in inorder.</p>
+
+                    <h3 class="mb-2 text-lg font-semibold text-slate-100">Common mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Building the right subtree before the left subtree while consuming preorder from left to right.</li>
+                        <li>Forgetting to increment <code>preIndex</code> after selecting a root.</li>
+                        <li>Using the wrong inorder ranges: left is <code>inStart</code> to <code>rootIndex - 1</code>, and right is <code>rootIndex + 1</code> to <code>inEnd</code>.</li>
+                        <li>Searching the entire inorder array on every recursive call instead of using a <code>HashMap</code>.</li>
+                    </ol>
+
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q1. Can we construct a unique tree from preorder alone?</h4>
+                            <p class="mt-2 text-slate-300">Not for a general binary tree. Preorder alone does not tell us which nodes belong to the left and right subtrees. Additional information or constraints are needed.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q2. Why do we need both traversals?</h4>
+                            <p class="mt-2 text-slate-300">Preorder tells us the root order, and inorder tells us the subtree boundaries. Together, with distinct values, they uniquely determine the tree.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q3. What if duplicate values exist?</h4>
+                            <p class="mt-2 text-slate-300">The <code>HashMap</code> approach cannot uniquely identify a root's position using the value alone. Additional information or different assumptions would be necessary.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="font-semibold text-slate-100">Q4. Can we solve this without a <code>HashMap</code>?</h4>
+                            <p class="mt-2 text-slate-300">Yes. Scanning inorder to locate each root takes \(O(N^2)\) time in the worst case. Alternatively, an iterative solution can use a stack to avoid deep recursion.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+                    <p class="mb-4 text-slate-300">For interviews, use the optimized HashMap + recursion approach.</p>
+                    <ul class="mb-5 list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time complexity: \(O(N)\) average.</li>
+                        <li>Auxiliary space: \(O(N)\).</li>
+                        <li>Pattern: Binary tree construction, recursion, and traversal indexing.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Remember this sequence:</strong>
+                        Pick root from preorder → find root in inorder → build left subtree → build right subtree.
+                    </div>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
