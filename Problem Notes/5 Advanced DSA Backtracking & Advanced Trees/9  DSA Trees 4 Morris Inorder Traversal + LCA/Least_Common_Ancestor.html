@@ -305,6 +305,58 @@ public class Solution {
           This approach assumes node values are unique, as is customary for this version of the problem. It also handles
           <code>B == C</code> by treating the matching node as both targets.
         </p>
+        <h3 class="mb-3 mt-8 text-lg font-semibold text-slate-100">Alternate approach: propagate an LCA candidate</h3>
+        <p class="mb-4 text-slate-300">
+          This is also an optimized recursive DFS, not brute force. The helper propagates a candidate and tracks whether
+          both targets were actually found, so it returns <code>-1</code> if either target is missing. It takes \(O(N)\)
+          time and \(O(H)\) auxiliary space, where \(H\) is the tree height.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public int lca(TreeNode A, int B, int C) {
+    SearchResult result = findLca(A, B, C);
+            return result.foundB &amp;&amp; result.foundC ? result.candidate.val : -1;
+}
+
+private static class SearchResult {
+            TreeNode candidate;
+    boolean foundB;
+    boolean foundC;
+
+            SearchResult(TreeNode candidate, boolean foundB, boolean foundC) {
+        this.candidate = candidate;
+        this.foundB = foundB;
+        this.foundC = foundC;
+    }
+}
+
+private static SearchResult findLca(TreeNode node, int B, int C) {
+    if (node == null) {
+        return new SearchResult(null, false, false);
+    }
+
+    SearchResult left = findLca(node.left, B, C);
+    SearchResult right = findLca(node.right, B, C);
+    boolean isB = node.val == B;
+    boolean isC = node.val == C;
+
+    TreeNode candidate;
+    if (isB || isC || (left.candidate != null &amp;&amp; right.candidate != null)) {
+        candidate = node;
+    } else if (left.candidate != null) {
+        candidate = left.candidate;
+    } else {
+        candidate = right.candidate;
+    }
+
+    return new SearchResult(
+        candidate,
+        isB || left.foundB || right.foundB,
+        isC || left.foundC || right.foundC
+    );
+}</code></pre>
+        <p class="mt-4 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Platform note:</strong> This version assumes node values are unique. Keep the entry-point method
+          signature and visibility exactly as required by the judge (typically <code>public int lca(...)</code>).
+        </p>
       </section>
 
       <section id="dry-run">
@@ -365,6 +417,7 @@ public class Solution {
             <tbody class="bg-slate-900/30 text-slate-300">
               <tr><td>Brute force</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>Find both paths and compare</td></tr>
               <tr><td>Optimized DFS</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>Find the LCA and verify both targets in one traversal</td></tr>
+              <tr><td>Alternate candidate DFS</td><td>\(O(N)\)</td><td>\(O(H)\)</td><td>Propagate a matching target upward and verify both targets</td></tr>
             </tbody>
           </table>
         </div>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Recover Binary Search Tree — Java Solution</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Search Trees · Morris Inorder Traversal</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Recover Binary Search Tree</h1>
+      <p class="mb-5 text-lg text-slate-300">Identify the two values swapped by mistake in a Binary Search Tree.</p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Recommended approach:</strong>
+        Morris inorder traversal detects the misplaced nodes in \(O(N)\) time and \(O(1)\) auxiliary space.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">We are given a Binary Search Tree in which exactly two nodes have been swapped by mistake. Identify the two incorrect values and return the values that should be swapped to restore the BST.</p>
+        <p class="mb-3 text-slate-300">A BST has this ordering property:</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>All values in a node's left subtree are smaller than the node's value.</li>
+          <li>All values in a node's right subtree are greater than the node's value.</li>
+        </ul>
+        <p class="mb-5 text-slate-300">Therefore, inorder traversal (Left → Root → Right) of a valid BST visits values in ascending order.</p>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Example 1: adjacent values</h3>
+            <p class="mb-2 text-slate-300">Incorrect inorder: <code>2 → 1 → 3</code></p>
+            <p class="text-slate-300">After swapping <code>2</code> and <code>1</code>: <code>1 → 2 → 3</code></p>
+          </div>
+          <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Example 2: non-adjacent values</h3>
+            <p class="mb-2 text-slate-300">Tree:</p>
+            <pre class="rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-200"><code>       3
+      / \
+     1   4
+        /
+       2</code></pre>
+            <p class="mt-3 text-slate-300">Inorder: <code>1 → 3 → 2 → 4</code>. The misplaced values are <code>3</code> and <code>2</code>.</p>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-amber-800/70 bg-amber-950/30 p-4 text-amber-100">
+          <h3 class="mb-2 font-semibold">Output-order note</h3>
+          <p>The supplied note says the pair should be returned in ascending order, but its InterviewBit examples and optimized code return values in inversion-detection order, such as <code>[3, 1]</code>. The implementations below follow those examples and code: return <code>[first, second]</code>. If a judge explicitly requires ascending order, return <code>[Math.min(first, second), Math.max(first, second)]</code> instead.</p>
+        </div>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Key observation: inorder inversions</h3>
+        <p class="mb-3 text-slate-300">Whenever two consecutive inorder values satisfy <code class="text-indigo-300">previous.val &gt; current.val</code>, they form an inversion and violate the sorted order.</p>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li>Adjacent swapped values create one inversion.</li>
+          <li>Non-adjacent swapped values create two inversions.</li>
+        </ul>
+      </section>
+
+      <section id="brute-force">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute Force: Inorder Traversal + ArrayList</h2>
+        <p class="mb-4 text-slate-300">Store the inorder values in an <code>ArrayList</code>. Because a valid BST's inorder sequence is sorted, scan the stored sequence for adjacent inversions to identify the two misplaced values.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Perform inorder traversal and store every node value in an <code>ArrayList</code>.</li>
+          <li>Scan neighboring values for positions where <code>arr[i] &gt; arr[i + 1]</code>.</li>
+          <li>On the first inversion, record the value at <code>i</code> as <code>first</code>.</li>
+          <li>For each inversion, update <code>second</code> to the value at <code>i + 1</code>.</li>
+          <li>Return <code>first</code> and <code>second</code> in inversion-detection order.</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java Code — Brute Force</h3>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.ArrayList;
+
+public class Solution {
+
+    private final ArrayList&lt;Integer&gt; inorder = new ArrayList&lt;&gt;();
+
+    // Visit nodes in Left, Root, Right order and save their values.
+    private void inorderTraversal(TreeNode root) {
+        if (root == null) {
+            return;
+        }
+
+        inorderTraversal(root.left);
+        inorder.add(root.val);
+        inorderTraversal(root.right);
+    }
+
+    public ArrayList&lt;Integer&gt; recoverTree(TreeNode root) {
+        inorder.clear();
+        inorderTraversal(root);
+
+        int first = -1;
+        int second = -1;
+
+        // The swapped values create one or two descending adjacent pairs.
+        for (int i = 0; i &lt; inorder.size() - 1; i++) {
+            if (inorder.get(i) &gt; inorder.get(i + 1)) {
+                if (first == -1) {
+                    first = inorder.get(i);
+                }
+                second = inorder.get(i + 1);
+            }
+        }
+
+        ArrayList&lt;Integer&gt; answer = new ArrayList&lt;&gt;();
+        // Match the supplied InterviewBit examples: preserve detection order.
+        answer.add(first);
+        answer.add(second);
+        return answer;
+    }
+}</code></pre>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+        <p class="mb-3 text-slate-300">For the tree below, inorder traversal is <code>1 → 3 → 2 → 4</code>.</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>       3
+      / \
+     1   4
+        /
+       2</code></pre>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>i</th><th>Current</th><th>Next</th><th>Violation?</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>0</td><td>1</td><td>3</td><td>No</td></tr>
+              <tr><td>1</td><td>3</td><td>2</td><td>Yes</td></tr>
+              <tr><td>2</td><td>2</td><td>4</td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-slate-300">The inversion identifies <code>first = 3</code> and <code>second = 2</code>; the returned pair is <code>[3, 2]</code>.</p>
+
+        <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Complexity</h3>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N)\) to traverse and scan the values.</li>
+          <li><strong class="text-slate-100">Space:</strong> \(O(N)\) for the stored values, plus up to \(O(H)\) recursive call-stack space for tree height \(H\).</li>
+        </ul>
+        <p class="mt-3 text-slate-300">This works, but it uses linear extra space. The optimized approach avoids both recursion and a traversal collection.</p>
+      </section>
+
+      <section id="morris-intuition">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach: Morris Inorder Traversal</h2>
+        <p class="mb-4 text-slate-300">Morris traversal performs inorder traversal without recursion, a stack, or an <code>ArrayList</code>. It temporarily threads the rightmost node in the current node's left subtree back to the current node, then removes that thread when it returns.</p>
+        <p class="mb-4 text-slate-300">A visual explanation is available in the supplied <a class="font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://medium.com/%40paponahasan/morris-traversal-a35ecc4782d5">Morris traversal article by Papon Ahasan</a>.</p>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>If the current node has no left child, process it and move right.</li>
+          <li>Otherwise, find the rightmost node in its left subtree (the inorder predecessor).</li>
+          <li>If that predecessor's right pointer is null, create a temporary link to the current node and move left.</li>
+          <li>If the predecessor's right pointer already points to the current node, remove the link, process the current node, and move right.</li>
+        </ol>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Detecting the swapped nodes</h3>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Variable</th><th>Purpose</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td><code>prev</code></td><td>Previous node in the inorder traversal.</td></tr>
+              <tr><td><code>first</code></td><td>Previous node at the first detected inversion.</td></tr>
+              <tr><td><code>second</code></td><td>Current node at the latest detected inversion.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 mt-4 text-slate-300">Whenever <code class="text-indigo-300">prev.val &gt; curr.val</code>, an inversion has been found:</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>if (first == null) {
+    first = prev;
+}
+second = curr;</code></pre>
+        <p class="text-slate-300">The first inversion gives the first misplaced node. Updating <code>second</code> on every inversion handles both cases: adjacent swaps have one inversion, while non-adjacent swaps have two and the current node in the second inversion is the other misplaced node.</p>
+      </section>
+
+      <section id="optimized-code">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Optimized Java Code — Morris Traversal</h2>
+        <p class="mb-4 text-slate-300">This implementation uses \(O(N)\) time and \(O(1)\) auxiliary traversal space. It returns the pair in the inversion-detection order used in the supplied InterviewBit examples.</p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.ArrayList;
+
+public class Solution {
+
+    private TreeNode first;
+    private TreeNode second;
+    private TreeNode prev;
+
+    public ArrayList&lt;Integer&gt; recoverTree(TreeNode root) {
+        // Reset state so this Solution instance can be reused safely.
+        first = null;
+        second = null;
+        prev = null;
+
+        TreeNode curr = root;
+
+        // Morris inorder traversal visits nodes without recursion or a stack.
+        while (curr != null) {
+            if (curr.left == null) {
+                // No left subtree: process this node, then move right.
+                detectInversion(curr);
+                curr = curr.right;
+            } else {
+                // Find the inorder predecessor in the left subtree.
+                TreeNode pred = curr.left;
+                while (pred.right != null &amp;&amp; pred.right != curr) {
+                    pred = pred.right;
+                }
+
+                if (pred.right == null) {
+                    // First visit: thread the predecessor back to curr.
+                    pred.right = curr;
+                    curr = curr.left;
+                } else {
+                    // Second visit: remove the thread and process curr.
+                    pred.right = null;
+                    detectInversion(curr);
+                    curr = curr.right;
+                }
+            }
+        }
+
+        ArrayList&lt;Integer&gt; answer = new ArrayList&lt;&gt;();
+        // The problem guarantees exactly two swapped nodes.
+        answer.add(first.val);
+        answer.add(second.val);
+        return answer;
+    }
+
+    // Compare each visited node with its inorder predecessor.
+    private void detectInversion(TreeNode curr) {
+        if (prev != null &amp;&amp; prev.val &gt; curr.val) {
+            if (first == null) {
+                first = prev;
+            }
+            second = curr;
+        }
+
+        prev = curr;
+    }
+}</code></pre>
+        <p class="mt-4 text-slate-300">Temporary threads are removed as the traversal returns from each left subtree, restoring the original tree structure.</p>
+      </section>
+
+      <section id="optimized-dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Dry Run of the Optimized Solution</h2>
+        <p class="mb-3 text-slate-300">Consider the supplied example:</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        2
+       / \
+      3   1</code></pre>
+        <p class="mb-4 text-slate-300">Its inorder sequence is <code>3 → 2 → 1</code>, so both adjacent pairs are inversions.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Previous</th><th>Current</th><th>Condition</th><th>Action</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>3</td><td>2</td><td><code>3 &gt; 2</code></td><td><code>first = 3</code>, <code>second = 2</code></td></tr>
+              <tr><td>2</td><td>1</td><td><code>2 &gt; 1</code></td><td>Update <code>second = 1</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-slate-300">At the end, <code>first = 3</code> and <code>second = 1</code>, so the result is <code>[3, 1]</code>.</p>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Non-adjacent swapped values</h3>
+        <p class="mb-3 text-slate-300">For inorder sequence <code>1 → 3 → 2 → 4</code>, the only inversion is <code>3 &gt; 2</code>. It identifies <code>first = 3</code> and <code>second = 2</code>, even though those nodes are not adjacent in the tree.</p>
+
+        <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Why remove each temporary thread?</h3>
+        <p class="text-slate-300">A link such as <code>pred.right = curr</code> gives traversal a way back after visiting the left subtree. On the return visit, <code>pred.right = null</code> removes the temporary link. Leaving it in place would change the tree's structure.</p>
+      </section>
+
+      <section id="complexity">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Complexity Analysis</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Approach</th><th>Time</th><th>Auxiliary space</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Inorder + ArrayList</td><td>\(O(N)\)</td><td>\(O(N)\) for values, plus recursive stack space</td></tr>
+              <tr><td>Morris traversal</td><td>\(O(N)\)</td><td>\(O(1)\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="mb-2 mt-5 text-lg font-semibold text-slate-100">Why is Morris traversal linear?</h3>
+        <p class="mb-4 text-slate-300">Each node is processed during inorder traversal. Predecessor searches follow right pointers, and each temporary thread is created and removed only a constant number of times per node over the full traversal, so the total work is \(O(N)\).</p>
+        <h3 class="mb-2 text-lg font-semibold text-slate-100">Why is auxiliary space constant?</h3>
+        <p class="text-slate-300">The traversal uses only a fixed set of node references, such as <code>curr</code>, <code>pred</code>, <code>prev</code>, <code>first</code>, and <code>second</code>. It does not use recursion, a stack, or a collection for traversal; temporary threads reuse existing tree pointers.</p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Case</th><th>Expected behavior</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Exactly two nodes are swapped</td><td>The problem guarantee lets the traversal identify both nodes.</td></tr>
+              <tr><td>Adjacent values are swapped in inorder</td><td>Detect one inversion.</td></tr>
+              <tr><td>Non-adjacent values are swapped</td><td>Detect two inversions and keep updating <code>second</code>.</td></tr>
+              <tr><td>The root is swapped</td><td>Identify it through inorder comparisons.</td></tr>
+              <tr><td>The leftmost or rightmost node is swapped</td><td>Identify it through predecessor/successor comparisons in the inorder sequence.</td></tr>
+              <tr><td>Up to 100,000 nodes</td><td>Morris traversal uses \(O(N)\) time and \(O(1)\) auxiliary space.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Similar Problems on LeetCode</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce BST inorder traversal and its properties.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Problem</th><th>Difficulty</th><th>Connection</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td><a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/recover-binary-search-tree/description/">99. Recover Binary Search Tree</a></td><td>Medium</td><td>The same problem; practice stack, recursion, and Morris solutions.</td></tr>
+              <tr><td><a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/binary-search-tree-iterator/">173. Binary Search Tree Iterator</a></td><td>Medium</td><td>Generates BST values in inorder sequence.</td></tr>
+              <tr><td><a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/kth-smallest-element-in-a-bst/">230. Kth Smallest Element in a BST</a></td><td>Medium</td><td>Uses inorder traversal to find sorted positions.</td></tr>
+              <tr><td><a class="text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/find-mode-in-binary-search-tree/">501. Find Mode in Binary Search Tree</a></td><td>Easy</td><td>Uses inorder traversal and previous-node comparisons.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concepts to remember</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Inorder traversal of a BST produces values in sorted order.</li>
+          <li>Two swapped nodes create one or two inversions.</li>
+          <li><code>prev.val &gt; curr.val</code> detects an inversion.</li>
+          <li>Morris traversal achieves \(O(1)\) auxiliary space.</li>
+          <li>Remove temporary threads to restore the original tree.</li>
+        </ol>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Using <code>&gt;=</code> instead of <code>&gt;</code> in the inversion check.</li>
+          <li>Updating <code>first</code> on every inversion instead of only the first one.</li>
+          <li>Failing to update <code>second</code> on later inversions.</li>
+          <li>Forgetting to remove a temporary Morris thread.</li>
+          <li>Using recursion or a stack when constant auxiliary space is required.</li>
+          <li>Ignoring the stated-versus-example output-order inconsistency.</li>
+        </ul>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+        <div class="space-y-4 text-slate-300">
+          <p><strong class="text-slate-100">Why does inorder traversal help identify swapped nodes?</strong><br>A valid BST produces an ascending inorder sequence. Swapping two nodes breaks that sorted order.</p>
+          <p><strong class="text-slate-100">How many inversions can occur?</strong><br>Adjacent swapped elements create one inversion; non-adjacent swapped elements create two.</p>
+          <p><strong class="text-slate-100">Why not use iterative inorder traversal with a stack?</strong><br>A stack requires \(O(H)\) auxiliary space, where \(H\) is the tree height. Morris traversal avoids it with temporary threads.</p>
+          <p><strong class="text-slate-100">Does Morris traversal permanently modify the tree?</strong><br>No. The traversal removes each temporary thread before finishing, restoring the original structure.</p>
+        </div>
+      </section>
+
+      <section id="recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">Use Morris inorder traversal when the problem requires constant extra space.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead class="bg-slate-900/80">
+              <tr><th>Requirement</th><th>Choice</th></tr>
+            </thead>
+            <tbody class="bg-slate-900/30 text-slate-300">
+              <tr><td>Time</td><td>\(O(N)\)</td></tr>
+              <tr><td>Auxiliary space</td><td>\(O(1)\)</td></tr>
+              <tr><td>Traversal</td><td>Morris inorder</td></tr>
+              <tr><td>Pattern</td><td>BST + inorder + inversion detection</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-5 rounded-xl border border-indigo-800 bg-indigo-950/60 p-5 text-indigo-100">
+          <h3 class="mb-2 font-semibold">Remember the intuition</h3>
+          <p class="mb-3">Think of the BST as a sorted array with exactly two elements swapped:</p>
+          <ul class="list-inside list-disc space-y-1">
+            <li>Find the first inversion and remember its previous node.</li>
+            <li>Update the second node whenever another inversion appears.</li>
+            <li>Finish traversal and return the two identified nodes in the required output order.</li>
+          </ul>
+        </div>
+        <p class="mt-5 text-slate-300">The key check is <code class="text-indigo-300">prev != null &amp;&amp; prev.val &gt; curr.val</code>. Understanding why this detects misplaced nodes is the core of the problem. Practise Morris traversal on a normal inorder traversal problem as well; it is a useful tree-interview technique.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
