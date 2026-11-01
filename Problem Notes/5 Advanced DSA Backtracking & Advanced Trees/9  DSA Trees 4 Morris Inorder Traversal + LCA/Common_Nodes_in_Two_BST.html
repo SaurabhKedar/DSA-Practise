@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Common Nodes in Two BSTs — Java Solutions</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Search Trees · Inorder Traversal</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Common Nodes in Two BSTs</h1>
+      <p class="mb-5 text-lg text-slate-300">
+        Find the values shared by two Binary Search Trees and return their sum modulo
+        \(10^9+7\). Compare a HashSet solution, a two-stack inorder solution, and a
+        constant-auxiliary-space Morris traversal.
+      </p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Pattern to remember:</strong>
+        Two BSTs → two sorted inorder traversals → compare values like two pointers.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">You are given two Binary Search Trees, A and B. Your task is to:</p>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Find all values that exist in both BSTs.</li>
+          <li>Calculate their sum.</li>
+          <li>Return the sum modulo \(10^9+7\).</li>
+          <li>If there are no common values, return <code class="text-indigo-300">0</code>.</li>
+        </ol>
+
+        <div class="mb-5 grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — BST A</h3>
+            <pre class="rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>       5
+      / \
+     2   8
+      \    \
+       3    15
+           /
+          9</code></pre>
+          </div>
+          <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+            <h3 class="mb-3 font-semibold text-slate-100">BST B</h3>
+            <pre class="rounded-lg bg-slate-950 p-4 text-center text-slate-200"><code>       7
+      / \
+     1   10
+      \    \
+       2    15
+           /
+          11</code></pre>
+          </div>
+        </div>
+        <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+          <h3 class="mb-2 font-semibold text-slate-100">Inorder values and result</h3>
+          <p class="mb-2 text-slate-300"><code>A = [2, 3, 5, 8, 9, 15]</code></p>
+          <p class="mb-2 text-slate-300"><code>B = [1, 2, 7, 10, 11, 15]</code></p>
+          <p class="mb-2 text-slate-300">Common values: <code class="text-indigo-200">2, 15</code></p>
+          <p class="text-slate-300">Answer: \((2+15)\bmod(10^9+7)=17\)</p>
+        </div>
+        <p class="rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Important observation:</strong> Inorder traversal of a BST produces values in sorted ascending order.
+          We can therefore treat the two trees as sorted sequences and find their common values.
+        </p>
+      </section>
+
+      <section id="hashset-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Approach 1 — Brute Force Using a HashSet</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4">
+          Store all values from the first BST in a HashSet. Then traverse the second BST,
+          checking whether each value is present. Add matching values to the sum.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Traverse BST A and insert every node value into a HashSet.</li>
+          <li>Traverse BST B.</li>
+          <li>For every node, check whether its value is in the HashSet.</li>
+          <li>If it exists, add the value to the sum.</li>
+          <li>Return the sum modulo \(10^9+7\).</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.HashSet;
+import java.util.Set;
+
+public class Solution {
+    private static final long MOD = 1000000007L;
+
+    // Store all values from BST A so BST B can be checked efficiently.
+    private void store(TreeNode root, Set&lt;Integer&gt; values) {
+        if (root == null) {
+            return;
+        }
+
+        values.add(root.val);
+        store(root.left, values);
+        store(root.right, values);
+    }
+
+    // Sum values in BST B that also appear in BST A.
+    private long findCommon(TreeNode root, Set&lt;Integer&gt; values) {
+        if (root == null) {
+            return 0;
+        }
+
+        long sum = values.contains(root.val) ? root.val : 0;
+        sum += findCommon(root.left, values);
+        sum += findCommon(root.right, values);
+
+        return sum % MOD;
+    }
+
+    public int solve(TreeNode A, TreeNode B) {
+        Set&lt;Integer&gt; values = new HashSet&lt;&gt;();
+        store(A, values);
+
+        return (int) findCommon(B, values);
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> Expected \(O(N+M)\). Inserting N values and checking M values each take expected constant time per operation.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(N+H_2)\). The HashSet stores N values, and recursion uses \(O(H_2)\) stack space while traversing BST B.</li>
+        </ul>
+        <p class="mt-4 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Limitation:</strong> This approach stores all values of BST A. We can reduce memory usage by using the sorted property of BST inorder traversals.
+        </p>
+      </section>
+
+      <section id="two-stack-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Approach 2 — Two-Stack Inorder Traversal</h2>
+        <p class="mb-4 rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Recommended practical approach:</strong> It uses the sorted order of inorder traversal and is usually easier to explain and maintain than Morris traversal.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4">
+          Inorder traversal gives sorted values. For example, BST A produces
+          <code>[2, 3, 5, 8, 9, 15]</code> and BST B produces
+          <code>[1, 2, 7, 10, 11, 15]</code>. This is like finding common elements in two sorted arrays.
+          Two stacks generate the values one at a time without building arrays.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Comparison conditions</h3>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[34rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr><th scope="col">Comparison</th><th scope="col">Action</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>A value equals B value</td><td>Common value; add it and advance both traversals.</td></tr>
+              <tr><td>A value is smaller</td><td>Advance A.</td></tr>
+              <tr><td>B value is smaller</td><td>Advance B.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 text-slate-300">
+          Why advance only the smaller value? Suppose the current values are A = 3 and B = 7.
+          Since both sequences are sorted, future values in B cannot be smaller than 7.
+          Therefore, A's current value 3 cannot match B's current or future values, so we can safely move forward in A.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Algorithm</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>Create two stacks.</li>
+          <li>Push the leftmost path of both BSTs.</li>
+          <li>Compare the top elements.</li>
+          <li>If equal, add the value and advance both traversals.</li>
+          <li>If A's value is smaller, advance A; otherwise, advance B.</li>
+          <li>Stop when either stack becomes empty.</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.Stack;
+
+public class Solution {
+    public int solve(TreeNode A, TreeNode B) {
+        final long MOD = 1000000007L;
+        Stack&lt;TreeNode&gt; stackA = new Stack&lt;&gt;();
+        Stack&lt;TreeNode&gt; stackB = new Stack&lt;&gt;();
+        TreeNode currA = A;
+        TreeNode currB = B;
+        long sum = 0;
+
+        while (true) {
+            // Push the next leftmost path from BST A.
+            while (currA != null) {
+                stackA.push(currA);
+                currA = currA.left;
+            }
+
+            // Push the next leftmost path from BST B.
+            while (currB != null) {
+                stackB.push(currB);
+                currB = currB.left;
+            }
+
+            // An empty stack means that tree's inorder traversal is complete.
+            if (stackA.isEmpty() || stackB.isEmpty()) {
+                break;
+            }
+
+            TreeNode nodeA = stackA.peek();
+            TreeNode nodeB = stackB.peek();
+
+            if (nodeA.val == nodeB.val) {
+                // Add the common value and advance both inorder traversals.
+                sum = (sum + nodeA.val) % MOD;
+                stackA.pop();
+                stackB.pop();
+                currA = nodeA.right;
+                currB = nodeB.right;
+            } else if (nodeA.val &lt; nodeB.val) {
+                // A's smaller value cannot match B's current or later values.
+                stackA.pop();
+                currA = nodeA.right;
+            } else {
+                // B's smaller value cannot match A's current or later values.
+                stackB.pop();
+                currB = nodeB.right;
+            }
+        }
+
+        return (int) sum;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li><strong class="text-slate-100">Time:</strong> \(O(N+M)\). Each node is pushed and popped once.</li>
+          <li><strong class="text-slate-100">Auxiliary space:</strong> \(O(H_1+H_2)\) for the two traversal stacks.</li>
+          <li>For balanced BSTs this is approximately \(O(\log N+\log M)\); for skewed BSTs it can become \(O(N+M)\).</li>
+        </ul>
+      </section>
+
+      <section id="morris-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Approach 3 — Morris Inorder Traversal</h2>
+        <p class="mb-4 rounded-lg border border-indigo-800/70 bg-indigo-950/40 p-4 text-indigo-100">
+          <strong>Advanced optimization:</strong> This approach compares inorder values without recursion or explicit stacks, using \(O(1)\) auxiliary space.
+        </p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">How Morris traversal works</h3>
+        <p class="mb-4">
+          Normally, inorder traversal uses recursion or a stack to remember where to return after exploring a left subtree.
+          Morris traversal temporarily uses an existing right pointer to create a link, called a thread, back to the current node.
+          The thread is removed when traversal returns through it.
+        </p>
+        <p class="mb-3 text-slate-300">For this BST:</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>       5
+      / \
+     3   8
+    / \
+   2   4</code></pre>
+        <p class="mb-4 text-slate-300">The inorder sequence is <code class="text-indigo-200">2 → 3 → 4 → 5 → 8</code>.</p>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Two cases</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-3 text-slate-300">
+          <li>
+            <strong class="text-slate-100">The current node has no left child:</strong>
+            visit it and move to its right child.
+            <pre class="mt-2 rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (curr.left == null) {
+    // Visit this node, then continue to its right child.
+    curr = curr.right;
+}</code></pre>
+          </li>
+          <li>
+            <strong class="text-slate-100">The current node has a left child:</strong>
+            find the rightmost node in the left subtree, called the inorder predecessor.
+            If its right pointer is null, point it temporarily to the current node and move left.
+            When traversal returns to the predecessor, remove the thread, visit the current node, and move right.
+          </li>
+        </ol>
+        <p class="mb-4 text-slate-300">For example, before the left subtree of 5 has been processed:</p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>       5
+      /
+     3
+      \
+       4
+        \
+         5  &lt;-- temporary thread</code></pre>
+        <p class="mb-5 text-slate-300">After processing the left subtree, the thread is removed and 5 is visited.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Approach 1: Morris inorder using an iterator</h3>
+        <p class="mb-4">
+          To traverse two BSTs simultaneously, create one Morris iterator per tree.
+          Each call to <code>next()</code> returns exactly one node in inorder sequence.
+          The two returned values can then be compared like in the two-stack approach.
+        </p>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>class MorrisIterator {
+    TreeNode curr;
+
+    MorrisIterator(TreeNode root) {
+        curr = root;
+    }
+
+    // Return the next node in inorder, creating and removing threads as needed.
+    TreeNode next() {
+        while (curr != null) {
+            if (curr.left == null) {
+                // No left subtree remains; return this node and move right.
+                TreeNode node = curr;
+                curr = curr.right;
+                return node;
+            }
+
+            // Find the inorder predecessor in the left subtree.
+            TreeNode pred = curr.left;
+            while (pred.right != null &amp;&amp; pred.right != curr) {
+                pred = pred.right;
+            }
+
+            if (pred.right == null) {
+                // First visit: thread the predecessor back to the current node.
+                pred.right = curr;
+                curr = curr.left;
+            } else {
+                // Second visit: remove the thread, then return the current node.
+                pred.right = null;
+                TreeNode node = curr;
+                curr = curr.right;
+                return node;
+            }
+        }
+
+        return null;
+    }
+}</code></pre>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Complete Java code — iterator approach</h3>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    private static final long MOD = 1000000007L;
+
+    // Generate inorder nodes without recursion or an explicit stack.
+    private class MorrisIterator {
+        private TreeNode curr;
+
+        MorrisIterator(TreeNode root) {
+            curr = root;
+        }
+
+        // Return the next inorder node and remove threads as they are revisited.
+        TreeNode next() {
+            while (curr != null) {
+                if (curr.left == null) {
+                    // Visit a node with no left subtree.
+                    TreeNode node = curr;
+                    curr = curr.right;
+                    return node;
+                }
+
+                // Locate the rightmost node in the current left subtree.
+                TreeNode pred = curr.left;
+                while (pred.right != null &amp;&amp; pred.right != curr) {
+                    pred = pred.right;
+                }
+
+                if (pred.right == null) {
+                    // Create a temporary return path and process the left subtree.
+                    pred.right = curr;
+                    curr = curr.left;
+                } else {
+                    // Restore the original tree link before visiting this node.
+                    pred.right = null;
+                    TreeNode node = curr;
+                    curr = curr.right;
+                    return node;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public int solve(TreeNode A, TreeNode B) {
+        MorrisIterator itA = new MorrisIterator(A);
+        MorrisIterator itB = new MorrisIterator(B);
+        long sum = 0;
+
+        // Fetch the first inorder node from each tree.
+        TreeNode nodeA = itA.next();
+        TreeNode nodeB = itB.next();
+
+        while (nodeA != null &amp;&amp; nodeB != null) {
+            if (nodeA.val == nodeB.val) {
+                // The values match, so add once and advance both iterators.
+                sum = (sum + nodeA.val) % MOD;
+                nodeA = itA.next();
+                nodeB = itB.next();
+            } else if (nodeA.val &lt; nodeB.val) {
+                // Advance the iterator with the smaller value.
+                nodeA = itA.next();
+            } else {
+                // Advance the iterator with the smaller value.
+                nodeB = itB.next();
+            }
+        }
+
+        // Drain both iterators so all temporary threads are removed.
+        while (itA.next() != null) {
+            // Continue until BST A is fully restored.
+        }
+        while (itB.next() != null) {
+            // Continue until BST B is fully restored.
+        }
+
+        return (int) sum;
+    }
+}</code></pre>
+        <h3 class="mb-3 mt-8 text-lg font-semibold text-slate-100">Approach 2: Morris inorder without an iterator class</h3>
+        <p class="mb-4 text-slate-300">
+          This version has no separate iterator class or <code>next()</code> method. It keeps
+          <code>currA</code> and <code>currB</code> as fields on <code>Solution</code> and uses
+          <code>getNextA()</code> and <code>getNextB()</code> to return the next inorder node from each tree.
+          The fields are needed because a Java helper method cannot update a local pointer in its caller.
+        </p>
+        <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+    private static final long MOD = 1000000007L;
+
+    // Keep traversal state between calls to the helper methods.
+    private TreeNode currA;
+    private TreeNode currB;
+
+    // Return the next inorder node from BST A.
+    private TreeNode getNextA() {
+        while (currA != null) {
+            if (currA.left == null) {
+                // Visit a node with no left subtree.
+                TreeNode node = currA;
+                currA = currA.right;
+                return node;
+            }
+
+            // Find the inorder predecessor in A's left subtree.
+            TreeNode pred = currA.left;
+            while (pred.right != null &amp;&amp; pred.right != currA) {
+                pred = pred.right;
+            }
+
+            if (pred.right == null) {
+                // First visit: create a temporary return path.
+                pred.right = currA;
+                currA = currA.left;
+            } else {
+                // Second visit: remove the thread and return the current node.
+                pred.right = null;
+                TreeNode node = currA;
+                currA = currA.right;
+                return node;
+            }
+        }
+
+        return null;
+    }
+
+    // Return the next inorder node from BST B.
+    private TreeNode getNextB() {
+        while (currB != null) {
+            if (currB.left == null) {
+                // Visit a node with no left subtree.
+                TreeNode node = currB;
+                currB = currB.right;
+                return node;
+            }
+
+            // Find the inorder predecessor in B's left subtree.
+            TreeNode pred = currB.left;
+            while (pred.right != null &amp;&amp; pred.right != currB) {
+                pred = pred.right;
+            }
+
+            if (pred.right == null) {
+                // First visit: create a temporary return path.
+                pred.right = currB;
+                currB = currB.left;
+            } else {
+                // Second visit: remove the thread and return the current node.
+                pred.right = null;
+                TreeNode node = currB;
+                currB = currB.right;
+                return node;
+            }
+        }
+
+        return null;
+    }
+
+    public int solve(TreeNode A, TreeNode B) {
+        currA = A;
+        currB = B;
+        long sum = 0;
+
+        // Get the first inorder node from each tree.
+        TreeNode nodeA = getNextA();
+        TreeNode nodeB = getNextB();
+
+        while (nodeA != null &amp;&amp; nodeB != null) {
+            if (nodeA.val == nodeB.val) {
+                // The values match, so add once and advance both traversals.
+                sum = (sum + nodeA.val) % MOD;
+                nodeA = getNextA();
+                nodeB = getNextB();
+            } else if (nodeA.val &lt; nodeB.val) {
+                // Advance A, whose smaller value cannot match B's current value.
+                nodeA = getNextA();
+            } else {
+                // Advance B, whose smaller value cannot match A's current value.
+                nodeB = getNextB();
+            }
+        }
+
+        // Finish both traversals so no temporary threads remain.
+        while (getNextA() != null) {
+            // Continue until BST A is restored.
+        }
+        while (getNextB() != null) {
+            // Continue until BST B is restored.
+        }
+
+        return (int) sum;
+    }
+}</code></pre>
+        <div class="mt-5 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <h3 class="mb-2 font-semibold text-amber-50">Why drain both iterators?</h3>
+          <p>
+            If one traversal finishes before the other, the comparison loop stops early.
+            The other traversal may still have temporary threads in its tree.
+            Finish both traversals before returning so both original tree structures are restored.
+            This cleanup is essential because the comparison can stop before either traversal is complete.
+          </p>
+        </div>
+      </section>
+
+      <section id="dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Dry Run — Morris Approach</h2>
+        <p class="mb-4 text-slate-300">
+          For either Morris implementation, the inorder traversals generate A =
+          <code>[2, 3, 5, 8, 9, 15]</code> and B = <code>[1, 2, 7, 10, 11, 15]</code>.
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[42rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr>
+                <th scope="col">Step</th><th scope="col">Iterator A</th><th scope="col">Iterator B</th>
+                <th scope="col">Action</th><th scope="col">Sum</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>1</td><td>2</td><td>1</td><td>Advance B</td><td>0</td></tr>
+              <tr><td>2</td><td>2</td><td>2</td><td>Common; advance both</td><td>2</td></tr>
+              <tr><td>3</td><td>3</td><td>7</td><td>Advance A</td><td>2</td></tr>
+              <tr><td>4</td><td>5</td><td>7</td><td>Advance A</td><td>2</td></tr>
+              <tr><td>5</td><td>8</td><td>7</td><td>Advance B</td><td>2</td></tr>
+              <tr><td>6</td><td>8</td><td>10</td><td>Advance A</td><td>2</td></tr>
+              <tr><td>7</td><td>9</td><td>10</td><td>Advance A</td><td>2</td></tr>
+              <tr><td>8</td><td>15</td><td>10</td><td>Advance B</td><td>2</td></tr>
+              <tr><td>9</td><td>15</td><td>11</td><td>Advance B</td><td>2</td></tr>
+              <tr><td>10</td><td>15</td><td>15</td><td>Common; advance both</td><td>17</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">
+          <strong class="text-slate-100">Final answer:</strong>
+          \[17\]
+        </p>
+        <p class="mt-3 text-slate-300">After the main loop, drain any remaining iterator to restore its temporary threads.</p>
+      </section>
+
+      <section id="complexity">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Complexity Analysis — All Approaches</h2>
+        <p class="mb-4 text-slate-300">Let N and M be the numbers of nodes in BST A and BST B. Let \(H_1\) and \(H_2\) be their respective heights.</p>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[38rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr><th scope="col">Approach</th><th scope="col">Time</th><th scope="col">Auxiliary space</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>HashSet</td><td>Expected \(O(N+M)\)</td><td>\(O(N+H_2)\)</td></tr>
+              <tr><td>Two stacks</td><td>\(O(N+M)\)</td><td>\(O(H_1+H_2)\)</td></tr>
+              <tr><td>Morris with iterator</td><td>\(O(N+M)\)</td><td>\(O(1)\)</td></tr>
+              <tr><td>Morris without iterator</td><td>\(O(N+M)\)</td><td>\(O(1)\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Why is Morris traversal \(O(1)\) space?</h3>
+        <p class="mb-3 text-slate-300">
+          Both Morris versions use existing left and right pointers to create temporary connections. They do not use
+          recursion, explicit stacks, arrays, or HashSets. Each version maintains two current pointers, a few temporary
+          node references, and a running sum, so its auxiliary space is constant.
+        </p>
+        <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Comparison</h3>
+        <ul class="list-inside list-disc space-y-2 text-slate-300">
+          <li>HashSet stores values.</li>
+          <li>Two stacks store traversal paths.</li>
+          <li>Both Morris approaches use temporary tree connections.</li>
+          <li>All approaches have linear time complexity. Morris is most space-efficient, but more complicated.</li>
+        </ul>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[38rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr><th scope="col">Case</th><th scope="col">Expected result or behavior</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>Both trees are identical</td><td>Sum all node values.</td></tr>
+              <tr><td>No common nodes</td><td>Return 0.</td></tr>
+              <tr><td>One common node</td><td>Return that node's value.</td></tr>
+              <tr><td>One tree has one node</td><td>Check whether its value exists in the other tree.</td></tr>
+              <tr><td>Left-skewed BST</td><td>All approaches work; Morris avoids traversal recursion.</td></tr>
+              <tr><td>Right-skewed BST</td><td>All approaches work.</td></tr>
+              <tr><td>Up to 100,000 nodes</td><td>Morris and stack approaches handle linear traversal.</td></tr>
+              <tr><td>Large sum</td><td>Use <code>long</code> and modulo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-amber-100">
+          <strong>Morris-specific consideration:</strong> Always restore temporary threads before returning.
+          Otherwise, the original BST structure may be corrupted.
+        </p>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Similar Problems on LeetCode</h2>
+        <p class="mb-4 text-slate-300">These problems reinforce BST traversal and two-pointer techniques.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[42rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr><th scope="col">Problem</th><th scope="col">Difficulty</th><th scope="col">Concept</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr>
+                <td><a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/all-elements-in-two-binary-search-trees/">1305. All Elements in Two Binary Search Trees</a></td>
+                <td>Medium</td><td>Inorder traversal of two BSTs</td>
+              </tr>
+              <tr>
+                <td><a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/two-sum-bsts/">1214. Two Sum BSTs</a></td>
+                <td>Medium</td><td>Two BST iterators and two pointers (Premium)</td>
+              </tr>
+              <tr>
+                <td><a class="text-indigo-300 underline decoration-indigo-500/60 hover:text-indigo-200" href="https://leetcode.com/problems/two-sum-iv-input-is-a-bst/">653. Two Sum IV — Input is a BST</a></td>
+                <td>Easy</td><td>BST traversal and two pointers</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">A suggested order is to solve 1305 first, followed by 1214.</p>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Important concepts to remember</h3>
+        <ol class="mb-6 list-inside list-decimal space-y-2 text-slate-300">
+          <li>BST inorder traversal produces sorted values.</li>
+          <li>Two sorted sequences can be compared using two pointers.</li>
+          <li>Iterative inorder traversal uses a stack.</li>
+          <li>Morris traversal uses temporary threads instead of a stack.</li>
+          <li>Morris traversal achieves \(O(1)\) auxiliary space.</li>
+        </ol>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common interview questions</h3>
+        <dl class="space-y-4 text-slate-300">
+          <div>
+            <dt class="font-semibold text-slate-100">Q1. What is the biggest advantage of Morris traversal?</dt>
+            <dd>It achieves \(O(1)\) auxiliary space without recursion or an explicit stack.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q2. Does Morris traversal modify the original tree?</dt>
+            <dd>Temporarily, yes. It creates threads by modifying right pointers and restores those pointers before completing traversal.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q3. Is Morris traversal always better than stack-based traversal?</dt>
+            <dd>No. It saves memory but is more complicated and temporarily modifies the tree. Stack-based traversal is generally easier to maintain and debug.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Q4. Can Morris traversal cause problems if the tree is accessed concurrently?</dt>
+            <dd>Yes. Another operation accessing the same tree during traversal could observe its temporarily modified pointers.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation — Which Approach Should You Use?</h2>
+        <div class="mb-6 grid gap-4 md:grid-cols-3">
+          <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Approach 1: HashSet</h3>
+            <p class="mb-2 text-sm font-semibold text-indigo-200">Beginner friendly</p>
+            <p class="text-slate-300">Easy to understand and implement. Good for learning the basic problem-solving logic.</p>
+          </div>
+          <div class="rounded-xl border border-indigo-800 bg-indigo-950/40 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Approach 2: Two stacks</h3>
+            <p class="mb-2 text-sm font-semibold text-indigo-200">Best for interviews</p>
+            <p class="text-slate-300">Clean implementation, efficient traversal, and easy to explain. This should be the default solution.</p>
+          </div>
+          <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+            <h3 class="mb-2 font-semibold text-slate-100">Approach 3: Morris inorder</h3>
+            <p class="mb-2 text-sm font-semibold text-indigo-200">Advanced — \(O(1)\) space</p>
+            <p class="text-slate-300">The iterator version is reusable; the helper-method version keeps traversal state on <code>Solution</code> but repeats traversal logic.</p>
+          </div>
+        </div>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Final complexity comparison</h3>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table class="min-w-[34rem] text-sm">
+            <thead class="bg-slate-900 text-slate-100">
+              <tr><th scope="col">Metric</th><th scope="col">Two stacks</th><th scope="col">Morris with iterator</th><th scope="col">Morris without iterator</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700 text-slate-300">
+              <tr><td>Time</td><td>\(O(N+M)\)</td><td>\(O(N+M)\)</td><td>\(O(N+M)\)</td></tr>
+              <tr><td>Space</td><td>\(O(H_1+H_2)\)</td><td>\(O(1)\)</td><td>\(O(1)\)</td></tr>
+              <tr><td>Recursion</td><td>No</td><td>No</td><td>No</td></tr>
+              <tr><td>Tree modification</td><td>No</td><td>Temporary</td><td>Temporary</td></tr>
+              <tr><td>Implementation</td><td>Easier</td><td>Reusable design</td><td>Traversal logic is repeated</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 text-slate-300">
+          Learn Morris traversal after the two-stack approach. The iterator version is easier to understand conceptually because
+          <code>next()</code> clearly represents getting the next smallest node, and the iterator can be reused in other BST problems.
+          The no-iterator version keeps everything in <code>Solution</code> but repeats traversal logic. Under interview pressure,
+          the two-stack solution is generally easier to implement correctly.
+        </p>
+        <p class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-5 text-center text-lg font-semibold text-indigo-100">
+          Two BSTs + Common Elements = Two Inorder Traversals + Two Pointers.
+          <span class="mt-2 block text-base font-normal text-indigo-200">If constant extra space is required, think of Morris inorder traversal.</span>
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
