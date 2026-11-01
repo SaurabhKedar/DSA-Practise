@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <title>Distance Between Nodes in a BST — Java</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at top, rgba(79, 70, 229, 0.12), transparent 42rem),
+        #0f172a;
+    }
+
+    .content-card {
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+    }
+
+    .section-heading {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    pre {
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    code, pre {
+      font-variant-ligatures: none;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-4 py-8 leading-relaxed text-slate-200 antialiased sm:px-6 sm:py-12">
+  <main class="content-card mx-auto max-w-5xl rounded-2xl px-5 py-8 sm:px-9 sm:py-10 lg:px-12">
+    <header class="mb-10 border-b border-slate-700/70 pb-8">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-300">Binary Search Trees · Lowest Common Ancestor</p>
+      <h1 class="mb-3 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Distance Between Nodes in a BST</h1>
+      <p class="mb-5 text-lg text-slate-300">
+        Find the minimum number of edges between two values in a Binary Search Tree. The key idea is to find their
+        Lowest Common Ancestor (LCA), then add the distance from the LCA to each target.
+      </p>
+      <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-4 text-indigo-200">
+        <strong class="text-indigo-100">Pattern to remember:</strong>
+        \(\operatorname{Distance}(B,C)=\operatorname{Distance}(\operatorname{LCA},B)+\operatorname{Distance}(\operatorname{LCA},C)\).
+        Count edges, not nodes.
+      </div>
+    </header>
+
+    <div class="space-y-12">
+      <section id="problem-understanding">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+        <p class="mb-4">You are given:</p>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li><code class="text-indigo-300">A</code>: the root of a Binary Search Tree.</li>
+          <li><code class="text-indigo-300">B</code>: the first node value.</li>
+          <li><code class="text-indigo-300">C</code>: the second node value.</li>
+        </ul>
+        <p class="mb-4">
+          Return the minimum number of edges required to travel from node <code class="text-indigo-300">B</code> to node
+          <code class="text-indigo-300">C</code>. Both values are guaranteed to exist.
+        </p>
+        <p class="mb-3 text-slate-300">Remember the BST property:</p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>The left subtree contains smaller values.</li>
+          <li>The right subtree contains greater values.</li>
+        </ul>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 1</h3>
+        <pre class="mb-3 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        5
+       / \
+      2   8
+     / \ / \
+    1  4 6  11
+
+B = 2
+C = 11</code></pre>
+        <p class="mb-2 text-slate-300">Path from <code>2</code> to <code>11</code>:</p>
+        <pre class="mb-3 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>2 -> 5 -> 8 -> 11</code></pre>
+        <p class="mb-5 text-slate-300">The path has 3 edges, so the output is <code class="text-indigo-300">3</code>.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 2</h3>
+        <pre class="mb-3 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        6
+       / \
+      2   9
+     / \ / \
+    1  4 7  10
+
+B = 2
+C = 6</code></pre>
+        <p class="text-slate-300">The path is <code>2 -> 6</code>, which has 1 edge, so the output is <code class="text-indigo-300">1</code>.</p>
+
+        <h3 class="mb-3 mt-6 text-lg font-semibold text-slate-100">Why the LCA matters</h3>
+        <p class="mb-3 text-slate-300">The path between two nodes in a tree always passes through their Lowest Common Ancestor.</p>
+        <pre class="mb-3 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>        5  &lt;- LCA
+       / \
+      2   8
+           \
+            11</code></pre>
+        <p class="text-slate-300">
+          For <code>B = 2</code> and <code>C = 11</code>, the LCA is <code>5</code>. The distance from the LCA to
+          <code>B</code> is 1 edge, and the distance from the LCA to <code>C</code> is 2 edges. The total is
+          <code class="text-indigo-300">1 + 2 = 3</code>.
+        </p>
+      </section>
+
+      <section id="brute-force-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">2. Brute-Force Approach — Find Both Paths</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Intuition</h3>
+        <p class="mb-4">
+          We can solve this without using the BST property. Find the complete path from the root to each target, then
+          compare the paths to find their last common node.
+        </p>
+        <p class="mb-3 text-slate-300">For the first example:</p>
+        <pre class="mb-4 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>Path to B = 2:  [5, 2]
+Path to C = 11: [5, 8, 11]
+Common path:    [5]</code></pre>
+        <p class="mb-3 text-slate-300">A parent map and BFS can find paths and distances without relying on BST ordering.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+
+public class Solution {
+
+    public int solve(TreeNode A, int B, int C) {
+        // Store the parent of every visited node so we can walk upward later.
+        Map&lt;TreeNode, TreeNode&gt; parent = new HashMap&lt;&gt;();
+
+        // BFS visits the tree and populates the parent relationships.
+        Queue&lt;TreeNode&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(A);
+        parent.put(A, null);
+
+        TreeNode nodeB = null;
+        TreeNode nodeC = null;
+
+        while (!queue.isEmpty()) {
+            TreeNode curr = queue.poll();
+
+            if (curr.val == B) {
+                nodeB = curr;
+            }
+
+            if (curr.val == C) {
+                nodeC = curr;
+            }
+
+            if (curr.left != null) {
+                parent.put(curr.left, curr);
+                queue.offer(curr.left);
+            }
+
+            if (curr.right != null) {
+                parent.put(curr.right, curr);
+                queue.offer(curr.right);
+            }
+        }
+
+        // Record each ancestor of B and its distance from B.
+        Map&lt;TreeNode, Integer&gt; ancestors = new HashMap&lt;&gt;();
+        int distance = 0;
+        TreeNode curr = nodeB;
+
+        while (curr != null) {
+            ancestors.put(curr, distance);
+            distance++;
+            curr = parent.get(curr);
+        }
+
+        // Walk upward from C until reaching an ancestor of B.
+        distance = 0;
+        curr = nodeC;
+
+        while (!ancestors.containsKey(curr)) {
+            distance++;
+            curr = parent.get(curr);
+        }
+
+        // Add the distance from B to the common ancestor to the distance from C.
+        return ancestors.get(curr) + distance;
+    }
+}</code></pre>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+        <p class="mb-3 text-slate-300">For <code>B = 2</code> and <code>C = 11</code> in the example tree:</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Ancestor of B</th><th>Distance from B</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>2</td><td>0</td></tr>
+              <tr><td>5</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 mt-4 text-slate-300">Starting at C and moving upward:</p>
+        <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Node</th><th>Distance from C</th><th>Common ancestor?</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>11</td><td>0</td><td>No</td></tr>
+              <tr><td>8</td><td>1</td><td>No</td></tr>
+              <tr><td>5</td><td>2</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 text-slate-300">The common ancestor is <code>5</code>, so the distance is <code class="text-indigo-300">1 + 2 = 3</code>.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity and limitation</h3>
+        <ul class="mb-4 list-inside list-disc space-y-2 text-slate-300">
+          <li>Time: <code>O(N)</code>, because BFS may visit every node and ancestor traversal takes at most <code>O(N)</code>.</li>
+          <li>Space: <code>O(N)</code> for the parent map, ancestor map, and BFS queue.</li>
+        </ul>
+        <p class="text-slate-300">This visits the entire tree even though the BST property lets us avoid unnecessary traversal.</p>
+      </section>
+
+      <section id="optimized-approach">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — BST + LCA</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Step 1: Find the LCA</h3>
+        <p class="mb-4">
+          Starting at the root, compare both target values with the current node:
+        </p>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>If both values are smaller, move left.</li>
+          <li>If both values are greater, move right.</li>
+          <li>Otherwise, the values are on different sides or one equals the current value; the current node is the LCA.</li>
+        </ul>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Step 2: Find each distance</h3>
+        <p class="mb-4">
+          From the LCA, search for <code>B</code> using BST rules and count each edge traversed. Repeat for
+          <code>C</code>, then add the two distances.
+        </p>
+        <pre class="mb-5 rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>Answer = distance(LCA, B) + distance(LCA, C)</code></pre>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Optimized Java solution</h3>
+        <p class="mb-3 text-slate-300">
+          This implementation is iterative. That matters for a highly skewed tree, where recursive traversal could
+          cause a stack overflow.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>public class Solution {
+
+    public int solve(TreeNode A, int B, int C) {
+        // Step 1: Find the Lowest Common Ancestor using the BST property.
+        TreeNode lca = A;
+
+        while (lca != null) {
+            // Both targets are smaller, so their paths are in the left subtree.
+            if (B &lt; lca.val &amp;&amp; C &lt; lca.val) {
+                lca = lca.left;
+            }
+            // Both targets are greater, so their paths are in the right subtree.
+            else if (B &gt; lca.val &amp;&amp; C &gt; lca.val) {
+                lca = lca.right;
+            }
+            // They split across the current node, or one target is the current node.
+            else {
+                break;
+            }
+        }
+
+        // Step 2: Find the distance from the LCA to each target.
+        int distanceB = findDistance(lca, B);
+        int distanceC = findDistance(lca, C);
+
+        // Step 3: The path between the targets passes through the LCA.
+        return distanceB + distanceC;
+    }
+
+    // Counts the edges on the BST search path from root to target.
+    private int findDistance(TreeNode root, int target) {
+        int distance = 0;
+
+        while (root.val != target) {
+            // Follow the only subtree that can contain the target.
+            if (target &lt; root.val) {
+                root = root.left;
+            } else {
+                root = root.right;
+            }
+
+            // Every move to a child traverses one edge.
+            distance++;
+        }
+
+        return distance;
+    }
+}</code></pre>
+        <p class="mt-4 text-sm text-slate-400">
+          The solution assumes the root is non-null and both target values exist, as guaranteed by the problem statement.
+        </p>
+      </section>
+
+      <section id="optimized-dry-run">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+        <p class="mb-4 text-slate-300">Use the first example, with <code>B = 2</code> and <code>C = 11</code>.</p>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Part A: Find the LCA</h3>
+        <p class="mb-3 text-slate-300">Start with <code>lca = 5</code>. The targets are not both smaller and not both greater, so the search stops: <code>LCA = 5</code>.</p>
+
+        <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Part B: Distance from LCA to B</h3>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Current node</th><th>Comparison</th><th>Movement</th><th>Distance</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>5</td><td>2 &lt; 5</td><td>Left to 2</td><td>1</td></tr>
+              <tr><td>2</td><td>2 = 2</td><td>Stop</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Part C: Distance from LCA to C</h3>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Current node</th><th>Comparison</th><th>Movement</th><th>Distance</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>5</td><td>11 &gt; 5</td><td>Right to 8</td><td>1</td></tr>
+              <tr><td>8</td><td>11 &gt; 8</td><td>Right to 11</td><td>2</td></tr>
+              <tr><td>11</td><td>11 = 11</td><td>Stop</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Part D: Add the distances</h3>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>Answer = distanceB + distanceC
+       = 1 + 2
+       = 3</code></pre>
+      </section>
+
+      <section id="complexity">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+        <p class="mb-4 text-slate-300">Let <code>N</code> be the number of nodes and <code>H</code> be the height of the BST.</p>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Approach</th><th>Time Complexity</th><th>Auxiliary Space</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Brute force (BFS + HashMaps)</td><td><code>O(N)</code></td><td><code>O(N)</code></td></tr>
+              <tr><td>Optimized (BST + LCA)</td><td><code>O(H)</code></td><td><code>O(1)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-4 text-slate-300">
+          The optimized method performs three traversals: find the LCA, find the distance to <code>B</code>, and find
+          the distance to <code>C</code>. Each takes at most <code>O(H)</code>, so the total is
+          \(O(H)+O(H)+O(H)=O(3H)=O(H)\).
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>BST structure</th><th>Height</th><th>Time</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Balanced BST</td><td><code>O(log N)</code></td><td><code>O(log N)</code></td></tr>
+              <tr><td>Skewed BST</td><td><code>O(N)</code></td><td><code>O(N)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-slate-300">
+          The optimized solution uses <code>O(1)</code> auxiliary space: it uses only pointers and integer variables,
+          with no recursion, stack, or additional data structure.
+        </p>
+      </section>
+
+      <section id="edge-cases">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">6. Edge Cases</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Scenario</th><th>Example</th><th>Expected distance</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Both nodes are the same</td><td><code>B = 5, C = 5</code></td><td>0</td></tr>
+              <tr><td>One node is the root</td><td><code>B = 5, C = 11</code></td><td>2</td></tr>
+              <tr><td>One node is an ancestor of the other</td><td><code>B = 2, C = 4</code></td><td>1</td></tr>
+              <tr><td>Nodes are siblings</td><td><code>B = 2, C = 8</code></td><td>2</td></tr>
+              <tr><td>Nodes are on opposite sides</td><td><code>B = 1, C = 11</code></td><td>4</td></tr>
+              <tr><td>Left-skewed BST</td><td><code>5 -> 4 -> 3 -> 2</code></td><td>Depends on the nodes</td></tr>
+              <tr><td>Right-skewed BST</td><td><code>1 -> 2 -> 3 -> 4</code></td><td>Depends on the nodes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 mt-4 text-slate-300">
+          The LCA search's final <code>else</code> handles two cases: the targets lie on opposite sides of the current
+          node, or one target is itself the LCA. Do not forget the second case.
+        </p>
+        <pre class="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>else {
+    break;
+}</code></pre>
+      </section>
+
+      <section id="similar-problems">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">7. Similar Problems on LeetCode</h2>
+        <p class="mb-4 text-slate-300">These problems help strengthen understanding of LCA and tree distance:</p>
+        <ol class="mb-4 list-inside list-decimal space-y-4 text-slate-300">
+          <li>
+            <a class="font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/" target="_blank" rel="noopener noreferrer">235. Lowest Common Ancestor of a Binary Search Tree</a>
+            <ul class="ml-5 mt-2 list-inside list-disc space-y-1">
+              <li>Difficulty: Medium.</li>
+              <li>Directly related; practice finding the LCA using the BST property.</li>
+            </ul>
+          </li>
+          <li>
+            <a class="font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/find-distance-in-a-binary-tree/" target="_blank" rel="noopener noreferrer">1740. Find Distance in a Binary Tree</a>
+            <ul class="ml-5 mt-2 list-inside list-disc space-y-1">
+              <li>Difficulty: Medium.</li>
+              <li>Similar problem in a general binary tree; BST ordering cannot be used to find the LCA.</li>
+            </ul>
+          </li>
+          <li>
+            <a class="font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank" rel="noopener noreferrer">236. Lowest Common Ancestor of a Binary Tree</a>
+            <ul class="ml-5 mt-2 list-inside list-disc space-y-1">
+              <li>Difficulty: Medium.</li>
+              <li>Find the LCA in a normal binary tree using tree traversal rather than BST comparisons.</li>
+            </ul>
+          </li>
+          <li>
+            <a class="font-medium text-indigo-300 underline decoration-indigo-500 underline-offset-4 hover:text-indigo-200" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-ii/" target="_blank" rel="noopener noreferrer">1644. Lowest Common Ancestor of a Binary Tree II</a>
+            <ul class="ml-5 mt-2 list-inside list-disc space-y-1">
+              <li>Difficulty: Medium.</li>
+              <li>Similar to LCA in a general binary tree, but one or both target nodes may not exist; node existence must be verified.</li>
+            </ul>
+          </li>
+        </ol>
+        <p class="text-slate-300">The first three problems are particularly useful for mastering this pattern.</p>
+      </section>
+
+      <section id="interview-notes">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">8. Interview Preparation Notes</h2>
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concepts to remember</h3>
+        <ul class="mb-5 list-inside list-disc space-y-2 text-slate-300">
+          <li>Binary Search Tree property.</li>
+          <li>Lowest Common Ancestor (LCA).</li>
+          <li>Finding distance between two nodes.</li>
+          <li>Iterative tree traversal.</li>
+        </ul>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Common interview mistakes</h3>
+        <ol class="mb-5 list-inside list-decimal space-y-4 text-slate-300">
+          <li>
+            <strong class="text-slate-100">Counting nodes instead of edges.</strong>
+            <p class="ml-5 mt-1">For <code>2 -> 5 -> 8 -> 11</code>, there are 4 nodes but only 3 edges. Count movements, not nodes.</p>
+          </li>
+          <li>
+            <strong class="text-slate-100">Finding the LCA without using BST properties.</strong>
+            <p class="ml-5 mt-1">A normal binary tree needs a different LCA approach. Here, BST ordering makes the search more efficient.</p>
+          </li>
+          <li>
+            <strong class="text-slate-100">Forgetting when one target is the LCA.</strong>
+            <p class="ml-5 mt-1">For a tree with root <code>5</code> and left child <code>2</code>, the LCA of <code>B = 5</code> and <code>C = 2</code> is <code>5</code>.</p>
+          </li>
+          <li>
+            <strong class="text-slate-100">Using recursion unnecessarily.</strong>
+            <p class="ml-5 mt-1">With up to 1,000,000 nodes, a skewed tree can cause <code>StackOverflowError</code>. The iterative implementation avoids this.</p>
+          </li>
+        </ol>
+
+        <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+        <dl class="space-y-4 text-slate-300">
+          <div>
+            <dt class="font-semibold text-slate-100">What is the Lowest Common Ancestor?</dt>
+            <dd>The lowest node in a tree that is an ancestor of both given nodes. A node can be its own ancestor.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">What if the tree is not a BST?</dt>
+            <dd>Value comparisons cannot determine which subtree contains a target. Use a general binary-tree LCA algorithm, typically with DFS.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Can this be solved in O(log N)?</dt>
+            <dd>Yes, if the BST is balanced, its height is O(log N). The solution takes O(H), which becomes O(log N) for a balanced BST.</dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-100">Why is the auxiliary space O(1)?</dt>
+            <dd>The iterative traversal uses a constant number of pointers and variables, with no additional data structure or recursion stack.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="final-recommendation">
+        <h2 class="section-heading mb-4 pb-2 text-2xl font-bold text-slate-100">9. Final Recommendation</h2>
+        <p class="mb-4 text-slate-300">For interviews, implement the optimized BST + LCA approach because:</p>
+        <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+          <li>It uses the BST property to find the LCA without traversing unnecessary subtrees.</li>
+          <li>It calculates both distances using simple BST searches.</li>
+          <li>It requires <code>O(1)</code> auxiliary space.</li>
+          <li>Its iterative implementation avoids recursion stack overflow for highly skewed trees.</li>
+        </ol>
+        <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+          <table>
+            <thead>
+              <tr><th>Complexity</th><th>Result</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Time</td><td><code>O(H)</code></td></tr>
+              <tr><td>Auxiliary space</td><td><code>O(1)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb-3 text-slate-300">For a balanced BST, the time is <code>O(log N)</code>. For a skewed BST, it is <code>O(N)</code>.</p>
+        <div class="rounded-xl border border-indigo-800 bg-indigo-950/70 p-5 text-indigo-100">
+          <h3 class="mb-2 text-lg font-semibold">Remember this intuition</h3>
+          <p class="mb-2">The entire problem reduces to one formula:</p>
+          <p class="text-lg font-semibold">\[\boxed{\operatorname{Distance}(B,C)=\operatorname{Distance}(\operatorname{LCA},B)+\operatorname{Distance}(\operatorname{LCA},C)}\]</p>
+          <p class="mt-3 text-indigo-200">Interview pattern: BST traversal + Lowest Common Ancestor + distance calculation.</p>
+        </div>
+        <p class="mt-5 text-slate-300">
+          This technique is reusable for many BST and binary-tree interview questions involving the LCA and path distance.
+        </p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
