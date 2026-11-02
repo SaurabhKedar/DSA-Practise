@@ -92,6 +92,43 @@
                         <li>Set the last node's <code>next</code> to <code>null</code>.</li>
                         <li>Add the current node's children to the queue.</li>
                     </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.LinkedList;
+import java.util.Queue;
+
+public class Solution {
+    public void connect(TreeLinkNode root) {
+        if (root == null) {
+            return;
+        }
+
+        Queue&lt;TreeLinkNode&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(root);
+
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            TreeLinkNode previous = null;
+
+            for (int i = 0; i &lt; levelSize; i++) {
+                TreeLinkNode current = queue.poll();
+
+                if (previous != null) {
+                    previous.next = current;
+                }
+                previous = current;
+
+                if (current.left != null) {
+                    queue.offer(current.left);
+                }
+                if (current.right != null) {
+                    queue.offer(current.right);
+                }
+            }
+
+            previous.next = null;
+        }
+    }
+}</code></pre>
                     <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity</h3>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
@@ -109,7 +146,7 @@
                 <section id="optimized-approach">
                     <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized approach — Constant extra space</h2>
                     <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
-                    <p class="mb-4">Because the tree is perfect, every parent has both a left and a right child. This gives us two simple connection rules.</p>
+                    <p class="mb-4">For a perfect tree, every parent has both a left and a right child, giving us two simple connection rules. The dummy-pointer solution below also works when the tree is not perfect.</p>
                     <div class="grid gap-4 md:grid-cols-2">
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
                             <h4 class="mb-2 font-semibold text-slate-100">Rule 1: Connect siblings</h4>
@@ -184,6 +221,72 @@ public class Solution {
                         <h3 class="mb-2 font-semibold">Why don't we explicitly set the last node's <code>next</code> to <code>null</code>?</h3>
                         <p>Initially, every <code>next</code> pointer is <code>null</code>. The algorithm assigns a <code>next</code> pointer to a node only when its right neighbor exists. Therefore, the rightmost node on each level remains connected to <code>null</code>.</p>
                     </div>
+
+                    <h3 class="mb-3 mt-8 text-xl font-semibold text-slate-100">Alternative optimized solution — Dummy pointer approach</h3>
+                    <p class="mb-3 text-slate-300">Use a dummy node to build the next level's linked list while traversing the current level through its <code>next</code> pointers. This handles missing children and still uses \(O(1)\) auxiliary space.</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+    public void connect(TreeLinkNode root) {
+        if (root == null) {
+            return;
+        }
+
+        // The root is the only node on the first level.
+        root.next = null;
+
+        // dummy.next will be the first node on the next level.
+        TreeLinkNode dummy = new TreeLinkNode(-1);
+        TreeLinkNode tail = dummy;
+        TreeLinkNode current = root;
+
+        while (current != null) {
+            // Append existing children in left-to-right order.
+            if (current.left != null) {
+                tail.next = current.left;
+                tail = tail.next;
+            }
+            if (current.right != null) {
+                tail.next = current.right;
+                tail = tail.next;
+            }
+
+            // Continue across the current level.
+            current = current.next;
+
+            if (current == null) {
+                // Terminate the newly built level, then move down to it.
+                tail.next = null;
+                current = dummy.next;
+                dummy.next = null;
+                tail = dummy;
+            }
+        }
+    }
+}</code></pre>
+                    <h4 class="mb-2 text-lg font-semibold text-slate-100">Dummy-pointer dry run</h4>
+                    <p class="mb-3 text-slate-300">For this non-perfect tree, process each level from left to right and append any children to the list behind <code>dummy</code>.</p>
+                    <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-center text-slate-200"><code>    1
+   / \
+  2   3
+   \ /
+   5 6</code></pre>
+                    <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[36rem] border-collapse text-left">
+                            <caption class="sr-only">Dummy-pointer approach dry run by level</caption>
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Current level</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Children appended after dummy</th>
+                                    <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Next level</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
+                                <tr><td class="px-4 py-3"><code>1</code></td><td class="px-4 py-3"><code>2 → 3 → null</code></td><td class="px-4 py-3"><code>2</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>2 → 3</code></td><td class="px-4 py-3"><code>5 → 6 → null</code></td><td class="px-4 py-3"><code>5</code></td></tr>
+                                <tr><td class="px-4 py-3"><code>5 → 6</code></td><td class="px-4 py-3"><code>none</code></td><td class="px-4 py-3"><code>null</code> — finished</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-slate-300">For example, while scanning <code>2 → 3</code>, node <code>2</code> contributes its right child <code>5</code>, then node <code>3</code> contributes its left child <code>6</code>. The dummy list becomes <code>5 → 6 → null</code>, so the next traversal starts at <code>5</code>.</p>
                 </section>
 
                 <section id="dry-run">
@@ -241,7 +344,7 @@ public class Solution {
                     <p class="mb-4">Let \(N\) be the number of nodes and \(H\) the height of the tree.</p>
                     <div class="overflow-x-auto rounded-xl border border-slate-700">
                         <table class="w-full min-w-[32rem] border-collapse text-left">
-                            <caption class="sr-only">Time and auxiliary-space complexities of the two approaches</caption>
+                            <caption class="sr-only">Time and auxiliary-space complexities of the three approaches</caption>
                             <thead class="bg-slate-900 text-slate-100">
                                 <tr>
                                     <th scope="col" class="border-b border-slate-700 px-4 py-3 font-semibold">Approach</th>
@@ -251,7 +354,8 @@ public class Solution {
                             </thead>
                             <tbody class="divide-y divide-slate-700 bg-slate-800 text-slate-300">
                                 <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">BFS using a queue</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(N)\)</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">Optimized <code>next</code> pointers</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">Perfect-tree <code>next</code> pointers</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-200">Dummy-pointer level traversal</th><td class="px-4 py-3">\(O(N)\)</td><td class="px-4 py-3">\(O(1)\)</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -262,7 +366,7 @@ public class Solution {
                         </div>
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
                             <h3 class="mb-2 font-semibold text-slate-100">Why is auxiliary space \(O(1)\)?</h3>
-                            <p class="text-slate-300">We use only two references, <code>levelStart</code> and <code>current</code>, regardless of the number of nodes. We don't allocate a queue, stack, or recursive call stack.</p>
+                            <p class="text-slate-300">Both optimized implementations use only a fixed number of node references. They don't allocate a queue, stack, or recursive call stack.</p>
                         </div>
                     </div>
                 </section>
@@ -297,13 +401,13 @@ public class Solution {
                         <li>Connecting <code>current.right.next</code> to <code>current.next</code> instead of <code>current.next.left</code>.</li>
                         <li>Forgetting the <code>current.next != null</code> condition.</li>
                         <li>Using the queue-based approach when the interviewer specifically asks for constant extra space.</li>
-                        <li>Assuming this exact implementation works for arbitrary binary trees. It relies on the perfect-tree guarantee.</li>
+                        <li>Assuming the sibling/cross-parent implementation works for arbitrary binary trees. It relies on the perfect-tree guarantee; use the dummy-pointer implementation for trees with missing children.</li>
                     </ul>
                     <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely follow-up questions</h3>
                     <div class="space-y-4">
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
                             <h4 class="mb-2 font-semibold text-slate-100">Q1. Can this solution handle an imperfect binary tree?</h4>
-                            <p class="text-slate-300">Not in its current form. Missing children can break the direct left/right connections. A different constant-space approach can handle arbitrary trees, as in LeetCode 117.</p>
+                            <p class="text-slate-300">The sibling/cross-parent implementation relies on every parent having two children. The dummy-pointer level traversal handles missing children in constant extra space and also works for LeetCode 117.</p>
                         </div>
                         <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
                             <h4 class="mb-2 font-semibold text-slate-100">Q2. Why do we process levels from top to bottom?</h4>

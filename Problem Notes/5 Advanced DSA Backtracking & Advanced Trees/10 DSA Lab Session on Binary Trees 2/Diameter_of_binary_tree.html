@@ -83,24 +83,24 @@
 
                 <section id="brute-force">
                     <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach</h2>
-                    <p class="mb-3">At every node, calculate the height of its left and right subtrees. Their sum gives the length in edges of the path passing through that node. Then compare it with the best diameter inside either subtree.</p>
+                    <p class="mb-3">At every node, calculate the height of its left and right subtrees. Add <code>2</code> to their sum to get the length in edges of the path passing through that node. Then compare it with the best diameter inside either subtree.</p>
                     <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
                         <li>Find the height of the left subtree.</li>
                         <li>Find the height of the right subtree.</li>
-                        <li>Calculate <code>leftHeight + rightHeight</code>.</li>
+                        <li>Calculate <code>leftHeight + rightHeight + 2</code>.</li>
                         <li>Repeat for every node and keep the maximum.</li>
                     </ol>
-                    <p class="mb-4">In this implementation, <code>height()</code> counts nodes and returns <code>0</code> for a null node. A leaf therefore has height <code>1</code>; the sum of its child heights still counts the path through a node in edges.</p>
+                    <p class="mb-4">Here, <code>height()</code> counts edges: a null subtree has height <code>-1</code>, so a leaf has height <code>0</code>. Add <code>2</code> to the two child heights to count the edges from each child branch through the current node.</p>
                     <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — brute force</h3>
                     <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>/**
  * Brute-force approach: O(N^2) worst-case time.
  */
 public class Solution {
 
-    // Returns the subtree height measured in nodes.
+    // Returns the subtree height measured in edges.
     private int height(TreeNode node) {
         if (node == null) {
-            return 0;
+            return -1;
         }
 
         return 1 + Math.max(height(node.left), height(node.right));
@@ -115,8 +115,8 @@ public class Solution {
         int leftHeight = height(node.left);
         int rightHeight = height(node.right);
 
-        // The child heights count the edges on each side of this node.
-        int throughNode = leftHeight + rightHeight;
+        // Add the two edges connecting this node to its child branches.
+        int throughNode = leftHeight + rightHeight + 2;
 
         // Also consider paths contained entirely in either subtree.
         int leftDiameter = diameter(node.left);
@@ -138,16 +138,16 @@ public class Solution {
                     <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Postorder DFS</h2>
                     <p class="mb-4">At each node, calculate the left and right subtree heights once, then use their sum to update the maximum diameter.</p>
                     <div class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4 text-center text-lg">
-                        \[\text{diameter through node}=\text{left height}+\text{right height}\]
+                        \[\text{diameter through node}=\text{left height}+\text{right height}+2\]
                     </div>
-                    <p class="mb-4 text-slate-300">The helper returns subtree height in nodes (with null height <code>0</code>). These child heights represent the numbers of edges extending from the current node down each branch, so their sum is the number of edges on the path through it.</p>
+                    <p class="mb-4 text-slate-300">The helper returns subtree height in edges: a null subtree has height <code>-1</code>, and a leaf has height <code>0</code>. Add <code>2</code> to the child heights to include the edges from the current node to each child branch.</p>
 
                     <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
                     <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
                         <li>Initialize <code>maxDiameter = 0</code>.</li>
                         <li>Recursively calculate the left subtree height.</li>
                         <li>Recursively calculate the right subtree height.</li>
-                        <li>Update <code>maxDiameter</code> with <code>leftHeight + rightHeight</code>.</li>
+                        <li>Update <code>maxDiameter</code> with <code>leftHeight + rightHeight + 2</code>.</li>
                         <li>Return <code>1 + max(leftHeight, rightHeight)</code> as the current subtree height.</li>
                         <li>Return <code>maxDiameter</code> from <code>solve()</code>.</li>
                     </ol>
@@ -174,12 +174,12 @@ public class Solution {
     // Stores the maximum diameter found anywhere in the tree.
     private int maxDiameter;
 
-    // Returns the height of a subtree, measured in nodes.
+    // Returns the height of a subtree, measured in edges.
     private int height(TreeNode node) {
 
-        // An empty subtree has height 0.
+        // An empty subtree has height -1, making a leaf's height 0.
         if (node == null) {
-            return 0;
+            return -1;
         }
 
         // Calculate child heights before processing this node.
@@ -187,7 +187,7 @@ public class Solution {
         int rightHeight = height(node.right);
 
         // The path through this node contains this many edges.
-        int diameterThroughNode = leftHeight + rightHeight;
+        int diameterThroughNode = leftHeight + rightHeight + 2;
 
         // Keep the largest diameter found so far.
         maxDiameter = Math.max(maxDiameter, diameterThroughNode);
@@ -210,7 +210,7 @@ public class Solution {
                         <li><code>rightHeight</code>: height of the right subtree.</li>
                         <li><code>diameterThroughNode</code>: longest path that passes through the current node.</li>
                         <li><code>maxDiameter</code>: maximum path length found anywhere in the tree.</li>
-                        <li><code>1 + Math.max(...)</code>: height of the current subtree, including the current node.</li>
+                        <li><code>1 + Math.max(...)</code>: edge height of the current subtree; a leaf has height <code>0</code>.</li>
                     </ul>
                     <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
                         <strong class="text-indigo-100">Important distinction:</strong>
@@ -240,20 +240,20 @@ public class Solution {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700">
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">4</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">5</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">2</th><td class="px-4 py-3">1</td><td class="px-4 py-3">1</td><td class="px-4 py-3">2</td><td class="px-4 py-3">2</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">3</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">1</td></tr>
-                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">1</th><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td><td class="px-4 py-3">3</td><td class="px-4 py-3">3</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">4</th><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">5</th><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">2</th><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td><td class="px-4 py-3">2</td><td class="px-4 py-3">1</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">3</th><td class="px-4 py-3">-1</td><td class="px-4 py-3">-1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">0</td></tr>
+                                <tr><th scope="row" class="px-4 py-3 font-medium text-slate-100">1</th><td class="px-4 py-3">1</td><td class="px-4 py-3">0</td><td class="px-4 py-3">3</td><td class="px-4 py-3">2</td></tr>
                             </tbody>
                         </table>
                     </div>
                     <ol class="mb-4 list-inside list-decimal space-y-2 text-slate-300">
-                        <li>Node 4: Both children are null. Its height is <code>1 + max(0, 0) = 1</code>, and its diameter through the node is <code>0</code>.</li>
-                        <li>Node 5: Similarly, its height is <code>1</code>, and its diameter through the node is <code>0</code>.</li>
-                        <li>Node 2: Both child heights are <code>1</code>. Its diameter is <code>1 + 1 = 2</code> edges along <code>4 → 2 → 5</code>.</li>
-                        <li>Node 3: It is a leaf, so its height is <code>1</code>.</li>
-                        <li>Node 1: Its left subtree height is <code>2</code> and right subtree height is <code>1</code>. Its diameter through the node is <code>2 + 1 = 3</code>.</li>
+                        <li>Node 4: Both children are null, with height <code>-1</code>. Its height is <code>1 + max(-1, -1) = 0</code>, and its diameter through the node is <code>-1 + -1 + 2 = 0</code>.</li>
+                        <li>Node 5: Similarly, its height is <code>0</code>, and its diameter through the node is <code>0</code>.</li>
+                        <li>Node 2: Both child heights are <code>0</code>. Its diameter is <code>0 + 0 + 2 = 2</code> edges along <code>4 → 2 → 5</code>, and its height is <code>1</code>.</li>
+                        <li>Node 3: It is a leaf, so its height is <code>0</code>.</li>
+                        <li>Node 1: Its left subtree height is <code>1</code> and right subtree height is <code>0</code>. Its diameter through the node is <code>1 + 0 + 2 = 3</code>, and its height is <code>2</code>.</li>
                     </ol>
                     <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
                         <strong class="text-indigo-100">Final result:</strong>
@@ -309,7 +309,7 @@ public class Solution {
                             </tbody>
                         </table>
                     </div>
-                    <p class="mt-4 text-slate-300">The solution handles these cases because <code>maxDiameter</code> starts at zero, null subtrees return height zero, and the diameter is updated at every node.</p>
+                    <p class="mt-4 text-slate-300">The solution handles these cases because <code>maxDiameter</code> starts at zero, null subtrees return height <code>-1</code> (so a leaf has height <code>0</code>), and the diameter is updated at every node.</p>
                 </section>
 
                 <section id="similar-problems">
