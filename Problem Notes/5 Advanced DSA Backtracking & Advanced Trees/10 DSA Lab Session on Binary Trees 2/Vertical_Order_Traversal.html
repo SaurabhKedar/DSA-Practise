@@ -123,11 +123,11 @@ public class Solution {
             return Integer.compare(a.depth, b.depth);
         });
 
-        int previousHD = Integer.MIN_VALUE;
+        int previousHD = 0;
 
         for (NodeInfo node : nodes) {
-            // Start a new column when horizontal distance changes.
-            if (node.hd != previousHD) {
+            // Start the first column or a new column when horizontal distance changes.
+            if (result.isEmpty() || node.hd != previousHD) {
                 result.add(new ArrayList&lt;&gt;());
                 previousHD = node.hd;
             }
@@ -189,11 +189,11 @@ public class Solution {
 public class Solution {
 
     // Stores a tree node along with its horizontal distance.
-    static class Pair {
+    static class NodeInfo {
         TreeNode node;
         int hd;
 
-        Pair(TreeNode node, int hd) {
+        NodeInfo(TreeNode node, int hd) {
             this.node = node;
             this.hd = hd;
         }
@@ -212,20 +212,22 @@ public class Solution {
         HashMap&lt;Integer, ArrayList&lt;Integer&gt;&gt; columns = new HashMap&lt;&gt;();
 
         // BFS queue stores both the node and its horizontal distance.
-        Queue&lt;Pair&gt; queue = new LinkedList&lt;&gt;();
-        queue.offer(new Pair(A, 0));
+        Queue&lt;NodeInfo&gt; queue = new LinkedList&lt;&gt;();
+        queue.offer(new NodeInfo(A, 0));
 
         int minHD = 0;
         int maxHD = 0;
 
         while (!queue.isEmpty()) {
 
-            Pair current = queue.poll();
+            NodeInfo current = queue.poll();
             TreeNode node = current.node;
             int hd = current.hd;
 
             // Create a column if this horizontal distance is new.
-            columns.putIfAbsent(hd, new ArrayList&lt;&gt;());
+            if (!columns.containsKey(hd)) {
+                columns.put(hd, new ArrayList&lt;&gt;());
+            }
 
             // BFS guarantees shallower nodes are processed first.
             columns.get(hd).add(node.val);
@@ -236,12 +238,12 @@ public class Solution {
 
             // Left child belongs to the previous column.
             if (node.left != null) {
-                queue.offer(new Pair(node.left, hd - 1));
+                queue.offer(new NodeInfo(node.left, hd - 1));
             }
 
             // Right child belongs to the next column.
             if (node.right != null) {
-                queue.offer(new Pair(node.right, hd + 1));
+                queue.offer(new NodeInfo(node.right, hd + 1));
             }
         }
 
