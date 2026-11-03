@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0f172a">
+    <title>Identical Binary Trees — Java Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        pre { tab-size: 4; }
+        a {
+            color: #a5b4fc;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: #c7d2fe; }
+        :focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 leading-relaxed antialiased">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        <article class="rounded-2xl border border-slate-700 bg-slate-800 p-5 shadow-2xl sm:p-8 lg:p-10">
+            <header class="mb-8 border-b border-slate-700 pb-6">
+                <span class="inline-block rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">Java Algorithm Guide</span>
+                <h1 class="mb-3 mt-4 text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Identical Binary Trees</h1>
+                <p class="mb-4 text-lg text-slate-300">
+                    This fundamental binary-tree problem uses recursion and tree traversal.
+                    The recommended interview approach is recursive DFS: compare the trees node by node,
+                    checking both values and structure at the same time.
+                </p>
+                <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                    <strong class="text-indigo-100">Pattern to remember:</strong>
+                    Two trees are identical when corresponding nodes match in value and their corresponding left and right subtrees are identical.
+                </div>
+            </header>
+
+            <main class="space-y-12">
+                <section id="problem-understanding">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">1. Problem Understanding</h2>
+                    <p class="mb-3">We are given the roots of two binary trees, <code>A</code> and <code>B</code>, and need to determine whether they are exactly identical.</p>
+                    <p class="mb-2">Two trees are identical when:</p>
+                    <ol class="mb-4 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>They have the same structure.</li>
+                        <li>Corresponding nodes have the same values.</li>
+                        <li>Their left subtrees are identical.</li>
+                        <li>Their right subtrees are identical.</li>
+                    </ol>
+                    <p class="mb-4">Return <code>1</code> when the trees are identical and <code>0</code> otherwise.</p>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 1 — identical trees</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>Tree A:       Tree B:
+
+    1             1
+   / \           / \
+  2   3         2   3</code></pre>
+                            <p class="mt-3 text-slate-300">Output: <code>1</code>. Both trees have the same structure and corresponding values.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-3 font-semibold text-slate-100">Example 2 — different values</h3>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>Tree A:       Tree B:
+
+    1             1
+   / \           / \
+  2   3         3   3</code></pre>
+                            <p class="mt-3 text-slate-300">Output: <code>0</code>. The left child values differ: <code>2</code> and <code>3</code>.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="serialization">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">2. Brute Force Approach — Store Traversals</h2>
+                    <p class="mb-4">Traverse both trees in preorder and store the results, including a marker for every null child. Null markers are necessary because preorder values alone cannot distinguish every tree shape.</p>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Why include null markers?</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>Tree 1:       Tree 2:
+
+    1             1
+   /               \
+  2                 2</code></pre>
+                        <p class="mt-3 text-slate-300">Both have preorder values <code>[1, 2]</code>, but their structures differ. A special null marker preserves the shape.</p>
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — preorder serialization</h3>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    public int isSameTree(TreeNode A, TreeNode B) {
+        List&lt;Integer&gt; listA = new ArrayList&lt;&gt;();
+        List&lt;Integer&gt; listB = new ArrayList&lt;&gt;();
+
+        // Serialize both trees in preorder, preserving null children.
+        preorder(A, listA);
+        preorder(B, listB);
+
+        // Equal serializations imply equal values and structure.
+        return listA.equals(listB) ? 1 : 0;
+    }
+
+    private void preorder(TreeNode root, List&lt;Integer&gt; list) {
+        if (root == null) {
+            list.add(null);
+            return;
+        }
+
+        list.add(root.val);
+        preorder(root.left, list);
+        preorder(root.right, list);
+    }
+}</code></pre>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+                    <p class="mb-3">For two identical trees with root <code>1</code> and children <code>2</code> and <code>3</code>, the serialization steps match:</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[32rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Traversal step</th><th scope="col" class="p-3">Tree A</th><th scope="col" class="p-3">Tree B</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Root</td><td class="p-3">1</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">Left child</td><td class="p-3">2</td><td class="p-3">2</td></tr>
+                                <tr><td class="p-3">Left and right of 2</td><td class="p-3">null, null</td><td class="p-3">null, null</td></tr>
+                                <tr><td class="p-3">Right child</td><td class="p-3">3</td><td class="p-3">3</td></tr>
+                                <tr><td class="p-3">Left and right of 3</td><td class="p-3">null, null</td><td class="p-3">null, null</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-3">The lists are identical, so the result is <code>1</code>.</p>
+                    <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Complexity and limitation</h3>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>Time: \(O(N + M)\), where \(N\) and \(M\) are the numbers of nodes in the two trees.</li>
+                        <li>Space: \(O(N + M)\) to store both traversals, including null markers.</li>
+                        <li>This uses extra memory. We can compare the trees directly without storing the traversals.</li>
+                    </ul>
+                </section>
+
+                <section id="recursive-dfs">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">3. Optimized Approach — Recursive DFS</h2>
+                    <p class="mb-4">Compare corresponding nodes simultaneously instead of traversing and storing each tree separately.</p>
+                    <div class="mb-5 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-3 font-semibold text-slate-100">Intuition</h3>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-slate-200"><code>Tree A:       Tree B:
+
+    1             1
+   / \           / \
+  2   3         2   3</code></pre>
+                        <ol class="mt-4 list-inside list-decimal space-y-1 text-slate-300">
+                            <li>Compare the roots.</li>
+                            <li>Compare the left child of A with the left child of B.</li>
+                            <li>Compare the right child of A with the right child of B.</li>
+                            <li>Continue recursively for each corresponding pair.</li>
+                        </ol>
+                    </div>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Three important conditions</h3>
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Both nodes are null</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (A == null &amp;&amp; B == null)
+    return 1;</code></pre>
+                            <p class="mt-3 text-slate-300">The corresponding branches match at this position.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Only one node is null</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (A == null || B == null)
+    return 0;</code></pre>
+                            <p class="mt-3 text-slate-300">One tree has a node where the other does not, so their structures differ.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Both nodes exist</h4>
+                            <pre class="overflow-x-auto rounded-lg bg-slate-950 p-3 text-sm text-slate-200"><code>if (A.val != B.val)
+    return 0;</code></pre>
+                            <p class="mt-3 text-slate-300">Different values make the trees non-identical. Otherwise, compare both subtrees.</p>
+                        </div>
+                    </div>
+                    <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Algorithm</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>Start with the roots of both trees.</li>
+                        <li>If both are null, return <code>1</code>.</li>
+                        <li>If only one is null, return <code>0</code>.</li>
+                        <li>If their values differ, return <code>0</code>.</li>
+                        <li>Recursively compare their left children and right children.</li>
+                        <li>Return <code>1</code> only when both subtree comparisons return <code>1</code>.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code — interview solution</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>public class Solution {
+
+    public int isSameTree(TreeNode A, TreeNode B) {
+        // Case 1: Both nodes are null, so these branches match.
+        if (A == null &amp;&amp; B == null) {
+            return 1;
+        }
+
+        // Case 2: Only one node is null, so the structures differ.
+        if (A == null || B == null) {
+            return 0;
+        }
+
+        // Case 3: Both nodes exist, but their values must match.
+        if (A.val != B.val) {
+            return 0;
+        }
+
+        // Compare corresponding left and right subtrees.
+        int left = isSameTree(A.left, B.left);
+        int right = isSameTree(A.right, B.right);
+
+        // Both subtree comparisons must succeed.
+        return (left == 1 &amp;&amp; right == 1) ? 1 : 0;
+    }
+}</code></pre>
+                    <h3 class="mb-3 mt-5 text-lg font-semibold text-slate-100">Understanding the return statement</h3>
+                    <pre class="mb-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>return (left == 1 &amp;&amp; right == 1) ? 1 : 0;</code></pre>
+                    <ul class="list-inside list-disc space-y-1 text-slate-300">
+                        <li>If both left and right subtrees are identical, return <code>1</code>.</li>
+                        <li>Otherwise, return <code>0</code>.</li>
+                        <li>We use <code>&amp;&amp;</code> because both sides must match.</li>
+                    </ul>
+                    <p class="mt-4 text-slate-300">One could also use bitwise <code>&amp;</code> on the integer-returning recursive calls; that evaluates both calls. The explicit version using <code>&amp;&amp;</code> on boolean conditions is easier to understand.</p>
+                </section>
+
+                <section id="recursive-dry-run">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">4. Dry Run of the Optimized Solution</h2>
+                    <p class="mb-4">Consider two identical trees with root <code>1</code>, left child <code>2</code>, and right child <code>3</code>. We start by calling <code>isSameTree(A, B)</code>.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Step</th><th scope="col" class="p-3">A.val</th><th scope="col" class="p-3">B.val</th><th scope="col" class="p-3">Comparison</th><th scope="col" class="p-3">Result</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">1</td><td class="p-3">1</td><td class="p-3">1</td><td class="p-3">Values equal</td><td class="p-3">Continue</td></tr>
+                                <tr><td class="p-3">2</td><td class="p-3">2</td><td class="p-3">2</td><td class="p-3">Values equal</td><td class="p-3">Continue</td></tr>
+                                <tr><td class="p-3">3</td><td class="p-3">null</td><td class="p-3">null</td><td class="p-3">Both null</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">4</td><td class="p-3">null</td><td class="p-3">null</td><td class="p-3">Both null</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">5</td><td class="p-3">3</td><td class="p-3">3</td><td class="p-3">Values equal</td><td class="p-3">Continue</td></tr>
+                                <tr><td class="p-3">6</td><td class="p-3">null</td><td class="p-3">null</td><td class="p-3">Both null</td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">7</td><td class="p-3">null</td><td class="p-3">null</td><td class="p-3">Both null</td><td class="p-3">1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mb-3 mt-4">The recursion structure is:</p>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-slate-200"><code>                  (1, 1)
+                 /      \
+              (2, 2)    (3, 3)
+              /   \      /   \
+            null null  null  null</code></pre>
+                    <p class="mb-3 mt-4">For nodes <code>2</code> and <code>3</code>, both child comparisons return <code>1</code>, so each returns <code>1</code>. The root also gets <code>left = 1</code> and <code>right = 1</code>, producing final output <code>1</code>.</p>
+                    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                        <h3 class="mb-2 font-semibold text-slate-100">When values differ</h3>
+                        <p class="text-slate-300">For the second example, the roots match (<code>1 == 1</code>), but the left children do not (<code>2 != 3</code>). The algorithm immediately returns <code>0</code>; it does not need to check the remaining subtrees.</p>
+                    </div>
+                </section>
+
+                <section id="complexity">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">5. Complexity Analysis</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[34rem] text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Approach</th><th scope="col" class="p-3">Time complexity</th><th scope="col" class="p-3">Auxiliary space</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Brute force (serialization)</td><td class="p-3">\(O(N + M)\)</td><td class="p-3">\(O(N + M)\)</td></tr>
+                                <tr><td class="p-3">Recursive DFS</td><td class="p-3">\(O(\min(N, M))\) for an early mismatch; \(O(N + M)\) worst case</td><td class="p-3">\(O(H)\) recursion stack</td></tr>
+                                <tr><td class="p-3">Iterative DFS</td><td class="p-3">\(O(N + M)\) worst case</td><td class="p-3">Stack of node pairs; \(O(N + M)\) is a loose worst-case bound</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="mb-4 mt-4 list-inside list-disc space-y-1 text-slate-300">
+                        <li><code>N</code> and <code>M</code> are the numbers of nodes in Tree A and Tree B.</li>
+                        <li><code>H</code> is the maximum recursion depth.</li>
+                        <li>When both trees are identical, every corresponding node is visited. If both have \(N\) nodes, the time is \(O(N)\).</li>
+                        <li>Recursive space is \(O(\log N)\) for a balanced tree and \(O(N)\) for a skewed tree.</li>
+                    </ul>
+                    <div class="rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">Constraint consideration:</strong>
+                        The problem permits up to \(10^5\) nodes. A highly skewed tree can cause Java recursion stack overflow, so an iterative DFS is useful when robustness against deep trees matters.
+                    </div>
+                </section>
+
+                <section id="iterative-dfs">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">6. Iterative Optimized Approach — Using a Stack</h2>
+                    <p class="mb-4">Avoid recursion by maintaining pairs of corresponding nodes in an explicit stack.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">For each pair</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-1 text-slate-300">
+                        <li>If both nodes are null, continue.</li>
+                        <li>If only one is null, return <code>0</code>.</li>
+                        <li>If their values differ, return <code>0</code>.</li>
+                        <li>Push their left children as a pair, and their right children as a pair.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+                    <pre class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>import java.util.Stack;
+
+public class Solution {
+
+    static class NodePair {
+        TreeNode first;
+        TreeNode second;
+
+        NodePair(TreeNode first, TreeNode second) {
+            this.first = first;
+            this.second = second;
+        }
+    }
+
+    public int isSameTree(TreeNode A, TreeNode B) {
+        Stack&lt;NodePair&gt; stack = new Stack&lt;&gt;();
+
+        // Begin by comparing the two roots.
+        stack.push(new NodePair(A, B));
+
+        while (!stack.isEmpty()) {
+            NodePair pair = stack.pop();
+            TreeNode first = pair.first;
+            TreeNode second = pair.second;
+
+            // Matching null branches need no further processing.
+            if (first == null &amp;&amp; second == null) {
+                continue;
+            }
+
+            // A node on only one side means the structures differ.
+            if (first == null || second == null) {
+                return 0;
+            }
+
+            // Corresponding values must be equal.
+            if (first.val != second.val) {
+                return 0;
+            }
+
+            // Add corresponding children so both sides are checked.
+            stack.push(new NodePair(first.left, second.left));
+            stack.push(new NodePair(first.right, second.right));
+        }
+
+        // Every corresponding pair matched.
+        return 1;
+    }
+}</code></pre>
+                    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time</h3>
+                            <p>\(O(N + M)\) in the worst case.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Auxiliary space</h3>
+                            <p>The stack stores pending node pairs; the iterative approach avoids recursion stack overflow.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="edge-cases">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">7. Edge Cases</h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[42rem] text-left text-sm">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Test case</th><th scope="col" class="p-3">Tree A</th><th scope="col" class="p-3">Tree B</th><th scope="col" class="p-3">Output</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3">Both trees identical</td><td class="p-3"><code>1,2,3</code></td><td class="p-3"><code>1,2,3</code></td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">Different root values</td><td class="p-3"><code>1,2,3</code></td><td class="p-3"><code>4,2,3</code></td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">Different left values</td><td class="p-3"><code>1,2,3</code></td><td class="p-3"><code>1,4,3</code></td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">Different right values</td><td class="p-3"><code>1,2,3</code></td><td class="p-3"><code>1,2,4</code></td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">Different structures</td><td class="p-3"><code>1,2,null</code></td><td class="p-3"><code>1,null,2</code></td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">Single-node identical</td><td class="p-3"><code>5</code></td><td class="p-3"><code>5</code></td><td class="p-3">1</td></tr>
+                                <tr><td class="p-3">Single-node different</td><td class="p-3"><code>5</code></td><td class="p-3"><code>6</code></td><td class="p-3">0</td></tr>
+                                <tr><td class="p-3">Both empty</td><td class="p-3"><code>null</code></td><td class="p-3"><code>null</code></td><td class="p-3">1</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-slate-300">The given platform specifies at least one node, but handling null roots is still important for understanding the algorithm.</p>
+                </section>
+
+                <section id="similar-problems">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">8. Similar Problems on LeetCode</h2>
+                    <p class="mb-4">These problems reinforce the same tree-recursion concepts.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full min-w-[38rem] text-left">
+                            <thead class="bg-slate-900 text-slate-100">
+                                <tr><th scope="col" class="p-3">Problem</th><th scope="col" class="p-3">Difficulty</th><th scope="col" class="p-3">What you learn</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-slate-300">
+                                <tr><td class="p-3"><a href="https://leetcode.com/problems/same-tree/description/">100. Same Tree</a></td><td class="p-3">Easy</td><td class="p-3">Exactly the same problem; practice DFS and BFS.</td></tr>
+                                <tr><td class="p-3"><a href="https://leetcode.doocs.org/en/lc/572/">572. Subtree of Another Tree</a></td><td class="p-3">Easy</td><td class="p-3">Check whether one tree exists inside another.</td></tr>
+                                <tr><td class="p-3"><a href="https://leetcode.doocs.org/en/lc/101/">101. Symmetric Tree</a></td><td class="p-3">Easy</td><td class="p-3">Compare two subtrees in mirror order.</td></tr>
+                                <tr><td class="p-3"><a href="https://leetcode.com/problems/flip-equivalent-binary-trees/">951. Flip Equivalent Binary Trees</a></td><td class="p-3">Medium</td><td class="p-3">Compare trees while allowing left-right swaps.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="interview-notes">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">9. Interview Preparation Notes</h2>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Key concept to remember</h3>
+                    <p class="mb-3">Recursive DFS compares two trees simultaneously. Remember these three conditions:</p>
+                    <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200"><code>// Both null means this branch matches.
+if (A == null &amp;&amp; B == null)
+    return 1;
+
+// One null means the structures differ.
+if (A == null || B == null)
+    return 0;
+
+// Different values mean the trees differ.
+if (A.val != B.val)
+    return 0;</code></pre>
+                    <p class="mb-5">If none of these conditions fails, compare the left and right subtrees.</p>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Common interview mistakes</h3>
+                    <ol class="mb-5 list-inside list-decimal space-y-2 text-slate-300">
+                        <li>Checking only node values: trees can have the same values but different structures.</li>
+                        <li>Ignoring null conditions: null checks are essential to verify structure.</li>
+                        <li>Using OR instead of AND: both left and right subtrees must match.</li>
+                        <li>Comparing left with right: identical trees compare left with left and right with right.</li>
+                        <li>Ignoring recursion depth: a skewed tree with 100,000 nodes can cause stack overflow.</li>
+                    </ol>
+                    <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interviewer follow-up questions</h3>
+                    <div class="space-y-4">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Can we solve this using BFS?</h4>
+                            <p class="text-slate-300">Yes. Use a queue containing pairs of corresponding nodes. Apply the same three checks and enqueue the corresponding children.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Why do we need to check null nodes?</h4>
+                            <p class="text-slate-300">Null nodes help verify structural equality. Without them, differently shaped trees might incorrectly appear identical.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">What is the difference between identical and symmetric trees?</h4>
+                            <ul class="list-inside list-disc space-y-1 text-slate-300">
+                                <li>Identical: compare left with left and right with right.</li>
+                                <li>Symmetric: compare left with right and right with left.</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h4 class="mb-2 font-semibold text-slate-100">Can we solve this without recursion?</h4>
+                            <p class="text-slate-300">Yes. Use an explicit stack or queue to compare corresponding node pairs iteratively.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="final-recommendation">
+                    <h2 class="mb-4 border-b border-slate-700 pb-2 text-2xl font-bold text-slate-100">10. Final Recommendation</h2>
+                    <p class="mb-4">For interviews, understand and implement the recursive DFS solution first. It is the simplest and most readable approach. Since the constraint allows up to 100,000 nodes, also remember the iterative stack solution.</p>
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Time complexity</h3>
+                            <p>\(O(N)\) when both trees have \(N\) nodes and are identical.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Recursive auxiliary space</h3>
+                            <p>\(O(H)\)</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+                            <h3 class="mb-1 font-semibold text-slate-100">Pattern</h3>
+                            <p>Recursive DFS</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 rounded-xl border border-indigo-800 bg-indigo-950 p-4 text-indigo-200">
+                        <strong class="text-indigo-100">One-line intuition:</strong>
+                        Two trees are identical if their current nodes match in value and their corresponding left and right subtrees are also identical.
+                    </div>
+                    <p class="mt-4 text-slate-300">Practice <a href="https://leetcode.com/problems/same-tree/description/">LeetCode 100 (Same Tree)</a> and <a href="https://leetcode.doocs.org/en/lc/101/">101 (Symmetric Tree)</a> next to strengthen your understanding of comparing binary trees recursively.</p>
+                </section>
+            </main>
+        </article>
+    </div>
+</body>
+</html>
