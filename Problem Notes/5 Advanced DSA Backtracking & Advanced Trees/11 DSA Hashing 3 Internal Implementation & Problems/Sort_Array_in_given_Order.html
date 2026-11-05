@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Sort Array in Given Order — Java Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        pre, code, .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        a {
+            text-decoration: underline;
+            text-decoration-color: #6366f1;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: #c7d2fe;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-200 antialiased leading-relaxed">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <header class="mb-8 rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl shadow-black/20 sm:p-8">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wider text-indigo-300">Data structures · Java</p>
+        <h1 class="mb-4 text-3xl font-extrabold tracking-tight text-slate-50 sm:text-4xl">Sort Array in Given Order</h1>
+        <p class="mb-6 max-w-3xl text-lg text-slate-300">
+            Recommended pattern: <span class="font-semibold text-indigo-200">HashMap / Frequency Counting + Custom Ordering + Sorting</span>.
+            This relative-sorting problem rearranges one array according to the priority order defined by another.
+        </p>
+        <p class="rounded-xl border border-indigo-400/30 bg-indigo-950/50 p-4 text-indigo-100">
+            Elements in <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">B</code> are unique, while
+            <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">A</code> may contain duplicates.
+            Values from <code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">B</code> come first in its order;
+            all other values follow in ascending order.
+        </p>
+    </header>
+
+    <main class="space-y-10 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-xl shadow-black/20 sm:p-8 lg:p-10">
+        <section id="problem-understanding">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">1. Problem understanding</h2>
+            <p class="mb-4 text-slate-300">We are given two integer arrays:</p>
+            <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+                <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">A</code>: the array to rearrange.</li>
+                <li><code class="rounded bg-slate-800 px-1.5 py-0.5 text-indigo-200">B</code>: defines the priority order for values found in <code>B</code>.</li>
+            </ul>
+            <ol class="mb-6 list-decimal space-y-2 pl-6 text-slate-300">
+                <li>If a value exists in <code>B</code>, place its occurrences according to its position in <code>B</code>.</li>
+                <li>Place values absent from <code>B</code> at the end in ascending order.</li>
+            </ol>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 1</h3>
+            <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>A = [1, 2, 3, 4, 5, 4]
+B = [5, 4, 2]</code></pre>
+            <p class="mb-3 text-slate-300">The priorities are <code>5</code>, then <code>4</code>, then <code>2</code>. Their frequencies in <code>A</code> are:</p>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[20rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Element</th><th scope="col" class="p-3 font-semibold">Frequency in A</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono text-indigo-200">5</td><td class="p-3">1</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">4</td><td class="p-3">2</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">2</td><td class="p-3">1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-3 text-slate-300">The prioritized portion is <code>[5, 4, 4, 2]</code>. The remaining values <code>1</code> and <code>3</code> are already in ascending order.</p>
+            <pre class="mb-6 overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-sm text-indigo-100"><code>Final result = [5, 4, 4, 2, 1, 3]</code></pre>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Example 2</h3>
+            <pre class="mb-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>A = [5, 17, 100, 11]
+B = [1, 100]</code></pre>
+            <p class="mb-3 text-slate-300"><code>1</code> does not occur in <code>A</code>; <code>100</code> does. The remaining values <code>5</code>, <code>11</code>, and <code>17</code> are sorted ascending.</p>
+            <pre class="overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-sm text-indigo-100"><code>Final result = [100, 5, 11, 17]</code></pre>
+        </section>
+
+        <section id="brute-force">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">2. Brute-force approach</h2>
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+            <p class="mb-4 text-slate-300">Process every value in <code>B</code> and search for its occurrences in <code>A</code>. A <code>visited</code> array tracks which positions in <code>A</code> have already been placed.</p>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+            <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+                <li>Create an empty result array and a boolean <code>visited</code> array of the same size as <code>A</code>.</li>
+                <li>For each value in <code>B</code>, scan all of <code>A</code>.</li>
+                <li>When an unvisited matching value is found, add it to the result and mark its position visited.</li>
+                <li>Collect all unvisited values, sort them ascending, and append them to the result.</li>
+            </ol>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+            <pre class="mb-6 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;Integer&gt; solve(
+        ArrayList&lt;Integer&gt; A,
+        ArrayList&lt;Integer&gt; B
+    ) {
+
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+        int n = A.size();
+
+        // Track which positions in A have already been added.
+        boolean[] visited = new boolean[n];
+
+        // Follow B's priority order and find every matching occurrence.
+        for (int i = 0; i &lt; B.size(); i++) {
+            int target = B.get(i);
+
+            // Scan A to preserve every duplicate occurrence.
+            for (int j = 0; j &lt; n; j++) {
+                if (!visited[j] &amp;&amp; A.get(j) == target) {
+                    result.add(A.get(j));
+                    visited[j] = true;
+                }
+            }
+        }
+
+        // Gather values that do not appear in B.
+        ArrayList&lt;Integer&gt; remaining = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) {
+            if (!visited[i]) {
+                remaining.add(A.get(i));
+            }
+        }
+
+        // The values outside B must be in ascending order.
+        Collections.sort(remaining);
+        result.addAll(remaining);
+        return result;
+    }
+}</code></pre>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Dry run</h3>
+            <p class="mb-3 text-slate-300">For <code>A = [1, 2, 3, 4, 5, 4]</code> and <code>B = [5, 4, 2]</code>:</p>
+            <pre class="mb-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>Initially:
+visited = [false, false, false, false, false, false]
+result  = []
+
+After processing 5:
+result  = [5]
+visited = [false, false, false, false, true, false]
+
+After processing both occurrences of 4 and then 2:
+result = [5, 4, 4, 2]
+
+Remaining values = [1, 3]
+Final result     = [5, 4, 4, 2, 1, 3]</code></pre>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Complexity analysis</h3>
+            <p class="mb-3 text-slate-300">Let <code>N</code> be the length of <code>A</code> and <code>M</code> the length of <code>B</code>.</p>
+            <ul class="mb-4 list-disc space-y-2 pl-6 text-slate-300">
+                <li>Scanning <code>A</code> once for every value in <code>B</code> takes <code>O(M × N)</code>.</li>
+                <li>Collecting leftovers takes <code>O(N)</code>; sorting them takes <code>O(N log N)</code>.</li>
+                <li>Overall time: \(O(M \times N + N\log N)\).</li>
+                <li>Visited, result, and remaining arrays use \(O(N)\) space.</li>
+            </ul>
+            <p class="rounded-xl border border-amber-400/30 bg-amber-950/30 p-4 text-amber-100">Limitation: when both arrays can contain up to 100,000 elements, repeatedly scanning <code>A</code> for every value in <code>B</code> is inefficient.</p>
+        </section>
+
+        <section id="frequency-map">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">3. Optimized approach — HashMap frequency counting</h2>
+            <p class="mb-4 rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-indigo-100"><strong>Recommended approach.</strong> Count each value once, emit values in <code>B</code>'s order, then sort the remaining distinct keys.</p>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Intuition</h3>
+            <p class="mb-3 text-slate-300">A frequency map stores how many times each value appears. For example:</p>
+            <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>A = [1, 2, 3, 4, 5, 4]
+frequency = {1=1, 2=1, 3=1, 4=2, 5=1}</code></pre>
+            <p class="mb-4 text-slate-300">Solve the problem in two phases: process values following <code>B</code>, then process the values that remain in ascending order.</p>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Algorithm</h3>
+            <ol class="mb-5 list-decimal space-y-2 pl-6 text-slate-300">
+                <li>Count the frequencies of all values in <code>A</code> with a <code>HashMap</code>.</li>
+                <li>Traverse <code>B</code>. For each key present in the map, append it according to its frequency and remove the key.</li>
+                <li>Sort the keys that remain in the map and append each according to its frequency.</li>
+                <li>Return the result.</li>
+            </ol>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+            <pre class="mb-6 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;Integer&gt; solve(
+        ArrayList&lt;Integer&gt; A,
+        ArrayList&lt;Integer&gt; B
+    ) {
+
+        // Store the frequency of every value in A.
+        HashMap&lt;Integer, Integer&gt; frequency = new HashMap&lt;&gt;();
+        for (int num : A) {
+            frequency.put(num, frequency.getOrDefault(num, 0) + 1);
+        }
+
+        ArrayList&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+
+        // Emit values in B's order, preserving each value's frequency.
+        for (int num : B) {
+            if (frequency.containsKey(num)) {
+                int count = frequency.get(num);
+
+                // Add every occurrence before removing this processed key.
+                for (int i = 0; i &lt; count; i++) {
+                    result.add(num);
+                }
+                frequency.remove(num);
+            }
+        }
+
+        // Only values absent from B remain in the frequency map.
+        ArrayList&lt;Integer&gt; remaining = new ArrayList&lt;&gt;(frequency.keySet());
+        Collections.sort(remaining);
+
+        // Append remaining values in ascending order, including duplicates.
+        for (int num : remaining) {
+            int count = frequency.get(num);
+            for (int i = 0; i &lt; count; i++) {
+                result.add(num);
+            }
+        }
+
+        return result;
+    }
+}</code></pre>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Understanding the important code</h3>
+            <div class="space-y-5 text-slate-300">
+                <div>
+                    <h4 class="mb-2 font-semibold text-slate-100">1. Counting frequencies</h4>
+                    <pre class="mb-2 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>frequency.put(num, frequency.getOrDefault(num, 0) + 1);</code></pre>
+                    <p><code>getOrDefault()</code> returns the current frequency if the key exists, or <code>0</code> otherwise; adding one updates the count. For <code>A = [4, 4, 5, 2, 4]</code>, the resulting map is <code>{4=3, 5=1, 2=1}</code>.</p>
+                </div>
+                <div>
+                    <h4 class="mb-2 font-semibold text-slate-100">2. Processing values from B</h4>
+                    <p class="mb-2">For <code>B = [5, 4, 2]</code>, emit <code>5</code> once, <code>4</code> twice, and <code>2</code> once to get <code>[5, 4, 4, 2]</code>. Removing each processed key makes the remaining map contain only values absent from <code>B</code>, preventing them from being emitted twice.</p>
+                </div>
+                <div>
+                    <h4 class="mb-2 font-semibold text-slate-100">3. Getting the remaining elements</h4>
+                    <pre class="mb-2 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>ArrayList&lt;Integer&gt; remaining = new ArrayList&lt;&gt;(frequency.keySet());
+Collections.sort(remaining);</code></pre>
+                    <p>A <code>HashMap</code> does not guarantee sorted key order, so sorting the extracted distinct keys is necessary.</p>
+                </div>
+                <div>
+                    <h4 class="mb-2 font-semibold text-slate-100">4. Adding remaining elements</h4>
+                    <p>For each remaining key, append it as many times as its stored frequency indicates.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="optimized-dry-run">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">4. Dry run of the optimized solution</h2>
+            <p class="mb-4 text-slate-300">Use <code>A = [1, 2, 3, 4, 5, 4]</code> and <code>B = [5, 4, 2]</code>.</p>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Step 1: Build the frequency map</h3>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[20rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Element</th><th scope="col" class="p-3 font-semibold">Frequency</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono">1</td><td class="p-3">1</td></tr>
+                    <tr><td class="p-3 font-mono">2</td><td class="p-3">1</td></tr>
+                    <tr><td class="p-3 font-mono">3</td><td class="p-3">1</td></tr>
+                    <tr><td class="p-3 font-mono">4</td><td class="p-3">2</td></tr>
+                    <tr><td class="p-3 font-mono">5</td><td class="p-3">1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre class="mb-6 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>frequency = {1=1, 2=1, 3=1, 4=2, 5=1}
+result = []</code></pre>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Step 2: Process B</h3>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[36rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Current value</th><th scope="col" class="p-3 font-semibold">Frequency</th><th scope="col" class="p-3 font-semibold">Action</th><th scope="col" class="p-3 font-semibold">Result</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono">5</td><td class="p-3">1</td><td class="p-3">Add 5 and remove key</td><td class="p-3 font-mono">[5]</td></tr>
+                    <tr><td class="p-3 font-mono">4</td><td class="p-3">2</td><td class="p-3">Add 4 twice and remove key</td><td class="p-3 font-mono">[5, 4, 4]</td></tr>
+                    <tr><td class="p-3 font-mono">2</td><td class="p-3">1</td><td class="p-3">Add 2 and remove key</td><td class="p-3 font-mono">[5, 4, 4, 2]</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-3 text-slate-300">After processing <code>B</code>, the map is <code>{1=1, 3=1}</code>. Extracting and sorting its keys gives <code>[1, 3]</code>.</p>
+            <pre class="overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-sm text-indigo-100"><code>Final result = [5, 4, 4, 2, 1, 3]</code></pre>
+        </section>
+
+        <section id="complexity">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">5. Complexity analysis</h2>
+            <p class="mb-4 text-slate-300">Let <code>N</code> be the length of <code>A</code>, <code>M</code> the length of <code>B</code>, and <code>K</code> the number of distinct keys remaining after processing <code>B</code>.</p>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[30rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Operation</th><th scope="col" class="p-3 font-semibold">Time complexity</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3">Build frequency map</td><td class="p-3 font-mono">O(N) average</td></tr>
+                    <tr><td class="p-3">Traverse B</td><td class="p-3 font-mono">O(M) average</td></tr>
+                    <tr><td class="p-3">Add all values to result</td><td class="p-3 font-mono">O(N)</td></tr>
+                    <tr><td class="p-3">Extract remaining keys</td><td class="p-3 font-mono">O(K)</td></tr>
+                    <tr><td class="p-3">Sort remaining keys</td><td class="p-3 font-mono">O(K log K)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-2 text-slate-300">Overall time complexity:</p>
+            <div class="mb-4 overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-center text-indigo-100">\[\boxed{O(N + M + K\log K)}\]</div>
+            <p class="mb-2 text-slate-300">Since <code>K</code> cannot exceed <code>N</code>, the worst case is:</p>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-center text-indigo-100">\[\boxed{O(N\log N + M)}\]</div>
+            <p class="mb-3 text-slate-300">The frequency map, remaining keys, and result each use up to <code>O(N)</code> space. Auxiliary space and output space are each <code>O(N)</code>.</p>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Can we optimize further?</h3>
+            <p class="text-slate-300">A <code>TreeMap</code> can keep keys in ascending order automatically, but its operations take <code>O(log N)</code> time. <code>HashMap</code> operations take <code>O(1)</code> on average, so HashMap plus sorting is generally preferable here.</p>
+        </section>
+
+        <section id="comparator">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">6. Another optimized approach — custom comparator</h2>
+            <p class="mb-4 text-slate-300">Build a map from each value in <code>B</code> to its position, then sort <code>A</code> with a comparator that uses these rules:</p>
+            <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+                <li>If both values occur in <code>B</code>, compare their positions in <code>B</code>.</li>
+                <li>If only one occurs in <code>B</code>, place that value first.</li>
+                <li>If neither occurs in <code>B</code>, compare their numeric values in ascending order.</li>
+            </ul>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Java code</h3>
+            <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm leading-6 text-slate-200"><code>import java.util.*;
+
+public class Solution {
+
+    public ArrayList&lt;Integer&gt; solve(
+        ArrayList&lt;Integer&gt; A,
+        ArrayList&lt;Integer&gt; B
+    ) {
+
+        // Record each prioritized value's position in B.
+        HashMap&lt;Integer, Integer&gt; position = new HashMap&lt;&gt;();
+        for (int i = 0; i &lt; B.size(); i++) {
+            position.put(B.get(i), i);
+        }
+
+        // Sort by B's priority, then by numeric value for non-prioritized values.
+        Collections.sort(A, (a, b) -&gt; {
+            boolean aPresent = position.containsKey(a);
+            boolean bPresent = position.containsKey(b);
+
+            // When both are prioritized, their B positions decide the order.
+            if (aPresent &amp;&amp; bPresent) {
+                return Integer.compare(position.get(a), position.get(b));
+            }
+
+            // Any value listed in B precedes a value not listed in B.
+            if (aPresent) return -1;
+            if (bPresent) return 1;
+
+            // Values absent from B are ordered numerically without subtraction.
+            return Integer.compare(a, b);
+        });
+
+        return A;
+    }
+}</code></pre>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Why does this work?</h3>
+            <p class="mb-3 text-slate-300">For <code>A = [1, 2, 3, 4, 5, 4]</code> and <code>B = [5, 4, 2]</code>, the comparator establishes that <code>5</code> comes before <code>4</code>, which comes before <code>2</code>, followed by the remaining values <code>1</code> and <code>3</code> in ascending order. Here, “comes before” does not mean numerically smaller.</p>
+            <pre class="mb-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-indigo-100"><code>[5, 4, 4, 2, 1, 3]</code></pre>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Complexity</h3>
+            <ul class="mb-5 list-disc space-y-2 pl-6 text-slate-300">
+                <li>Build the position map: <code>O(M)</code> average.</li>
+                <li>Sort <code>A</code>: <code>O(N log N)</code> comparisons, each with <code>O(1)</code> average HashMap lookup.</li>
+                <li>Overall: \(O(M + N\log N)\).</li>
+                <li>Map space: <code>O(M)</code>, excluding sorting implementation overhead.</li>
+            </ul>
+
+            <h3 class="mb-2 text-lg font-semibold text-slate-100">Which optimized approach should you choose?</h3>
+            <p class="mb-3 text-slate-300">The HashMap frequency-counting approach is recommended because it follows the problem directly, avoids sorting all <code>N</code> values, handles duplicates naturally, and is easy to explain in interviews. It is especially useful when <code>B</code> contains only a small subset of the distinct values in <code>A</code>. The comparator approach is also useful for demonstrating custom sorting.</p>
+        </section>
+
+        <section id="edge-cases">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">7. Edge cases</h2>
+            <div class="space-y-4">
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 1: B contains values that do not exist in A</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [3, 1, 2]
+B = [5, 4]
+Output = [1, 2, 3]</code></pre>
+                    <p class="mt-2 text-slate-300">Non-existing values from <code>B</code> are simply ignored.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 2: All values in A exist in B</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [4, 2, 4, 5]
+B = [5, 4, 2]
+Output = [5, 4, 4, 2]</code></pre>
+                    <p class="mt-2 text-slate-300">There are no remaining values to sort.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 3: No values in A exist in B</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [8, 3, 6, 1]
+B = [5, 4]
+Output = [1, 3, 6, 8]</code></pre>
+                    <p class="mt-2 text-slate-300">The entire array is sorted in ascending order.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 4: A contains duplicates</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [3, 3, 2, 2, 1]
+B = [2, 3]
+Output = [2, 2, 3, 3, 1]</code></pre>
+                    <p class="mt-2 text-slate-300">Frequency counting ensures that no occurrence is lost.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 5: Negative numbers</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [-5, 3, -2, 1, -5]
+B = [-2, -5]
+Output = [-2, -5, 1, 3]</code></pre>
+                    <p class="mt-2 text-slate-300"><code>HashMap</code> supports negative integer keys without special handling.</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/60 p-4">
+                    <h3 class="mb-2 font-semibold text-slate-100">Case 6: Single-element array</h3>
+                    <pre class="overflow-x-auto text-sm text-indigo-100"><code>A = [10]
+B = [10, 20]
+Output = [10]</code></pre>
+                    <p class="mt-2 text-slate-300">This also works correctly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="similar-problems">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">8. Similar problems on LeetCode</h2>
+            <ol class="space-y-5 text-slate-300">
+                <li>
+                    <h3 class="font-semibold text-slate-100">1122. Relative Sort Array <span class="ml-1 rounded bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-200">Easy</span></h3>
+                    <p class="mt-1"><a href="https://leetcode.com/problems/relative-sort-array/description/?envId=2024-06-11%2F&amp;envType=daily-question&amp;utm_source=chatgpt.com" class="text-indigo-300">Solve on LeetCode</a>. This is almost exactly the same problem; practice frequency counting and relative ordering.</p>
+                </li>
+                <li>
+                    <h3 class="font-semibold text-slate-100">791. Custom Sort String <span class="ml-1 rounded bg-amber-950 px-2 py-0.5 text-xs font-medium text-amber-200">Medium</span></h3>
+                    <p class="mt-1"><a href="https://leetcode.com/problems/custom-sort-string/?envId=facebook&amp;envType=company&amp;favoriteSlug=facebook-three-months&amp;utm_source=chatgpt.com" class="text-indigo-300">Solve on LeetCode</a>. Uses a custom ordering defined by another string; useful for understanding custom sorting and frequency counting.</p>
+                </li>
+                <li>
+                    <h3 class="font-semibold text-slate-100">1636. Sort Array by Increasing Frequency <span class="ml-1 rounded bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-200">Easy</span></h3>
+                    <p class="mt-1"><a href="https://leetcode.com/problems/sort-array-by-increasing-frequency/?utm_source=chatgpt.com" class="text-indigo-300">Solve on LeetCode</a>. Uses HashMap frequency counting and custom sorting rules.</p>
+                </li>
+            </ol>
+        </section>
+
+        <section id="interview-notes">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">9. Interview preparation notes</h2>
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Important concepts to remember</h3>
+            <div class="mb-6 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[28rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Concept</th><th scope="col" class="p-3 font-semibold">Why it is useful</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3 font-mono text-indigo-200">HashMap</td><td class="p-3">Store element frequencies</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">Frequency counting</td><td class="p-3">Handle duplicates efficiently</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">Custom ordering</td><td class="p-3">Follow the priority given by B</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">Sorting</td><td class="p-3">Arrange remaining elements</td></tr>
+                    <tr><td class="p-3 font-mono text-indigo-200">Comparator</td><td class="p-3">Define custom sorting rules</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Common mistakes</h3>
+            <ol class="mb-6 list-decimal space-y-2 pl-6 text-slate-300">
+                <li>Forgetting duplicates by adding an element only once instead of according to its frequency.</li>
+                <li>Ignoring elements absent from <code>B</code>; every element of <code>A</code> must appear in the result.</li>
+                <li>Not sorting the remaining elements; a <code>HashMap</code> does not guarantee ascending order.</li>
+                <li>Using subtraction in a comparator; avoid <code>a - b</code> because integer overflow is possible. Use <code>Integer.compare(a, b)</code>.</li>
+                <li>Not removing processed keys, which can add already-emitted values again while processing the remaining elements.</li>
+            </ol>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Likely interview follow-up questions</h3>
+            <div class="space-y-4">
+                <div><h4 class="font-semibold text-slate-100">Q1. Why use HashMap instead of HashSet?</h4><p class="text-slate-300">A <code>HashSet</code> stores only unique values. We need each value's count, so <code>HashMap</code> is more suitable.</p></div>
+                <div><h4 class="font-semibold text-slate-100">Q2. What if B contains duplicate values?</h4><p class="text-slate-300">The given constraints guarantee that <code>B</code> contains unique values. If duplicates were allowed, we would need to define how repeated priorities should be interpreted.</p></div>
+                <div><h4 class="font-semibold text-slate-100">Q3. Can we solve this using TreeMap?</h4><p class="text-slate-300">Yes. <code>TreeMap</code> maintains ascending key order, but insertion and lookup take <code>O(log N)</code>; <code>HashMap</code> operations take <code>O(1)</code> on average.</p></div>
+                <div><h4 class="font-semibold text-slate-100">Q4. Can we solve this using a custom comparator?</h4><p class="text-slate-300">Yes. Store each value's position in <code>B</code> using a <code>HashMap</code> and compare values by their positions. Values absent from <code>B</code> are compared numerically.</p></div>
+            </div>
+        </section>
+
+        <section id="comparison">
+            <h2 class="mb-5 border-b border-slate-700 pb-3 text-2xl font-bold text-slate-50">10. Final comparison and recommendation</h2>
+            <div class="mb-5 overflow-x-auto rounded-xl border border-slate-700">
+                <table class="w-full min-w-[36rem] text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-100">
+                    <tr><th scope="col" class="p-3 font-semibold">Approach</th><th scope="col" class="p-3 font-semibold">Time complexity</th><th scope="col" class="p-3 font-semibold">Auxiliary space</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                    <tr><td class="p-3">Brute force</td><td class="p-3 font-mono">O(M × N + N log N)</td><td class="p-3 font-mono">O(N)</td></tr>
+                    <tr><td class="p-3">HashMap frequency</td><td class="p-3 font-mono">O(N + M + K log K)</td><td class="p-3 font-mono">O(N)</td></tr>
+                    <tr><td class="p-3">Custom comparator</td><td class="p-3 font-mono">O(M + N log N)</td><td class="p-3 font-mono">O(M), excluding sorting overhead</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-5 text-slate-300"><code>K</code> is the number of distinct elements remaining after processing <code>B</code>.</p>
+            <p class="mb-5 rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-indigo-100"><strong>Interview recommendation:</strong> implement the HashMap frequency-counting approach. It is efficient, easy to understand, and directly uses the information provided by the problem.</p>
+
+            <h3 class="mb-3 text-lg font-semibold text-slate-100">Remember this intuition</h3>
+            <ol class="mb-4 list-decimal space-y-2 pl-6 text-slate-300">
+                <li><strong class="text-slate-100">Count:</strong> store the frequency of every value in <code>A</code> using <code>HashMap</code>.</li>
+                <li><strong class="text-slate-100">Prioritize:</strong> process values according to the order in <code>B</code>.</li>
+                <li><strong class="text-slate-100">Complete:</strong> sort the remaining keys and append their occurrences.</li>
+            </ol>
+            <pre class="overflow-x-auto rounded-xl border border-indigo-400/30 bg-indigo-950/40 p-4 text-center text-sm text-indigo-100"><code>HashMap → Process B → Sort Remaining → Final Answer</code></pre>
+            <p class="mt-4 text-slate-300">This is the core pattern to remember for relative-sorting problems.</p>
+        </section>
+    </main>
+</div>
+</body>
+</html>

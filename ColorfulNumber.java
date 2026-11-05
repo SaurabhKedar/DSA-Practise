@@ -1,29 +1,46 @@
+//Advanced DSA 3: Backtracking & Advanced Trees
+// Lecture 11 | DSA: Hashing 3: Internal Implementation & Problems
+
 import java.util.HashSet;
 
 public class ColorfulNumber {
-    static boolean isColorfulNumber(int A){
-        String s = String.valueOf(A);
-        int n = s.length();
-        HashSet<Integer> set = new HashSet<>();
+    static int colorful(int A) {
 
+        // Convert the number into a string so digit order is preserved.
+        String num = String.valueOf(A);
+        int n = num.length();
+
+        // Store products of consecutive digit sequences.
+        HashSet<Long> products = new HashSet<>();
+
+        // Choose each possible starting position.
         for (int i = 0; i < n; i++) {
-            int product = 1;
-            for (int j= i; j < n; j++){
-                int digit = s.charAt(j) - '0';
+            long product = 1;
+
+            // Extend the sequence one digit at a time.
+            for (int j = i; j < n; j++) {
+                // Convert the current character digit into an integer.
+                int digit = num.charAt(j) - '0';
+
+                // Reuse the prior product and include the new digit.
                 product *= digit;
 
-                if (set.contains(product)){
-                    return false;
+                // A repeated product means the number is not colorful.
+                if (products.contains(product)) {
+                    return 0;
                 }
 
-                set.add(product);
+                // Record this product for future duplicate checks.
+                products.add(product);
             }
         }
-        return true;
+
+        // Every consecutive sequence has a unique product.
+        return 1;
     }
 
     static void main() {
-        System.out.println(isColorfulNumber(63));
+        System.out.println(colorful(63));
 //        System.out.println((int)'9');
 //        System.out.println((int)'0');
     }
